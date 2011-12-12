@@ -7,7 +7,7 @@
 /* XXX these must be at top */
 #include "code16gcc.h"
 __asm__ ("jmpl  $0, $main\n");
- 
+//unsigned char stack[]={0x1,2,3,4};
  
 #define __NOINLINE  __attribute__((noinline))
 #define __REGPARM   __attribute__ ((regparm(3)))
@@ -22,7 +22,14 @@ void    __NOINLINE __REGPARM print(const char   *s){
 }
 /* and for everything else you can use C! Be it traversing the filesystem, or verifying the kernel image etc.*/
  
+// setup stack address to 0x7c00 - 0x200 = 0x7a00
+// %ss = 0x7a00, %esp = 0
 void __NORETURN main(){
+    __asm__ ("mov  %cs, %ax\n");
+    __asm__ ("mov  %ax, %ds\n");
+    __asm__ ("mov  $0x7a00, %ax\n");
+    __asm__ ("mov  %ax, %ss\n");
+    __asm__ ("mov  $0, %esp\n");
     print("woo hoo!\r\n:)");
     while(1);
 }
