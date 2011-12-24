@@ -27,7 +27,7 @@ void    __NOINLINE __REGPARM print(const char   *s){
 void __NORETURN main(){
     __asm__ ("mov  %cs, %ax\n");
     __asm__ ("mov  %ax, %ds\n");
-    __asm__ ("mov  $0x7a00, %ax\n");
+    __asm__ ("mov  $0x07a0, %ax\n");
     __asm__ ("mov  %ax, %ss\n");
     __asm__ ("mov  $0, %esp\n");
     print("woo hoo!\r\n:)");
