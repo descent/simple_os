@@ -11,5 +11,10 @@ vbr.elf: vbr.o
 vbr.o: vbr.c code16gcc.h
 	#gcc -g -Os -march=i686 -ffreestanding -Wall -Werror -I. -c $<
 	gcc -Os -march=i686 -ffreestanding -Wall -Werror -I. -c $<
+fat: fat.o
+	gcc -std=c99 -o $@ $<
+
+fat.o: fat.c
+	gcc -std=c99 -c $<
 clean:
 	rm -rf *.o
