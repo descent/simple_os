@@ -11,10 +11,16 @@ vbr.elf: vbr.o
 vbr.o: vbr.c code16gcc.h
 	#gcc -g -Os -march=i686 -ffreestanding -Wall -Werror -I. -c $<
 	gcc -Os -march=i686 -ffreestanding -Wall -Werror -I. -c $<
-fat: fat.o
-	gcc -std=c99 -o $@ $<
+#fat: fat.o
+#	gcc -std=c99 -Os -march=i686 -ffreestanding -Wall -Werror -I. -o $@ $<
+	#gcc -std=c99 -o $@ $<
 
+fat.com: fat.elf
+	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
+fat.elf: fat.o
+	$(LD) -o $@ -Tlinker_dos.ld $^
 fat.o: fat.c
-	gcc -std=c99 -c $<
+	gcc -std=c99 -Os -march=i686 -ffreestanding -Wall -Werror -I. -c $<
+	#gcc -std=c99 -c $<
 clean:
 	rm -rf *.o

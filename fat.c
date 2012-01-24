@@ -1,13 +1,72 @@
 // read fat floppy disk
 
+#define NOCLIB
+
+#ifndef NOCLIB
 #include <stdio.h>
 #include <string.h>
+#endif
+
+#define __NOINLINE  __attribute__((noinline))
+#define __REGPARM   __attribute__ ((regparm(3)))
+#define __PACKED    __attribute__((packed))
+#define __NORETURN  __attribute__((noreturn))
+
+/* XXX these must be at top */
+#include "code16gcc.h"
+//__asm__ ("jmpl  $0, $main\n");
+__asm__ ("jmp main\n");
 
 #define LEN 512
 
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
+
+typedef struct {
+        unsigned char   spt;
+        unsigned char   numh;
+}drive_params_t;
+ 
+int __REGPARM __NOINLINE get_drive_params(drive_params_t    *p, unsigned char   bios_drive){
+        unsigned short  failed = 0;
+        unsigned short  tmp1, tmp2;
+        __asm__ __volatile__
+            (
+             "movw  $0, %0\n"
+             "int   $0x13\n"
+             "setcb %0\n"
+             : "=m"(failed), "=c"(tmp1), "=d"(tmp2)
+             : "a"(0x0800), "d"(bios_drive), "D"(0)
+             : "cc", "bx"
+            );
+        if(failed)
+                return failed;
+        p->spt = tmp1 & 0x3F;
+        p->numh = tmp2 >> 8;
+        return failed;
+}
+ 
+int __REGPARM __NOINLINE lba_read(const void    *buffer, unsigned int   lba, unsigned char  blocks, unsigned char   bios_drive, drive_params_t  *p){
+        unsigned char   c, h, s;
+        c = lba / (p->numh * p->spt);
+        unsigned short  t = lba % (p->numh * p->spt);
+        h = t / p->spt;
+        s = (t % p->spt) + 1;
+        unsigned char   failed = 0;
+        unsigned char   num_blocks_transferred = 0;
+        __asm__ __volatile__
+            (
+             "movw  $0, %0\n"
+             "int   $0x13\n"
+             "setcb %0"
+             : "=m"(failed), "=a"(num_blocks_transferred)
+             : "a"(0x0200 | blocks), "c"((s << 8) | s), "d"((h << 8) | bios_drive), "b"(buffer)
+            );
+        return failed || (num_blocks_transferred != blocks);
+}
+
+#ifndef NOCLIB
 
 int main()
 {
@@ -91,3 +150,33 @@ int main()
   fclose(fs);
   return 0;
 }
+
+#else
+
+/* BIOS interrupts must be done with inline assembly */
+void    __NOINLINE __REGPARM print(const char   *s){
+        while(*s){
+                __asm__ __volatile__ ("int  $0x10" : : "a"(0x0E00 | *s), "b"(7));
+                s++;
+        }
+}
+
+//void __NORETURN main(){
+void main(){
+/*
+    __asm__ ("mov  %cs, %ax\n");
+    __asm__ ("mov  %ax, %ds\n");
+    __asm__ ("mov  $0x07a0, %ax\n");
+    __asm__ ("mov  %ax, %ss\n");
+    __asm__ ("mov  $0, %esp\n");
+*/
+    print("woo hoo!\r\n:)");
+    //while(1);
+
+  // 回到 DOS
+  __asm__ ("mov     $0x4c00, %ax\n");
+  __asm__ ("int     $0x21\n");
+
+
+}
+#endif
