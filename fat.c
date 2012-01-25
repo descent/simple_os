@@ -12,6 +12,13 @@
 #define __PACKED    __attribute__((packed))
 #define __NORETURN  __attribute__((noreturn))
 
+#define IMAGE_SIZE  8192
+#define BLOCK_SIZE  512
+#define IMAGE_LMA   (0x2000)
+//#define IMAGE_LMA   0x8000
+#define IMAGE_ENTRY 0x800c
+#define buf_addr_val (*(u8 volatile*(IMAGE_LMA)))
+
 /* XXX these must be at top */
 #include "code16gcc.h"
 //__asm__ ("jmpl  $0, $main\n");
@@ -55,6 +62,7 @@ int __REGPARM __NOINLINE lba_read(const void    *buffer, unsigned int   lba, uns
         s = (t % p->spt) + 1;
         unsigned char   failed = 0;
         unsigned char   num_blocks_transferred = 0;
+
         __asm__ __volatile__
             (
              "movw  $0, %0\n"
@@ -161,6 +169,33 @@ void    __NOINLINE __REGPARM print(const char   *s){
         }
 }
 
+void h2c(u8 hex, u8 ch[2])
+{
+  u8 l = hex >> 4;
+
+  if ( 0<= l && l <= 9)
+  {
+    ch[0]=l+0x30;
+  }
+  else
+  {
+    ch[0]=l+0x41-0xa; //a
+    ch[0]=l+0x61-0xa; // A
+  }
+
+  l = hex & 0x0f;
+
+  if ( 0<= l && l <= 9)
+  {
+    ch[1]=l+0x30;
+  }
+  else
+  {
+    ch[1]=l+0x41-0xa; //a
+    ch[1]=l+0x61-0xa; // A
+  }
+}
+
 //void __NORETURN main(){
 void main(){
 /*
@@ -171,7 +206,91 @@ void main(){
     __asm__ ("mov  $0, %esp\n");
 */
     print("woo hoo!\r\n:)");
+//void h2c(u8 hex, u8 ch[2])
+
     //while(1);
+
+#if 1
+
+#if 0
+  // reset A disk
+  __asm__ __volatile__("movb $0, %ah\n"); 
+  __asm__ __volatile__("movb $0, %dl\n"); // disk no, 0 -> A disk
+  __asm__ ("int $0x13\n");
+#endif
+
+//ref: http://forum.osdev.org/viewtopic.php?f=1&t=7762
+
+  // read a sector
+  // 1.44 MB floppy
+  // HeadNumber: 0, 1
+  // CylNum: 0 - 79
+  // sector number: 1 - 18
+  __asm__ __volatile__("movb $0, %ch\n"); 
+  __asm__ __volatile__("movb $2, %cl\n"); // set the sector number, bits 0-5
+  __asm__ __volatile__("movb $0, %dh\n"); 
+  __asm__ __volatile__("movb $0, %dl\n"); // disk no, 0 -> A disk
+  //void    *buff = (void*)IMAGE_LMA;
+  u8 *buff = (u8*)IMAGE_LMA;
+  #if 0
+  for (int i=0 ; i < 16 ; ++i)
+    *(buff+i) = 0x90+i;
+  #endif
+  //buf_addr_val=0x9a;
+  
+
+  __asm__ __volatile__("movb $2, %ah\n"); 
+  __asm__ __volatile__("movb $1, %al\n"); 
+#if 1
+  __asm__ ("int $0x13\n"
+           :
+	   :"b"(buff)
+	  ); 
+	  #endif
+  
+  //print("\r\n");
+  for (int i=0 ; i < 32 ; ++i)
+  {
+    if (i%16==0)
+      print("\r\n");
+    u8 c[4]="";
+    u8 h=*(buff+i);
+    c[3]=0;
+    c[2]=0x20;
+    h2c(h, c);
+    print(c);
+  }
+#endif
+
+#if 0
+  u8 h=0x3e;
+  u8 c[3]="";
+  h2c(h, c);
+  print("\r\n");
+  print(c);
+  print("\r\n");
+#endif
+
+#if 0
+        unsigned char   bios_drive = 0;
+        __asm__ __volatile__("movb  %%dl, %0" : "=r"(bios_drive));      /* the BIOS drive number of the device we booted from is passed in dl register */
+ 
+        drive_params_t  p = {};
+        get_drive_params(&p, bios_drive);
+ 
+        void    *buff = (void*)IMAGE_LMA;
+        unsigned short  num_blocks = ((IMAGE_SIZE / BLOCK_SIZE) + (IMAGE_SIZE % BLOCK_SIZE == 0 ? 0 : 1));
+#if 1
+        if(lba_read(buff, 1, num_blocks, bios_drive, &p) != 0){
+            print("read error :(\r\n");
+            while(1);
+        }
+#endif
+        print("Running next image...\r\n");
+        //void*   e = (void*)IMAGE_ENTRY;
+        //__asm__ __volatile__("" : : "d"(bios_drive));
+        //goto    *e;
+#endif
 
   // 回到 DOS
   __asm__ ("mov     $0x4c00, %ax\n");

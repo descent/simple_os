@@ -11,6 +11,17 @@ vbr.elf: vbr.o
 vbr.o: vbr.c code16gcc.h
 	#gcc -g -Os -march=i686 -ffreestanding -Wall -Werror -I. -c $<
 	gcc -Os -march=i686 -ffreestanding -Wall -Werror -I. -c $<
+
+vbr-lba.bin: vbr-lba.elf
+	objcopy -O binary $< $@
+
+vbr-lba.elf: vbr-lba.o
+	ld -static -Tlinker.ld -nostdlib --nmagic -o $@ $<
+
+vbr-lba.o: vbr-lba.c code16gcc.h
+	#gcc -g -Os -march=i686 -ffreestanding -Wall -Werror -I. -c $<
+	gcc -Os -march=i686 -ffreestanding -Wall -Werror -I. -c $<
+
 #fat: fat.o
 #	gcc -std=c99 -Os -march=i686 -ffreestanding -Wall -Werror -I. -o $@ $<
 	#gcc -std=c99 -o $@ $<
@@ -20,7 +31,10 @@ fat.com: fat.elf
 fat.elf: fat.o
 	$(LD) -o $@ -Tlinker_dos.ld $^
 fat.o: fat.c
-	gcc -std=c99 -Os -march=i686 -ffreestanding -Wall -Werror -I. -c $<
+	gcc -std=c99 -Os -march=i686 -ffreestanding -Wall -I. -c $<
+	#gcc -std=c99 -Os -march=i686 -ffreestanding -Wall -Werror -I. -c $<
 	#gcc -std=c99 -c $<
+fat.s: fat.c
+	gcc -std=c99 -Os -march=i686 -ffreestanding -Wall -I. -S $<
 clean:
 	rm -rf *.o
