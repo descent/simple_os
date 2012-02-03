@@ -220,16 +220,23 @@ void main(){
 #endif
 
 //ref: http://forum.osdev.org/viewtopic.php?f=1&t=7762
+  u8 sector_no=3; // cl
+  u8 track_no=0; // ch
+  u8 head_no=0; // dh
+  u8 disk_no=0; // dl
 
   // read a sector
   // 1.44 MB floppy
   // HeadNumber: 0, 1
   // CylNum: 0 - 79
   // sector number: 1 - 18
+  #if 0
+  // directory assign value in inline assembly
   __asm__ __volatile__("movb $0, %ch\n"); 
   __asm__ __volatile__("movb $2, %cl\n"); // set the sector number, bits 0-5
   __asm__ __volatile__("movb $0, %dh\n"); 
   __asm__ __volatile__("movb $0, %dl\n"); // disk no, 0 -> A disk
+  #endif
   //void    *buff = (void*)IMAGE_LMA;
   u8 *buff = (u8*)IMAGE_LMA;
   #if 0
@@ -238,15 +245,14 @@ void main(){
   #endif
   //buf_addr_val=0x9a;
   
-
   __asm__ __volatile__("movb $2, %ah\n"); 
   __asm__ __volatile__("movb $1, %al\n"); 
 #if 1
   __asm__ ("int $0x13\n"
            :
-	   :"b"(buff)
+	   :"b"(buff), "c"(track_no << 8 | sector_no), "d"(head_no << 8 | disk_no)
 	  ); 
-	  #endif
+#endif
   
   //print("\r\n");
   for (int i=0 ; i < 32 ; ++i)
