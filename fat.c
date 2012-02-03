@@ -196,8 +196,43 @@ void h2c(u8 hex, u8 ch[2])
   }
 }
 
-//void __NORETURN main(){
-void main(){
+//ref: http://forum.osdev.org/viewtopic.php?f=1&t=7762
+  // read a sector
+  // 1.44 MB floppy
+  // HeadNumber: 0, 1
+  // CylNum: 0 - 79
+  // sector number: 1 - 18
+  #if 0
+  // directory assign value in inline assembly
+  __asm__ __volatile__("movb $0, %ch\n"); 
+  __asm__ __volatile__("movb $2, %cl\n"); // set the sector number, bits 0-5
+  __asm__ __volatile__("movb $0, %dh\n"); 
+  __asm__ __volatile__("movb $0, %dl\n"); // disk no, 0 -> A disk
+  #endif
+
+int read_sector(u8 *buff, u8 sector_no, u8 track_no, u8 head_no, u8 disk_no)
+{
+#if 0
+  sector_no=3; // cl
+  track_no=0; // ch
+  head_no=0; // dh
+  disk_no=0; // dl
+#endif
+
+  __asm__ __volatile__("movb $2, %ah\n"); 
+  __asm__ __volatile__("movb $1, %al\n"); 
+#if 1
+  __asm__ ("int $0x13\n"
+           :
+	   :"b"(buff), "c"(track_no << 8 | sector_no), "d"(head_no << 8 | disk_no)
+	  ); 
+#endif
+  return 0;
+}
+
+//void __NORETURN main(void)
+int main(int argc, char **argv)
+{
 /*
     __asm__ ("mov  %cs, %ax\n");
     __asm__ ("mov  %ax, %ds\n");
@@ -220,24 +255,44 @@ void main(){
 #endif
 
 //ref: http://forum.osdev.org/viewtopic.php?f=1&t=7762
-  u8 sector_no=3; // cl
+  u8 sector_no = 1; // cl, 1 - 18
   u8 track_no=0; // ch
   u8 head_no=0; // dh
   u8 disk_no=0; // dl
 
-  // read a sector
-  // 1.44 MB floppy
-  // HeadNumber: 0, 1
-  // CylNum: 0 - 79
-  // sector number: 1 - 18
-  #if 0
-  // directory assign value in inline assembly
-  __asm__ __volatile__("movb $0, %ch\n"); 
-  __asm__ __volatile__("movb $2, %cl\n"); // set the sector number, bits 0-5
-  __asm__ __volatile__("movb $0, %dh\n"); 
-  __asm__ __volatile__("movb $0, %dl\n"); // disk no, 0 -> A disk
-  #endif
+#if 0
+  //if (argc >= 2)
+  {
+    //sector_no = argv[1] - 0x30 ; // cl, 1 - 18
+  }
+  print("\r\nsector:\r\n");
+  print(argv[1][0]);
+  sector_no = argv[1] - 0x30 ; // cl, 1 - 18
+#endif
+
+  u8 *buff = (u8*)IMAGE_LMA;
+  for (int i=1 ; i <= 5 ; ++i)
+  {
+    sector_no = i;
+    int r = read_sector(buff, sector_no, 0, 0, 0);
+
+    for (int i=0 ; i < 32 ; ++i)
+    {
+      if (i%16==0)
+        print("\r\n");
+      u8 c[4]="";
+      u8 h=*(buff+i);
+      c[3]=0;
+      c[2]=0x20;
+      h2c(h, c);
+      print(c);
+    }
+  }
+
+
+
   //void    *buff = (void*)IMAGE_LMA;
+#if 0
   u8 *buff = (u8*)IMAGE_LMA;
   #if 0
   for (int i=0 ; i < 16 ; ++i)
@@ -253,19 +308,10 @@ void main(){
 	   :"b"(buff), "c"(track_no << 8 | sector_no), "d"(head_no << 8 | disk_no)
 	  ); 
 #endif
+#endif
+
   
   //print("\r\n");
-  for (int i=0 ; i < 32 ; ++i)
-  {
-    if (i%16==0)
-      print("\r\n");
-    u8 c[4]="";
-    u8 h=*(buff+i);
-    c[3]=0;
-    c[2]=0x20;
-    h2c(h, c);
-    print(c);
-  }
 #endif
 
 #if 0
