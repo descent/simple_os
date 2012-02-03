@@ -24,6 +24,28 @@
 //__asm__ ("jmpl  $0, $main\n");
 __asm__ ("jmp main\n");
 
+// copy from write_os/src/chapter2/2/boot.S
+__asm__ ("BS_OEMName:         .ascii  \"descent\" \n");    /* OEM String, 8 bytes required */
+__asm__ ("BPB_BytsPerSec:     .2byte  512          \n");   /* Bytes per sector */
+__asm__ ("BPB_SecPerCluster:  .byte   1            \n");   /* Sector per cluster */
+__asm__ ("BPB_ResvdSecCnt:    .2byte  1            \n");   /* Reserved sector count */
+__asm__ ("BPB_NumFATs:        .byte   2            \n");   /* Number of FATs */
+__asm__ ("BPB_RootEntCnt:     .2byte  224          \n");   /* Root entries count */
+__asm__ ("BPB_TotSec16:       .2byte  2880         \n");   /* Total sector number */
+__asm__ ("BPB_Media:          .byte   0xf0         \n");   /* Media descriptor */
+__asm__ ("BPB_FATSz16:        .2byte  9            \n");   /* FAT size(sectors) */
+__asm__ ("BPB_SecPerTrk:      .2byte  18           \n");   /* Sector per track */
+__asm__ ("BPB_NumHeads:       .2byte  2            \n");   /* Number of magnetic heads */
+__asm__ ("BPB_HiddSec:        .4byte  0            \n");   /* Number of hidden sectors */
+__asm__ ("BPB_TotSec32:       .4byte  0            \n");   /* If TotSec16 equal 0, this works */
+__asm__ ("BS_DrvNum:          .byte   0            \n");   /* Driver number of interrupt 13 */
+__asm__ ("BS_Reserved1:       .byte   0            \n");   /* Reserved */
+__asm__ ("BS_BootSig:         .byte   0x29         \n");   /* Boot signal */
+__asm__ ("BS_VolID:           .4byte  0            \n");   /* Volume ID */
+__asm__ ("BS_VolLab:          .ascii  \"c-loader0.1\"\n"); /* Volume label, 11 bytes required */
+__asm__ ("BS_FileSysType:     .ascii  \"FAT12   \"   \n"); /* File system type, 8 bytes required */
+
+
 #define LEN 512
 
 typedef unsigned char u8;
