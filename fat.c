@@ -52,6 +52,37 @@ typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
 
+char* itoa(int n, u8* str, int radix);
+void    __NOINLINE __REGPARM print(const char   *s);
+
+void print_num(int n, u8 *sy)
+{
+  u8 str[10];
+  u8 *s = str;
+  s = itoa(n, s, 10);
+  print("\r\n");
+  print(sy);
+  print(":");
+  print(s);
+}
+
+void dump_u8(u8 *buff, u16 count)
+{
+  void h2c(u8 hex, u8 ch[2]);
+
+    for (int i=0 ; i < count ; ++i)
+    {
+      if (i%16==0)
+        print("\r\n");
+      u8 c[4]="";
+      u8 h=*(buff+i);
+      c[3]=0;
+      c[2]=0x20;
+      h2c(h, c);
+      print(c);
+    }
+}
+
 #ifndef NOCLIB
 
 int main()
@@ -146,6 +177,43 @@ void    __NOINLINE __REGPARM print(const char   *s){
                 s++;
         }
 }
+
+char* itoa(int n, u8* str, int radix)
+{
+  char digit[]="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  char* p=str;
+  char* head=str;
+
+  if(!p || radix < 2 || radix > 36)
+    return p;
+  if (n==0)
+  {
+    *p++='0';
+    *p=0;
+    return p;
+  }
+#if 1
+  if (radix == 10 && n < 0)
+  {
+    *p++='-';
+    n= -n;
+  }
+  while(n)
+  {
+    *p++=digit[n%radix];
+    n/=radix;
+  }
+  *p=0;
+  for (--p; head < p ; ++head, --p)
+  {
+    char temp=*head;
+    *head=*p;
+    *p=temp;
+  }
+  return str;
+#endif
+}
+
 
 u8 itoc(int i)
 {
