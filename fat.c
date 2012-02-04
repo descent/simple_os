@@ -66,6 +66,7 @@ void print_num(int n, u8 *sy)
   print(s);
 }
 
+#if 0
 void dump_u8(u8 *buff, u16 count)
 {
   void h2c(u8 hex, u8 ch[2]);
@@ -82,6 +83,7 @@ void dump_u8(u8 *buff, u16 count)
       print(c);
     }
 }
+#endif
 
 #ifndef NOCLIB
 
@@ -296,6 +298,15 @@ int main(int argc, char **argv)
   u8 head_no=0; // dh
   u8 disk_no=0; // dl
 
+  u16 byte_per_sector = 0;
+  u16 root_entry_count = 0;
+  u8 *buff = (u8*)IMAGE_LMA;
+  int r = read_sector(buff, sector_no, 0, 0, 0);
+  byte_per_sector = ((buff[12] << 8) | buff[11]);
+  root_entry_count = ((buff[18] << 8) | buff[17]);
+  print_num(byte_per_sector, "byte_per_sector");
+  print_num(root_entry_count, "root_entry_count");
+
 #if 0
   //if (argc >= 2)
   {
@@ -306,7 +317,7 @@ int main(int argc, char **argv)
   sector_no = argv[1] - 0x30 ; // cl, 1 - 18
 #endif
 
-#if 1
+#if 0
   u8 *buff = (u8*)IMAGE_LMA;
   for (int i=1 ; i <= 5 ; ++i)
   {
