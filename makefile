@@ -27,9 +27,13 @@ vbr-lba.o: vbr-lba.c code16gcc.h
 #	gcc -std=c99 -Os -march=i686 -ffreestanding -Wall -Werror -I. -o $@ $<
 	#gcc -std=c99 -o $@ $<
 
-fat.com: fat.elf
+fat.bin: fat.bin.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
-fat.elf: fat.o
+fat.bin.elf: fat.o
+	$(LD) -o $@ -Tlinker.ld $^
+fat.com: fat.com.elf
+	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
+fat.com.elf: fat.o
 	$(LD) -o $@ -Tlinker_dos.ld $^
 fat.o: fat.c
 	gcc $(CFLAGS) -I. -c $<

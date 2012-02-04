@@ -1,5 +1,6 @@
 // read fat floppy disk
 
+//#define DOS_COM
 #define NOCLIB
 
 #ifndef NOCLIB
@@ -21,8 +22,11 @@
 
 /* XXX these must be at top */
 #include "code16gcc.h"
-//__asm__ ("jmpl  $0, $main\n");
+#ifdef DOS_COM
 __asm__ ("jmp main\n");
+#else
+__asm__ ("jmpl  $0, $main\n");
+#endif
 
 // copy from write_os/src/chapter2/2/boot.S
 __asm__ ("BS_OEMName:         .ascii  \"descent\" \n");    /* OEM String, 8 bytes required */
@@ -55,6 +59,7 @@ typedef unsigned int u32;
 char* itoa(int n, u8* str, int radix);
 void    __NOINLINE __REGPARM print(const char   *s);
 
+#ifdef DOS_COM
 void print_num(int n, u8 *sy)
 {
   u8 str[10];
@@ -66,7 +71,6 @@ void print_num(int n, u8 *sy)
   print(s);
 }
 
-#if 0
 void dump_u8(u8 *buff, u16 count)
 {
   void h2c(u8 hex, u8 ch[2]);
@@ -180,6 +184,7 @@ void    __NOINLINE __REGPARM print(const char   *s){
         }
 }
 
+#ifdef DOS_COM
 char* itoa(int n, u8* str, int radix)
 {
   char digit[]="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -213,6 +218,7 @@ char* itoa(int n, u8* str, int radix)
   }
   return str;
 }
+#endif
 
 void h2c(u8 hex, u8 ch[2])
 {
@@ -275,8 +281,11 @@ int read_sector(u8 *buff, u8 sector_no, u8 track_no, u8 head_no, u8 disk_no)
   return 0;
 }
 
-//void __NORETURN main(void)
+#ifdef DOS_COM
 int main(int argc, char **argv)
+#else
+void __NORETURN main(void)
+#endif
 {
 /*
     __asm__ ("mov  %cs, %ax\n");
@@ -288,7 +297,6 @@ int main(int argc, char **argv)
     print("woo hoo!\r\n:)");
 //void h2c(u8 hex, u8 ch[2])
 
-    //while(1);
 
 #if 1
 
@@ -301,11 +309,11 @@ int main(int argc, char **argv)
   u16 byte_per_sector = 0;
   u16 root_entry_count = 0;
   u8 *buff = (u8*)IMAGE_LMA;
-  int r = read_sector(buff, sector_no, 0, 0, 0);
-  byte_per_sector = ((buff[12] << 8) | buff[11]);
-  root_entry_count = ((buff[18] << 8) | buff[17]);
-  print_num(byte_per_sector, "byte_per_sector");
-  print_num(root_entry_count, "root_entry_count");
+//  int r = read_sector(buff, sector_no, 0, 0, 0);
+//  byte_per_sector = ((buff[12] << 8) | buff[11]);
+//  root_entry_count = ((buff[18] << 8) | buff[17]);
+//  print_num(byte_per_sector, "byte_per_sector");
+//  print_num(root_entry_count, "root_entry_count");
 
 #if 0
   //if (argc >= 2)
@@ -317,8 +325,7 @@ int main(int argc, char **argv)
   sector_no = argv[1] - 0x30 ; // cl, 1 - 18
 #endif
 
-#if 0
-  u8 *buff = (u8*)IMAGE_LMA;
+#if 1
   for (int i=1 ; i <= 5 ; ++i)
   {
     sector_no = i;
@@ -336,14 +343,19 @@ int main(int argc, char **argv)
       print(c);
     }
   }
+  #ifndef DOS_COM
+  while(1);
+  #endif
 #endif
 
 
 #endif
 
 
+#ifdef DOS_COM
   // 回到 DOS
   __asm__ ("mov     $0x4c00, %ax\n");
   __asm__ ("int     $0x21\n");
+#endif
 }
 #endif
