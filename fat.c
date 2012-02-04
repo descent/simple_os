@@ -25,11 +25,12 @@
 #ifdef DOS_COM
 __asm__ ("jmp main\n");
 #else
-__asm__ ("jmpl  $0, $main\n");
+__asm__ ("jmp  main\n");
+//__asm__ ("jmpl  $0, $main\n");
 #endif
 
 // copy from write_os/src/chapter2/2/boot.S
-__asm__ ("BS_OEMName:         .ascii  \"descent\" \n");    /* OEM String, 8 bytes required */
+__asm__ ("BS_OEMName:         .ascii  \"descent \" \n");    /* OEM String, 8 bytes required */
 __asm__ ("BPB_BytsPerSec:     .2byte  512          \n");   /* Bytes per sector */
 __asm__ ("BPB_SecPerCluster:  .byte   1            \n");   /* Sector per cluster */
 __asm__ ("BPB_ResvdSecCnt:    .2byte  1            \n");   /* Reserved sector count */
