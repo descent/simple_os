@@ -192,7 +192,6 @@ char* itoa(int n, u8* str, int radix)
     *p=0;
     return p;
   }
-#if 1
   if (radix == 10 && n < 0)
   {
     *p++='-';
@@ -211,13 +210,6 @@ char* itoa(int n, u8* str, int radix)
     *p=temp;
   }
   return str;
-#endif
-}
-
-
-u8 itoc(int i)
-{
-  return (i+0x30);
 }
 
 void h2c(u8 hex, u8 ch[2])
@@ -284,23 +276,6 @@ int read_sector(u8 *buff, u8 sector_no, u8 track_no, u8 head_no, u8 disk_no)
 //void __NORETURN main(void)
 int main(int argc, char **argv)
 {
-  u8 s[2]={0, 0};
-
-#if 0
-  print("xx\r\n");
-  s[0] = itoc(argc);
-  print(s);
-
-  return 0;
-#endif
-
-  print("\r\n");
-  s[0] = itoc(1);
-  print(s);
-  print("\r\n");
-  s[0] = itoc(9);
-  print(s);
-  print("\r\n");
 /*
     __asm__ ("mov  %cs, %ax\n");
     __asm__ ("mov  %ax, %ds\n");
@@ -314,13 +289,6 @@ int main(int argc, char **argv)
     //while(1);
 
 #if 1
-
-#if 0
-  // reset A disk
-  __asm__ __volatile__("movb $0, %ah\n"); 
-  __asm__ __volatile__("movb $0, %dl\n"); // disk no, 0 -> A disk
-  __asm__ ("int $0x13\n");
-#endif
 
 //ref: http://forum.osdev.org/viewtopic.php?f=1&t=7762
   u8 sector_no = 1; // cl, 1 - 18
@@ -362,20 +330,9 @@ int main(int argc, char **argv)
 
 #endif
 
-#if 0
-  u8 h=0x3e;
-  u8 c[3]="";
-  h2c(h, c);
-  print("\r\n");
-  print(c);
-  print("\r\n");
-#endif
-
 
   // 回到 DOS
   __asm__ ("mov     $0x4c00, %ax\n");
   __asm__ ("int     $0x21\n");
-
-
 }
 #endif
