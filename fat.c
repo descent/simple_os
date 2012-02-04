@@ -310,11 +310,54 @@ void __NORETURN main(void)
   u16 byte_per_sector = 0;
   u16 root_entry_count = 0;
   u8 *buff = (u8*)IMAGE_LMA;
-//  int r = read_sector(buff, sector_no, 0, 0, 0);
-//  byte_per_sector = ((buff[12] << 8) | buff[11]);
-//  root_entry_count = ((buff[18] << 8) | buff[17]);
-//  print_num(byte_per_sector, "byte_per_sector");
-//  print_num(root_entry_count, "root_entry_count");
+
+#ifdef DOS_COM
+  //int r = read_sector(buff, sector_no, 0, 0, 0);
+
+  // logic sector no 19 is root directory
+  sector_no = 1; // cl, 1 - 18
+  track_no=0; // ch
+  head_no=0; // dh
+  disk_no=0; // dl
+
+  int r = read_sector(buff, sector_no, track_no, head_no, disk_no);
+  byte_per_sector = ((buff[12] << 8) | buff[11]);
+  root_entry_count = ((buff[18] << 8) | buff[17]);
+  print_num(byte_per_sector, "byte_per_sector");
+  print_num(root_entry_count, "root_entry_count");
+
+  int root_sec_no = 19;
+  track_no = ((root_sec_no/18) >> 1);
+  head_no = ((root_sec_no/18) & 1);
+  sector_no = ((root_sec_no%18) + 1);
+
+  r = read_sector(buff, sector_no, track_no, head_no, disk_no);
+  u16 f_c = ((buff[0x1b] << 8) | buff[0x1a]); // first cluster
+  u32 file_size = (( buff[0x1f] << 24)  | (buff[0x1e] << 16) | (buff[0x1d] << 8) | buff[0x1c]);
+  u8 filename[12]="";
+  for (int i=0 ; i < 11 ; ++i)
+    filename[i] = buff[i];
+  print("\r\n");
+  print(filename);
+  print("\r\n");
+  print_num(f_c, "f_c");
+  print_num(file_size, "file_size");
+
+
+    for (int i=0 ; i < 32 ; ++i)
+    {
+      if (i%16==0)
+        print("\r\n");
+      u8 c[4]="";
+      u8 h=*(buff+i);
+      c[3]=0;
+      c[2]=0x20;
+      h2c(h, c);
+      print(c);
+    }
+
+
+#endif
 
 #if 0
   //if (argc >= 2)
@@ -326,7 +369,7 @@ void __NORETURN main(void)
   sector_no = argv[1] - 0x30 ; // cl, 1 - 18
 #endif
 
-#if 1
+#if 0
   for (int i=1 ; i <= 5 ; ++i)
   {
     sector_no = i;
