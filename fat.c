@@ -191,6 +191,11 @@ void    __NOINLINE __REGPARM print(const char   *s){
         }
 }
 
+u8 itoc(int i)
+{
+  return (i+0x30);
+}
+
 void h2c(u8 hex, u8 ch[2])
 {
   u8 l = hex >> 4;
