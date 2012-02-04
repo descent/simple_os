@@ -52,50 +52,6 @@ typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
 
-typedef struct {
-        unsigned char   spt;
-        unsigned char   numh;
-}drive_params_t;
- 
-int __REGPARM __NOINLINE get_drive_params(drive_params_t    *p, unsigned char   bios_drive){
-        unsigned short  failed = 0;
-        unsigned short  tmp1, tmp2;
-        __asm__ __volatile__
-            (
-             "movw  $0, %0\n"
-             "int   $0x13\n"
-             "setcb %0\n"
-             : "=m"(failed), "=c"(tmp1), "=d"(tmp2)
-             : "a"(0x0800), "d"(bios_drive), "D"(0)
-             : "cc", "bx"
-            );
-        if(failed)
-                return failed;
-        p->spt = tmp1 & 0x3F;
-        p->numh = tmp2 >> 8;
-        return failed;
-}
- 
-int __REGPARM __NOINLINE lba_read(const void    *buffer, unsigned int   lba, unsigned char  blocks, unsigned char   bios_drive, drive_params_t  *p){
-        unsigned char   c, h, s;
-        c = lba / (p->numh * p->spt);
-        unsigned short  t = lba % (p->numh * p->spt);
-        h = t / p->spt;
-        s = (t % p->spt) + 1;
-        unsigned char   failed = 0;
-        unsigned char   num_blocks_transferred = 0;
-
-        __asm__ __volatile__
-            (
-             "movw  $0, %0\n"
-             "int   $0x13\n"
-             "setcb %0"
-             : "=m"(failed), "=a"(num_blocks_transferred)
-             : "a"(0x0200 | blocks), "c"((s << 8) | s), "d"((h << 8) | bios_drive), "b"(buffer)
-            );
-        return failed || (num_blocks_transferred != blocks);
-}
-
 #ifndef NOCLIB
 
 int main()
@@ -260,6 +216,23 @@ int read_sector(u8 *buff, u8 sector_no, u8 track_no, u8 head_no, u8 disk_no)
 //void __NORETURN main(void)
 int main(int argc, char **argv)
 {
+  u8 s[2]={0, 0};
+
+#if 0
+  print("xx\r\n");
+  s[0] = itoc(argc);
+  print(s);
+
+  return 0;
+#endif
+
+  print("\r\n");
+  s[0] = itoc(1);
+  print(s);
+  print("\r\n");
+  s[0] = itoc(9);
+  print(s);
+  print("\r\n");
 /*
     __asm__ ("mov  %cs, %ax\n");
     __asm__ ("mov  %ax, %ds\n");
@@ -297,6 +270,7 @@ int main(int argc, char **argv)
   sector_no = argv[1] - 0x30 ; // cl, 1 - 18
 #endif
 
+#if 1
   u8 *buff = (u8*)IMAGE_LMA;
   for (int i=1 ; i <= 5 ; ++i)
   {
@@ -315,30 +289,9 @@ int main(int argc, char **argv)
       print(c);
     }
   }
-
-
-
-  //void    *buff = (void*)IMAGE_LMA;
-#if 0
-  u8 *buff = (u8*)IMAGE_LMA;
-  #if 0
-  for (int i=0 ; i < 16 ; ++i)
-    *(buff+i) = 0x90+i;
-  #endif
-  //buf_addr_val=0x9a;
-  
-  __asm__ __volatile__("movb $2, %ah\n"); 
-  __asm__ __volatile__("movb $1, %al\n"); 
-#if 1
-  __asm__ ("int $0x13\n"
-           :
-	   :"b"(buff), "c"(track_no << 8 | sector_no), "d"(head_no << 8 | disk_no)
-	  ); 
-#endif
 #endif
 
-  
-  //print("\r\n");
+
 #endif
 
 #if 0
@@ -350,26 +303,6 @@ int main(int argc, char **argv)
   print("\r\n");
 #endif
 
-#if 0
-        unsigned char   bios_drive = 0;
-        __asm__ __volatile__("movb  %%dl, %0" : "=r"(bios_drive));      /* the BIOS drive number of the device we booted from is passed in dl register */
- 
-        drive_params_t  p = {};
-        get_drive_params(&p, bios_drive);
- 
-        void    *buff = (void*)IMAGE_LMA;
-        unsigned short  num_blocks = ((IMAGE_SIZE / BLOCK_SIZE) + (IMAGE_SIZE % BLOCK_SIZE == 0 ? 0 : 1));
-#if 1
-        if(lba_read(buff, 1, num_blocks, bios_drive, &p) != 0){
-            print("read error :(\r\n");
-            while(1);
-        }
-#endif
-        print("Running next image...\r\n");
-        //void*   e = (void*)IMAGE_ENTRY;
-        //__asm__ __volatile__("" : : "d"(bios_drive));
-        //goto    *e;
-#endif
 
   // 回到 DOS
   __asm__ ("mov     $0x4c00, %ax\n");
