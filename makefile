@@ -29,14 +29,16 @@ vbr-lba.o: vbr-lba.c code16gcc.h
 
 fat.bin: fat.bin.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
-fat.bin.elf: fat.o
+fat.bin.elf: fat.bin.o
 	$(LD) -o $@ -Tlinker.ld $^
 fat.com: fat.com.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
-fat.com.elf: fat.o
+fat.com.elf: fat.com.o
 	$(LD) -o $@ -Tlinker_dos.ld $^
-fat.o: fat.c
-	gcc $(CFLAGS) -I. -c $<
+fat.bin.o: fat.c
+	gcc $(CFLAGS) -I. -o $@ -c $<
+fat.com.o: fat.c
+	gcc -DDOS_COM $(CFLAGS) -I. -o $@ -c $<
 	#gcc -std=c99 -Os -march=i686 -ffreestanding -Wall -Werror -I. -c $<
 	#gcc -std=c99 -c $<
 fat.s: fat.c
