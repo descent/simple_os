@@ -326,6 +326,15 @@ void __NORETURN main(void)
   print_num(byte_per_sector, "byte_per_sector");
   print_num(root_entry_count, "root_entry_count");
 
+  u16 root_dir_secotrs = 0;
+  if (root_entry_count * 32 % byte_per_sector != 0)
+    root_dir_secotrs = (root_entry_count * 32 / byte_per_sector) + 1;
+  else
+    root_dir_secotrs = (root_entry_count * 32 / byte_per_sector);
+
+  print_num(root_dir_secotrs, "root_dir_secotrs"); // root dir occupy how many sectors
+
+
   int root_sec_no = 19;
   track_no = ((root_sec_no/18) >> 1);
   head_no = ((root_sec_no/18) & 1);
@@ -342,6 +351,7 @@ void __NORETURN main(void)
   print("\r\n");
   print_num(f_c, "f_c");
   print_num(file_size, "file_size");
+
 
 
     for (int i=0 ; i < 32 ; ++i)
