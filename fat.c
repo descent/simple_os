@@ -336,24 +336,46 @@ void __NORETURN main(void)
 
 
   int root_sec_no = 19;
-  track_no = ((root_sec_no/18) >> 1);
-  head_no = ((root_sec_no/18) & 1);
-  sector_no = ((root_sec_no%18) + 1);
 
-  r = read_sector(buff, sector_no, track_no, head_no, disk_no);
-  u16 f_c = ((buff[0x1b] << 8) | buff[0x1a]); // first cluster
-  u32 file_size = (( buff[0x1f] << 24)  | (buff[0x1e] << 16) | (buff[0x1d] << 8) | buff[0x1c]);
-  u8 filename[12]="";
-  for (int i=0 ; i < 11 ; ++i)
-    filename[i] = buff[i];
-  print("\r\n");
-  print(filename);
-  print("\r\n");
-  print_num(f_c, "f_c");
-  print_num(file_size, "file_size");
+  int cur_sec_no = root_sec_no;
+  //for (int i=0 ; i <= root_dir_secotrs ; ++i, ++cur_sec_no)
+  for (int i=0 ; i < 2 ; ++i, ++cur_sec_no)
+  {
+  #if 0
+    track_no = ((root_sec_no/18) >> 1);
+    head_no = ((root_sec_no/18) & 1);
+    sector_no = ((root_sec_no%18) + 1);
+  #endif
+    print_num(i + cur_sec_no, "cur sec no"); // root dir occupy how many sectors
+    track_no = (((i + cur_sec_no)/18) >> 1);
+    head_no = (((i + cur_sec_no)/18) & 1);
+    sector_no = (((i + cur_sec_no)%18) + 1);
+    r = read_sector(buff, sector_no, track_no, head_no, disk_no);
+    
+    for (u16 j=0 ; j < 512/32 ; ++j)
+    //for (u16 j=0 ; j < 2 ; ++j)
+    {
+      u16 f_c = ((buff[0x1b+j*32] << 8) | buff[0x1a+j*32]); // first cluster
+      u32 file_size = (( buff[0x1f + (j*32)] << 24) | (buff[0x1e + (j*32)] << 16) | (buff[0x1d + (j*32)] << 8) | buff[0x1c + (j*32)]);
+      //u32 file_size = 0;
+      //u32 file_size = ( buff[0x1f+(j*32)] << 24); 
+      u8 filename[12]="";
+      for (int i=0 ; i < 11 ; ++i)
+        filename[i] = buff[i+(j*32)];
+      print("\r\n");
+      print(filename);
+      print("\r\n");
+      print_num(f_c, "f_c");
+      print_num(file_size, "file_size");
+    }
+
+
+  }
 
 
 
+
+#if 0
     for (int i=0 ; i < 32 ; ++i)
     {
       if (i%16==0)
@@ -365,7 +387,7 @@ void __NORETURN main(void)
       h2c(h, c);
       print(c);
     }
-
+#endif
 
 #endif
 
