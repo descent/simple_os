@@ -239,7 +239,7 @@ void __NORETURN main(void)
 
   u16 byte_per_sector = 512;
   u16 root_entry_count = 0;
-  volatile u8 *buff = (u8*)IMAGE_LMA;
+  u8 *buff = (u8*)IMAGE_LMA;
 
 //#ifdef DOS_COM
 #if 1
@@ -317,13 +317,13 @@ void __NORETURN main(void)
       if (filename[0] == 0xe5) // del file
         continue;
 #endif
+#ifdef DOS_COM
       if (filename[0] == 0)
       {
-#ifdef DOS_COM
         print("\r\nsearch end\r\n");
-#endif
         goto search_end;
       }
+#endif
       #endif
 
 
