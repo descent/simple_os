@@ -223,8 +223,8 @@ void __NORETURN main(void)
     __asm__ ("mov  $0x07a0, %ax\n");
     __asm__ ("mov  %ax, %ss\n");
     __asm__ ("mov  $0, %esp\n");
-*/
     print("woo hoo!\r\n:)");
+*/
 //void h2c(u8 hex, u8 ch[2])
 
 
@@ -333,7 +333,7 @@ void __NORETURN main(void)
 
       if (r)
       {
-        read_sec = f_c - 2 + 33;
+        read_sec = f_c - 2 + root_dir_secotrs + 19;
 #ifdef DOS_COM
         print("\r\n");
         print("load it\r\n");
