@@ -66,7 +66,7 @@ void print_num(int n, u8 *sy)
   u8 str[10];
   u8 *s = str;
   s = itoa(n, s, 10);
-  print("\r\n");
+  //print("\r\n");
   print(sy);
   print(":");
   print(s);
@@ -336,10 +336,11 @@ void __NORETURN main(void)
 
 
   int root_sec_no = 19;
+  //int root_sec_no = 21;
 
   int cur_sec_no = root_sec_no;
-  //for (int i=0 ; i <= root_dir_secotrs ; ++i, ++cur_sec_no)
-  for (int i=0 ; i < 2 ; ++i, ++cur_sec_no)
+  for (int i=0 ; i <= root_dir_secotrs ; ++i, ++cur_sec_no)
+  //for (int i=0 ; i < 1 ; ++i, ++cur_sec_no)
   {
   #if 0
     track_no = ((root_sec_no/18) >> 1);
@@ -359,20 +360,38 @@ void __NORETURN main(void)
       u32 file_size = (( buff[0x1f + (j*32)] << 24) | (buff[0x1e + (j*32)] << 16) | (buff[0x1d + (j*32)] << 8) | buff[0x1c + (j*32)]);
       //u32 file_size = 0;
       //u32 file_size = ( buff[0x1f+(j*32)] << 24); 
+
       u8 filename[12]="";
+      u8 attr = 0;
       for (int i=0 ; i < 11 ; ++i)
         filename[i] = buff[i+(j*32)];
+      #if 1
+      if (filename[0] == 0xe5) // del file
+        continue;
+      if (filename[0] == 0)
+      {
+        print("\r\nsearch end\r\n");
+        goto search_end;
+      }
+      #endif
+      attr = buff[0x0b + (j*32)];
+      if (((attr >> 3) & 1) == 1) // label
+      {
+        print("label:");
+        print(filename);
+        continue;
+      }
       print("\r\n");
       print(filename);
+      print_num(f_c, " f_c");
+      print_num(file_size, " file_size");
       print("\r\n");
-      print_num(f_c, "f_c");
-      print_num(file_size, "file_size");
     }
 
 
   }
 
-
+  search_end:
 
 
 #if 0
