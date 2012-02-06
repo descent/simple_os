@@ -20,6 +20,7 @@
 #define IMAGE_ENTRY 0x800c
 #define buf_addr_val (*(u8 volatile*(IMAGE_LMA)))
 
+
 /* XXX these must be at top */
 #include "code16gcc.h"
 #ifdef DOS_COM
@@ -56,6 +57,8 @@ __asm__ ("BS_FileSysType:     .ascii  \"FAT12   \"   \n"); /* File system type, 
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
+
+u8 ln[] = "LOADER  BIN";
 
 char* itoa(int n, u8* str, int radix);
 void    __NOINLINE __REGPARM print(const char   *s);
@@ -329,10 +332,10 @@ void __NORETURN main(void)
 #endif
 
       r = 0;
+      u8 *p = ln;
       for (int i=0 ; i < 11 ; ++i)
       {
-        const u8 *ln = "LOADER  BIN";
-        if (filename[i] != ln[i])
+        if (*filename++ != *p++)
 	{
 	  r = 0;
 	  break;
