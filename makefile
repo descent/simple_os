@@ -38,6 +38,7 @@ fat.com.elf: fat.com.o
 fat.bin.o: fat.c
 	gcc $(CFLAGS) -I. -o $@ -c $<
 fat.com.o: fat.c
+	#gcc $(CFLAGS) -I. -o $@ -c $<
 	gcc -DDOS_COM $(CFLAGS) -I. -o $@ -c $<
 	#gcc -std=c99 -Os -march=i686 -ffreestanding -Wall -Werror -I. -c $<
 	#gcc -std=c99 -c $<
