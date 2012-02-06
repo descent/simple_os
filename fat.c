@@ -135,7 +135,6 @@ char* itoa(int n, u8* str, int radix)
   }
   return str;
 }
-#endif
 
 void h2c(u8 hex, u8 ch[2])
 {
@@ -163,6 +162,7 @@ void h2c(u8 hex, u8 ch[2])
     ch[1]=l+0x61-0xa; // A
   }
 }
+#endif
 
 //ref: http://forum.osdev.org/viewtopic.php?f=1&t=7762
   // read a sector
@@ -212,7 +212,7 @@ int s_strncmp(const char *s1, const char *s2, u32 n);
 #endif
 
 #ifdef DOS_COM
-int main(int argc, char **argv)
+int main(void)
 #else
 void __NORETURN main(void)
 #endif
@@ -244,11 +244,13 @@ void __NORETURN main(void)
 #if 1
   //int r = read_sector(buff, sector_no, 0, 0, 0);
 
+#if 0
   // logic sector no 19 is root directory
   sector_no = 1; // cl, 1 - 18
   track_no=0; // ch
   head_no=0; // dh
   disk_no=0; // dl
+#endif
 
   int r = read_sector(buff, sector_no, track_no, head_no, disk_no);
   byte_per_sector = ((buff[12] << 8) | buff[11]);
@@ -270,53 +272,61 @@ void __NORETURN main(void)
 #endif
 
 
-  int root_sec_no = 19;
   //int root_sec_no = 21;
 
-  int cur_sec_no = root_sec_no;
 
+  u16 root_sec_no = 19;
   u16 read_sec = 0;
 
-  for (int i=0 ; i <= root_dir_secotrs ; ++i, ++cur_sec_no)
   //for (int i=0 ; i < 1 ; ++i, ++cur_sec_no)
+  //for (int i=0 ; i <= root_dir_secotrs ; ++i, ++cur_sec_no)
+  for (int i=root_sec_no ; i <= root_dir_secotrs+root_sec_no ; ++i)
   {
-  #if 0
-    track_no = ((root_sec_no/18) >> 1);
-    head_no = ((root_sec_no/18) & 1);
-    sector_no = ((root_sec_no%18) + 1);
-  #endif
 #ifdef DOS_COM
-    print_num(i + cur_sec_no, "cur sec no"); // root dir occupy how many sectors
+    print("\r\n");
+    print_num(i, "cur sec no"); // root dir occupy how many sectors
 #endif
-    track_no = (((i + cur_sec_no)/18) >> 1);
-    head_no = (((i + cur_sec_no)/18) & 1);
-    sector_no = (((i + cur_sec_no)%18) + 1);
+    track_no = (((i)/18) >> 1);
+    head_no = (((i)/18) & 1);
+    sector_no = (((i)%18) + 1);
     r = read_sector(buff, sector_no, track_no, head_no, disk_no);
     
-    for (u16 j=0 ; j < 512/32 ; ++j)
     //for (u16 j=0 ; j < 2 ; ++j)
+    //for (u16 j=0 ; j < 16 ; ++j)
+    for (u16 j=0 ; j < 512/32 ; ++j)
     {
       u16 f_c = ((buff[0x1b+j*32] << 8) | buff[0x1a+j*32]); // first cluster
+#ifdef DOS_COM
       u32 file_size = (( buff[0x1f + (j*32)] << 24) | (buff[0x1e + (j*32)] << 16) | (buff[0x1d + (j*32)] << 8) | buff[0x1c + (j*32)]);
+#endif
       //u32 file_size = 0;
       //u32 file_size = ( buff[0x1f+(j*32)] << 24); 
 
-      u8 filename[12]="";
-      u8 attr = 0;
+      u8 *filename;
+#if 0
       for (int i=0 ; i < 11 ; ++i)
         filename[i] = buff[i+(j*32)];
+#endif
+      filename = buff + (j*32);
+
       #if 1
+#ifdef DOS_COM
       if (filename[0] == 0xe5) // del file
         continue;
+#endif
       if (filename[0] == 0)
       {
+#ifdef DOS_COM
         print("\r\nsearch end\r\n");
+#endif
         goto search_end;
       }
       #endif
 
 
-      attr = buff[0x0b + (j*32)];
+#ifdef DOS_COM
+      u8 attr = buff[0x0b + (j*32)];
+#endif
 
       r = 0;
       for (int i=0 ; i < 11 ; ++i)
@@ -397,9 +407,6 @@ void __NORETURN main(void)
     void*   e = buff;
     //__asm__ __volatile__("" : : "d"(bios_drive));
     goto    *e;
-  }
-  else
-  {
   }
 
 
