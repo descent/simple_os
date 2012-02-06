@@ -180,7 +180,7 @@ void h2c(u8 hex, u8 ch[2])
   __asm__ __volatile__("movb $0, %dl\n"); // disk no, 0 -> A disk
   #endif
 
-int __REGPARM read_sector(u8 *buff, u8 sector_no, u8 track_no, u8 head_no, u8 disk_no)
+int __REGPARM read_sector(u8 *buff, u8 sector_no, u8 track_no, u8 head_no)
 {
 #if 0
   sector_no=3; // cl
@@ -194,7 +194,7 @@ int __REGPARM read_sector(u8 *buff, u8 sector_no, u8 track_no, u8 head_no, u8 di
 #if 1
   __asm__ ("int $0x13\n"
            :
-	   :"b"(buff), "c"(track_no << 8 | sector_no), "d"(head_no << 8 | disk_no)
+	   :"b"(buff), "c"(track_no << 8 | sector_no), "d"(head_no << 8)
 	  ); 
 #endif
   return 0;
@@ -236,7 +236,6 @@ void __NORETURN main(void)
   u8 sector_no = 1; // cl, 1 - 18
   u8 track_no=0; // ch
   u8 head_no=0; // dh
-  u8 disk_no=0; // dl
 
   u16 byte_per_sector = 512;
   u16 root_entry_count = 0;
@@ -254,7 +253,7 @@ void __NORETURN main(void)
   disk_no=0; // dl
 #endif
 
-  int r = read_sector(buff, sector_no, track_no, head_no, disk_no);
+  int r = read_sector(buff, sector_no, track_no, head_no);
   byte_per_sector = ((buff[12] << 8) | buff[11]);
   //byte_per_sector = 512;
   //root_entry_count = ((buff[18] << 8) | buff[17]);
@@ -293,7 +292,7 @@ void __NORETURN main(void)
     track_no = (((i)/18) >> 1);
     head_no = (((i)/18) & 1);
     sector_no = (((i)%18) + 1);
-    r = read_sector(buff, sector_no, track_no, head_no, disk_no);
+    r = read_sector(buff, sector_no, track_no, head_no);
     
     //for (u16 j=0 ; j < 2 ; ++j)
     //for (u16 j=0 ; j < 16 ; ++j)
@@ -392,7 +391,7 @@ void __NORETURN main(void)
     #endif
     // if no the line, buff will get wrong data, very strange.
     print('s');
-    r = read_sector(buff, sector_no, track_no, head_no, disk_no);
+    r = read_sector(buff, sector_no, track_no, head_no);
 
 #ifdef DOS_COM
     for (int i=0 ; i < 32 ; ++i)
