@@ -51,8 +51,7 @@ __asm__ ("BS_VolID:           .4byte  0            \n");   /* Volume ID */
 __asm__ ("BS_VolLab:          .ascii  \"c-loader0.1\"\n"); /* Volume label, 11 bytes required */
 __asm__ ("BS_FileSysType:     .ascii  \"FAT12   \"   \n"); /* File system type, 8 bytes required */
 
-
-#define LEN 512
+//#define byte_per_sector 512
 
 typedef unsigned char u8;
 typedef unsigned short u16;
@@ -61,7 +60,14 @@ typedef unsigned int u32;
 u8 ln[] = "LOADER  BIN";
 
 char* itoa(int n, u8* str, int radix);
-void    __NOINLINE __REGPARM print(const char   *s);
+//void    __NOINLINE __REGPARM print(const char   *s);
+/* BIOS interrupts must be done with inline assembly */
+void    __NOINLINE __REGPARM print(const char   *s){
+        while(*s){
+                __asm__ __volatile__ ("int  $0x10" : : "a"(0x0E00 | *s), "b"(7));
+                s++;
+        }
+}
 
 #ifdef DOS_COM
 void print_num(int n, u8 *sy)
@@ -96,13 +102,6 @@ void dump_u8(u8 *buff, u16 count)
 #endif
 
 
-/* BIOS interrupts must be done with inline assembly */
-void    __NOINLINE __REGPARM print(const char   *s){
-        while(*s){
-                __asm__ __volatile__ ("int  $0x10" : : "a"(0x0E00 | *s), "b"(7));
-                s++;
-        }
-}
 
 #ifdef DOS_COM
 char* itoa(int n, u8* str, int radix)
@@ -181,7 +180,7 @@ void h2c(u8 hex, u8 ch[2])
   __asm__ __volatile__("movb $0, %dl\n"); // disk no, 0 -> A disk
   #endif
 
-int read_sector(u8 *buff, u8 sector_no, u8 track_no, u8 head_no, u8 disk_no)
+int __REGPARM read_sector(u8 *buff, u8 sector_no, u8 track_no, u8 head_no, u8 disk_no)
 {
 #if 0
   sector_no=3; // cl
@@ -239,7 +238,7 @@ void __NORETURN main(void)
   u8 head_no=0; // dh
   u8 disk_no=0; // dl
 
-  u16 byte_per_sector = 0;
+  u16 byte_per_sector = 512;
   u16 root_entry_count = 0;
   volatile u8 *buff = (u8*)IMAGE_LMA;
 
@@ -257,7 +256,9 @@ void __NORETURN main(void)
 
   int r = read_sector(buff, sector_no, track_no, head_no, disk_no);
   byte_per_sector = ((buff[12] << 8) | buff[11]);
-  root_entry_count = ((buff[18] << 8) | buff[17]);
+  //byte_per_sector = 512;
+  //root_entry_count = ((buff[18] << 8) | buff[17]);
+  root_entry_count = 224;
 
 #ifdef DOS_COM
   print_num(byte_per_sector, "byte_per_sector");
