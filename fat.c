@@ -60,7 +60,7 @@ typedef unsigned int u32;
 char* itoa(int n, u8* str, int radix);
 void    __NOINLINE __REGPARM print(const char   *s);
 
-//#ifdef DOS_COM
+#ifdef DOS_COM
 void print_num(int n, u8 *sy)
 {
   u8 str[10];
@@ -71,7 +71,7 @@ void print_num(int n, u8 *sy)
   print(":");
   print(s);
 }
-//#endif
+#endif
 
 #ifdef DOS_COM
 void dump_u8(u8 *buff, u16 count)
@@ -187,7 +187,7 @@ void    __NOINLINE __REGPARM print(const char   *s){
         }
 }
 
-//#ifdef DOS_COM
+#ifdef DOS_COM
 char* itoa(int n, u8* str, int radix)
 {
   char digit[]="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -221,7 +221,7 @@ char* itoa(int n, u8* str, int radix)
   }
   return str;
 }
-//#endif
+#endif
 
 void h2c(u8 hex, u8 ch[2])
 {
@@ -463,7 +463,7 @@ void __NORETURN main(void)
     print_num(head_no, "head_no");
     #endif
     // if no the line, buff will get wrong data, very strange.
-    print_num(sector_no, "sector_no");
+    print('s');
     r = read_sector(buff, sector_no, track_no, head_no, disk_no);
 
 #ifdef DOS_COM
