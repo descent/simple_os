@@ -60,7 +60,7 @@ typedef unsigned int u32;
 char* itoa(int n, u8* str, int radix);
 void    __NOINLINE __REGPARM print(const char   *s);
 
-#ifdef DOS_COM
+//#ifdef DOS_COM
 void print_num(int n, u8 *sy)
 {
   u8 str[10];
@@ -71,7 +71,9 @@ void print_num(int n, u8 *sy)
   print(":");
   print(s);
 }
+//#endif
 
+#ifdef DOS_COM
 void dump_u8(u8 *buff, u16 count)
 {
   void h2c(u8 hex, u8 ch[2]);
@@ -185,7 +187,7 @@ void    __NOINLINE __REGPARM print(const char   *s){
         }
 }
 
-#ifdef DOS_COM
+//#ifdef DOS_COM
 char* itoa(int n, u8* str, int radix)
 {
   char digit[]="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -219,7 +221,7 @@ char* itoa(int n, u8* str, int radix)
   }
   return str;
 }
-#endif
+//#endif
 
 void h2c(u8 hex, u8 ch[2])
 {
@@ -282,6 +284,19 @@ int read_sector(u8 *buff, u8 sector_no, u8 track_no, u8 head_no, u8 disk_no)
   return 0;
 }
 
+#if 0
+int s_strncmp(const char *s1, const char *s2, u32 n);
+{
+  char *p1 = s1;
+  char *p2 = s2;
+
+  while (*p1 == *p2)
+    ++p1;
+    ++p2
+
+}
+#endif
+
 #ifdef DOS_COM
 int main(int argc, char **argv)
 #else
@@ -309,9 +324,10 @@ void __NORETURN main(void)
 
   u16 byte_per_sector = 0;
   u16 root_entry_count = 0;
-  u8 *buff = (u8*)IMAGE_LMA;
+  volatile u8 *buff = (u8*)IMAGE_LMA;
 
-#ifdef DOS_COM
+//#ifdef DOS_COM
+#if 1
   //int r = read_sector(buff, sector_no, 0, 0, 0);
 
   // logic sector no 19 is root directory
@@ -323,8 +339,11 @@ void __NORETURN main(void)
   int r = read_sector(buff, sector_no, track_no, head_no, disk_no);
   byte_per_sector = ((buff[12] << 8) | buff[11]);
   root_entry_count = ((buff[18] << 8) | buff[17]);
+
+#ifdef DOS_COM
   print_num(byte_per_sector, "byte_per_sector");
   print_num(root_entry_count, "root_entry_count");
+#endif
 
   u16 root_dir_secotrs = 0;
   if (root_entry_count * 32 % byte_per_sector != 0)
@@ -332,13 +351,18 @@ void __NORETURN main(void)
   else
     root_dir_secotrs = (root_entry_count * 32 / byte_per_sector);
 
+#ifdef DOS_COM
   print_num(root_dir_secotrs, "root_dir_secotrs"); // root dir occupy how many sectors
+#endif
 
 
   int root_sec_no = 19;
   //int root_sec_no = 21;
 
   int cur_sec_no = root_sec_no;
+
+  u16 read_sec = 0;
+
   for (int i=0 ; i <= root_dir_secotrs ; ++i, ++cur_sec_no)
   //for (int i=0 ; i < 1 ; ++i, ++cur_sec_no)
   {
@@ -347,7 +371,9 @@ void __NORETURN main(void)
     head_no = ((root_sec_no/18) & 1);
     sector_no = ((root_sec_no%18) + 1);
   #endif
+#ifdef DOS_COM
     print_num(i + cur_sec_no, "cur sec no"); // root dir occupy how many sectors
+#endif
     track_no = (((i + cur_sec_no)/18) >> 1);
     head_no = (((i + cur_sec_no)/18) & 1);
     sector_no = (((i + cur_sec_no)%18) + 1);
@@ -374,24 +400,93 @@ void __NORETURN main(void)
         goto search_end;
       }
       #endif
+
+
       attr = buff[0x0b + (j*32)];
-      if (((attr >> 3) & 1) == 1) // label
+
+      r = 0;
+      for (int i=0 ; i < 11 ; ++i)
       {
-        print("label:");
-        print(filename);
-        continue;
+        const u8 *ln = "LOADER  BIN";
+        if (filename[i] != ln[i])
+	{
+	  r = 0;
+	  break;
+	}
+	r = 1;
+
       }
-      print("\r\n");
-      print(filename);
-      print_num(f_c, " f_c");
-      print_num(file_size, " file_size");
-      print("\r\n");
+
+      if (r)
+      {
+        read_sec = f_c - 2 + 33;
+#ifdef DOS_COM
+        print("\r\n");
+        print("load it\r\n");
+        print("\r\n");
+        if (((attr >> 3) & 1) == 1) // label
+        {
+          print("label:");
+          print(filename);
+          continue;
+        }
+        else
+        {
+          print("\r\n");
+          print(filename);
+          print_num(f_c, " f_c");
+          print_num(file_size, " file_size");
+          print("\r\n");
+        }
+#endif
+	goto search_end;
+      }
+
+
+
     }
 
 
   }
 
   search_end:
+  if (read_sec != 0)
+  {
+#ifdef DOS_COM
+    print_num(read_sec, "read_sec");
+#endif
+    track_no = ((read_sec/18) >> 1);
+    head_no = ((read_sec/18) & 1);
+    sector_no = ((read_sec%18) + 1);
+    #if 0
+    print_num(track_no, "track_no");
+    print_num(head_no, "head_no");
+    #endif
+    // if no the line, buff will get wrong data, very strange.
+    print_num(sector_no, "sector_no");
+    r = read_sector(buff, sector_no, track_no, head_no, disk_no);
+
+#ifdef DOS_COM
+    for (int i=0 ; i < 32 ; ++i)
+    {
+      if (i%16==0)
+        print("\r\n");
+      u8 c[4]="";
+      u8 h=*(buff+i);
+      c[3]=0;
+      c[2]=0x20;
+      h2c(h, c);
+      print(c);
+    }
+#endif
+    //void*   e = (void*)IMAGE_ENTRY;
+    void*   e = buff;
+    //__asm__ __volatile__("" : : "d"(bios_drive));
+    goto    *e;
+  }
+  else
+  {
+  }
 
 
 #if 0
