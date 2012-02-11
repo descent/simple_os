@@ -470,5 +470,7 @@ void __NORETURN main(void)
   // 回到 DOS
   __asm__ ("mov     $0x4c00, %ax\n");
   __asm__ ("int     $0x21\n");
+#else
+  while(1);
 #endif
 }
