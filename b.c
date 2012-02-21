@@ -1,10 +1,10 @@
 asm(".code16gcc\n");
 
 typedef unsigned char u8;
+typedef unsigned int u32;
 
 int i;
 
-#if 1
 void print(const char   *s)
 {
   while(*s)
@@ -23,5 +23,24 @@ int p()
   //*video_addr = 'a';
   print(str);
   return c;
+}
+
+#if 0
+extern u32 __bss_start__;
+extern u32 __bss_end__;
+void init_bss()
+{
+  u8 *bss=(u8*)__bss_start__;
+  *bss = 0x1;
+  *(bss+1) = 0x1;
+  *(bss+2) = 0x1;
+  *(bss+3) = 0x1;
+#if 0
+  while (i!=(u8*)__bss_end__)
+  {
+    *i = 0x1;
+    ++i;
+  }
+#endif
 }
 #endif
