@@ -15,28 +15,29 @@ _start:
 
 #  call disp_str
   call init_bss_asm
-  call disp_str2
+  call p
+#  call disp_str2
   jmp .
-disp_str: 
-    mov     $BootMessage, %ax
-    mov     %ax,%bp 
-    mov     $16,%cx
-    mov     $0x1301,%ax
-    mov     $0x00c,%bx
-    mov     $0,%dl
-    int     $0x10
-    ret
-BootMessage:.ascii "Hello, c-env world!"
-disp_str2: 
-    mov     $str2, %ax
-    mov     %ax,%bp 
-    mov     $5,%cx
-    mov     $0x1301,%ax
-    mov     $0x00c,%bx
-    mov     $0,%dl
-    int     $0x10
-    ret
-str2:.ascii "after"
+#disp_str: 
+#    mov     $BootMessage, %ax
+#    mov     %ax,%bp 
+#    mov     $16,%cx
+#    mov     $0x1301,%ax
+#    mov     $0x00c,%bx
+#    mov     $0,%dl
+#    int     $0x10
+#    ret
+#BootMessage:.ascii "Hello, c-env world!"
+#disp_str2: 
+#    mov     $str2, %ax
+#    mov     %ax,%bp 
+#    mov     $5,%cx
+#    mov     $0x1301,%ax
+#    mov     $0x00c,%bx
+#    mov     $0,%dl
+#    int     $0x10
+#    ret
+#str2:.ascii "after"
 
 
 # init bss
@@ -48,7 +49,7 @@ init_bss_asm:
   jmp 2f
 1:
   movw %si, %ax
-  movb $1, %gs:(%eax)
+  movb $0x1, %gs:(%eax)
   add $1, %si
   
 2:
@@ -78,8 +79,8 @@ init_bss_asm:
 
 
 #.bss
-_bss_start_:.word   __bss_start__
-_bss_end_:.word   __bss_end__
+#_bss_start_:.word   __bss_start__
+#_bss_end_:.word   __bss_end__
 
 .data
 #LABEL_STACK:
