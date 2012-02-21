@@ -13,8 +13,8 @@ _start:
   mov %ax, %ss
   mov $0xffff, %sp
 
-  call disp_str
-  call p
+#  call disp_str
+  call init_bss_asm
   call disp_str2
   jmp .
 disp_str: 
@@ -40,6 +40,42 @@ str2:.ascii "after"
 
 
 # init bss
+init_bss_asm:
+  movw $__bss_end__, %di    /* Destination */
+  movw $__bss_start__, %si   /* Source */
+  movw $0x0, %ax
+  movw %ax, %gs
+  jmp 2f
+1:
+  movw %si, %ax
+  movb $1, %gs:(%eax)
+  add $1, %si
+  
+2:
+  cmpw %di, %si
+  jne 1b
+  ret
+
+#  movw     16(%ebp), %ecx   /* Counter */
+#1:
+#    cmp     $0, %ecx  /* Loop counter */
+#    jz      MemCpy.2
+#    movb    %ds:(%esi), %al
+#    inc     %esi
+#    movb    %al, %es:(%edi)
+#    inc     %edi
+#    dec     %ecx
+#    jmp     MemCpy.1
+#2:
+#    mov     8(%ebp), %eax
+#    pop     %ecx
+#    pop     %edi
+#    pop     %esi
+#    mov     %ebp, %esp
+#    pop     %ebp
+#    ret
+
+
 
 #.bss
 _bss_start_:.word   __bss_start__
