@@ -116,7 +116,7 @@ char* itoa(int n, u8* str, int radix)
   {
     *p++='0';
     *p=0;
-    return p;
+    return str;
   }
   if (radix == 10 && n < 0)
   {
