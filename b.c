@@ -4,6 +4,7 @@ typedef unsigned char u8;
 typedef unsigned int u32;
 
 int i;
+char* itoa(int n, char* str);
 
 void print(const char   *s)
 {
@@ -17,13 +18,58 @@ void print(const char   *s)
 int p()
 {
   int c=i+1;
-  const char *str="test";
+  char arr[6]="a";
+  char *s = arr;
+  
+  //const char *str="test";
   //volatile u8 *video_addr = (u8*)0xB8000;
   //asm("movw $0xb000 %gs");
   //*video_addr = 'a';
-  print(str);
+  s = itoa(c, s);
+  print(s);
   return c;
 }
+
+#if 1
+char* itoa(int n, char* str)
+{
+  char digit[]="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  char* p=str;
+  char* head=str;
+  int radix = 10;
+
+//  if(!p || radix < 2 || radix > 36)
+//    return p;
+  if (n==0)
+  {
+    *p++='0';
+    *p=0;
+    return str;
+  }
+#if 0
+  if (radix == 10 && n < 0)
+  {
+    *p++='-';
+    n= -n;
+  }
+#endif
+  while(n)
+  {
+    *p++=digit[n%radix];
+    n/=radix;
+  }
+  *p=0;
+#if 0
+  for (--p; head < p ; ++head, --p)
+  {
+    char temp=*head;
+    *head=*p;
+    *p=temp;
+  }
+#endif
+  return str;
+}
+#endif
 
 #if 0
 extern u32 __bss_start__;
