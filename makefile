@@ -1,6 +1,10 @@
 #CFLAGS = -fno-stack-protector -std=c99 -march=i686 -ffreestanding -Wall -g
 CFLAGS = -fno-stack-protector -ffreestanding -g
 
+boot.img: c_init.bin
+	dd if=$< of=$@ bs=512 count=1
+	dd if=/dev/zero of=$@ skip=1 seek=1 bs=512 count=2879
+
 c_init.bin: c_init.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
 
@@ -13,9 +17,6 @@ b.o: b.c
 b.s: b.c
 	gcc -S $(CFLAGS) -c $<
 
-boot.img: c_init.bin
-	dd if=$< of=$@ bs=512 count=1
-	dd if=/dev/zero of=$@ skip=1 seek=1 bs=512 count=2879
 .PHONE: clean
 
 clean:
