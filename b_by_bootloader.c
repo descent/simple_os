@@ -18,30 +18,40 @@ void print(const char   *s)
   }
 }
 
+#define DATA
+
 const int A = 10;
+#ifdef DATA
 char data_str[]="data_string";
+#endif
+
+void write_mem8(u32 addr, u8 data); // assembly function.
 
 int p()
 {
-#if 1
+  write_mem8(0x4, 'Z'); // assembly function.
+#if 0
   int c=i+1;
   char arr[10]="a";
   char *s = arr;
 #endif
-#if 1
+#if 0
   char stack_str[]="stack_string"; // need %ds = %ss
   print("\r\n");
   print(stack_str);
 #endif
-#if 1
+#if 0
   const char *ro_str="ro_string"; // movl $0x000002f0, %ss:-4(%ebp)
   print("\r\n");
   print(ro_str);
 #endif
+
+#ifdef DATA
   print("\r\n");
   print(data_str);
+#endif
 
-#if 1
+#if 0
   static char *s_str="static_point"; 
   static char s_str_a[]="static_array"; 
   print("\r\n");
@@ -54,11 +64,14 @@ int p()
   //volatile u8 *video_addr = (u8*)0xB8000;
   //asm("movw $0xb000 %gs");
   //*video_addr = 'a';
+#if 0
   s = itoa(c, s); // need %ds to 0
   print("\r\n");
   print(s);
   return c;
-  //return 1;
+#else
+  return 1;
+#endif
 }
 
 #if 1
