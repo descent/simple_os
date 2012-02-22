@@ -20,6 +20,7 @@ _start:
 #  movw $0x0, %ax
 #  movw %ax, %ds
   call p
+#  call text_test
 #  call disp_str2
   jmp .
 #disp_str: 
@@ -47,7 +48,8 @@ _start:
 write_mem8:
   pushl %ebp
   mov %esp, %ebp
-  movw $0xb800, %ax
+  #movw $0xa000, %ax # graphic mode
+  movw $0xb800, %ax # text mode
   movw %ax, %gs
   movl 8(%ebp), %ecx;
 #  mov $0x0, %ecx;
