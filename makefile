@@ -20,14 +20,18 @@ b.s: b.c
 c_init_by_boot_loader.bin: c_init_by_boot_loader.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
 
-c_init_by_boot_loader.elf: c_init_by_boot_loader.o b_by_bootloader.o bss_dos.lds
-	ld -nostdlib -g -o $@ -Tbss_dos.lds c_init_by_boot_loader.o b_by_bootloader.o
+c_init_by_boot_loader.elf: c_init_by_boot_loader.o b_by_bootloader.o switch_vga_mode.o bss_dos.lds
+	ld -nostdlib -g -o $@ -Tbss_dos.lds c_init_by_boot_loader.o b_by_bootloader.o switch_vga_mode.o
 c_init_by_boot_loader.o: c_init_by_boot_loader.s
 	as -o $@ $<
 b_by_bootloader.o: b_by_bootloader.c
 	gcc $(CFLAGS) -c $<
 b_by_bootloader.s: b_by_bootloader.c
-	gcc -S $(CFLAGS) -c $<
+	gcc -S $(CFLAGS) $<
+switch_vga_mode.o: switch_vga_mode.c
+	gcc $(CFLAGS) -c $<
+switch_vga_mode.s: switch_vga_mode.c
+	gcc -S $(CFLAGS) $<
 
 .PHONE: clean distclean
 
