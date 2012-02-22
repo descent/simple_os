@@ -43,6 +43,20 @@ _start:
 #    ret
 #str2:.ascii "after"
 
+.globl write_mem8
+write_mem8:
+  pushl %ebp
+  mov %esp, %ebp
+  movw $0xb800, %ax
+  movw %ax, %gs
+  movl 8(%ebp), %ecx;
+#  mov $0x0, %ecx;
+  movb 12(%ebp), %al;
+  movb %al, %gs:(%ecx)
+  #movb $'A', %gs:(%ecx)
+  popl %ebp
+  ret
+
 
 # init bss
 init_bss_asm:
