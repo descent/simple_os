@@ -26,6 +26,8 @@ c_init_by_boot_loader.o: c_init_by_boot_loader.s
 	as -o $@ $<
 b_by_bootloader.o: b_by_bootloader.c
 	gcc $(CFLAGS) -c $<
+b_by_bootloader.s: b_by_bootloader.c
+	gcc -S $(CFLAGS) -c $<
 
 .PHONE: clean distclean
 
