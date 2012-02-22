@@ -40,6 +40,15 @@ int p()
 #endif
   print("\r\n");
   print(data_str);
+
+#if 1
+  static char *s_str="static_point"; 
+  static char s_str_a[]="static_array"; 
+  print("\r\n");
+  print(s_str);
+  print("\r\n");
+  print(s_str_a);
+#endif
   
   //const char *str="test";
   //volatile u8 *video_addr = (u8*)0xB8000;
