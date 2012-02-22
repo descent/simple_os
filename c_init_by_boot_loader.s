@@ -8,15 +8,17 @@ _start:
   mov %cs, %ax
   mov %ax, %ds
   mov %ax, %es
-
-# setup stack
+  #movw $0x0, %ax
+  movw %ax, %ds
   mov %ax, %ss
-#  mov $0xffff, %sp # why not setting 0xffff to %sp
+# setup stack
+  mov $0xfffb, %sp # why not setting 0xffff to %sp
 
 #  call disp_str
   call init_bss_asm
-  movw $0x0, %ax
-  movw %ax, %ds
+# for bss
+#  movw $0x0, %ax
+#  movw %ax, %ds
   call p
 #  call disp_str2
   jmp .
@@ -46,12 +48,13 @@ _start:
 init_bss_asm:
   movw $__bss_end__, %di    /* Destination */
   movw $__bss_start__, %si   /* Source */
-  movw $0x0, %ax
-  movw %ax, %gs
+#  movw $0x0, %ax
+#  movw %ax, %gs
   jmp 2f
 1:
   movw %si, %ax
-  movb $0x1, %gs:(%eax)
+  movb $0x1, (%eax)
+#  movb $0x1, %ds:(%eax)
   add $1, %si
   
 2:
