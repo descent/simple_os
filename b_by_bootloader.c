@@ -18,19 +18,38 @@ void print(const char   *s)
   }
 }
 
+const int A = 10;
+char data_str[]="data_string";
+
 int p()
 {
+#if 1
   int c=i+1;
   char arr[10]="a";
   char *s = arr;
+#endif
+#if 1
+  char stack_str[]="stack_string"; // need %ds = %ss
+  print("\r\n");
+  print(stack_str);
+#endif
+#if 1
+  const char *ro_str="ro_string"; // movl $0x000002f0, %ss:-4(%ebp)
+  print("\r\n");
+  print(ro_str);
+#endif
+  print("\r\n");
+  print(data_str);
   
   //const char *str="test";
   //volatile u8 *video_addr = (u8*)0xB8000;
   //asm("movw $0xb000 %gs");
   //*video_addr = 'a';
-  s = itoa(c, s);
+  s = itoa(c, s); // need %ds to 0
+  print("\r\n");
   print(s);
   return c;
+  //return 1;
 }
 
 #if 1
