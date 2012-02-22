@@ -12,7 +12,7 @@ _start:
   movw %ax, %ds
   mov %ax, %ss
 # setup stack
-  mov $0xfffb, %sp # why not setting 0xffff to %sp
+  mov $0xfff0, %sp # why not setting 0xffff to %sp, in ms dos, 0xfff0 is ok, 0xffb will get core dump
 
 #  call disp_str
   call init_bss_asm
