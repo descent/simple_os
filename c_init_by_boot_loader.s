@@ -19,7 +19,8 @@ _start:
 # for bss
 #  movw $0x0, %ax
 #  movw %ax, %ds
-  call p
+#  call p
+  call start_c
 #  call text_test
 #  call disp_str2
   jmp .
