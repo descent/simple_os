@@ -33,6 +33,14 @@ switch_vga_mode.o: switch_vga_mode.c
 switch_vga_mode.s: switch_vga_mode.c
 	gcc -S $(CFLAGS) $<
 
+kloader.bin: kernel_loader.elf
+	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
+
+kernel_loader.elf: c_init_by_boot_loader.o kernel_loader.o 
+	ld -nostdlib -g -o $@ -Tbss_dos.lds $^
+kernel_loader.o: kernel_loader.c
+	gcc -std=c99 $(CFLAGS) -c $<
+
 .PHONE: clean distclean
 
 clean:
