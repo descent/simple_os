@@ -22,7 +22,8 @@ __asm__(".code16gcc\n");
 /* XXX these must be at top */
 
 //u8 kernel_name[] = "KERNEL  BIN";
-u8 kernel_name[] = "KERNEL  ELF";
+//u8 kernel_name[] = "KERNEL  ELF";
+u8 kernel_name[]   = "TEST    BIN";
 
 /* BIOS interrupts must be done with inline assembly */
 //void    __NOINLINE __REGPARM print(const char   *s){
@@ -251,7 +252,7 @@ int read_fat(volatile u8 *fat_buf, u16 fat_sector_no)
   u8 r = read_sector(fat_buf, sector_no, track_no, head_no, disk_no, 2);
   //dump_u8(fat_buf, 48);
 
-  return FAIL;
+  return OK;
 }
 
 int is_odd(int n)
@@ -262,29 +263,49 @@ int is_odd(int n)
     return 1;
 }
 
-u16 get_next_cluster(volatile u8 *fat_buf, u16 cur_cluster)
+u16 get_next_cluster(u16 cur_cluster)
 {
   u16 offset, next_cluster=0;
+  volatile u8 *fat_buf = (volatile u8 *)READ_FAT_ADDR;
+
+  print_num(cur_cluster, "cur_cluster");
 
   if (is_odd(cur_cluster) == 1)
   {
-    offset = (cur_cluster-1) * 3 / 2;
-    next_cluster = ((fat_buf[offset+1] >> 4) & 0x0f) | (fat_buf[offset+2] << 8);
+    offset = (cur_cluster-1) / 2 * 3;
+    //next_cluster = (((fat_buf[offset+1] >> 4) & 0x0f) | (fat_buf[offset+2] << 4));
     //offset = f_c * 1.5; // if f_c : 12 because of  24, 12 * 2??
     //offset = f_c >> 1;
   }
   else
   {
+    //print("\r\neven");
     offset = cur_cluster /2 *3; // if f_c : 12 -> 18
+    //next_cluster = ((fat_buf[offset+1] & 0x0f) << 8)| fat_buf[offset];
+  }
+  //if (offset >= 1024) // need read fat sector
+  {
+    u16 fat_sector_no = (offset / 1024) + 1;
+    //print_num(offset, "offset");
+    //print_num(fat_sector_no, "fat_sector_no");
+    read_fat(fat_buf, fat_sector_no); // FAT occupies 9 sections, sector no 1 ~ 10
+  }
+  if (is_odd(cur_cluster) == 1)
+  {
+    next_cluster = (((fat_buf[offset+1] >> 4) & 0x0f) | (fat_buf[offset+2] << 4));
+  }
+  else
+  {
     next_cluster = ((fat_buf[offset+1] & 0x0f) << 8)| fat_buf[offset];
   }
 
 #if 0
-  print("\r\n");
+    print("\r\nodd");
   print_num(offset, "offset");
   print("\r\n");
-  print_num(next_cluster, "next_cluster");
+  dump_u8(fat_buf+offset, 3);
   print("\r\n");
+  print_num(next_cluster, "next_cluster");
 #endif
   return next_cluster;
 }
@@ -455,9 +476,18 @@ void start_c()
     {
       r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
 
-      volatile u8 *fat_buf = (volatile u8 *)READ_FAT_ADDR;
       u16 fat_sector_no = 1;
-      read_fat(fat_buf, fat_sector_no); // FAT occupies 9 sections, sector no 1 ~ 10
+
+#if 0
+      u16 fat_offset = f_c * 3 / 2;
+      if (((f_c * 3) % 2) != 0)
+      {
+      }
+      else
+      {
+      }
+#endif
+      //read_fat(fat_buf, fat_sector_no); // FAT occupies 9 sections, sector no 1 ~ 10
       //dump_u8(fat_buf, 32);
       u16 offset, next_cluster, cur_cluster=f_c;
 
@@ -474,15 +504,16 @@ void start_c()
   while(1);
   #endif
 #if 1
-      while ((next_cluster=get_next_cluster(fat_buf, cur_cluster)) != 0xfff)
+      int i=0;
+      while ((next_cluster=get_next_cluster(cur_cluster)) != 0xfff)
       {
         r_sec=next_cluster + - 2 + root_dir_secotrs + 19;
 
-        print_num(r_sec, "r_sec");
+        //print_num(r_sec, "r_sec");
         //print("\r\n");
         cur_cluster = next_cluster;
 	//if (i >= 2) break;
-	//++i;
+	++i;
       }
 #endif
 
