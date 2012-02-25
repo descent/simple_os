@@ -12,7 +12,8 @@ __asm__(".code16gcc\n");
 
 #define IMAGE_SIZE  8192
 #define BLOCK_SIZE  512
-#define IMAGE_LMA   (0x2000)
+#define READ_FAT_ADDR (0x2000)
+#define IMAGE_LMA   (0x4000)
 //#define IMAGE_LMA   0x8000
 #define IMAGE_ENTRY 0x800c
 #define buf_addr_val (*(u8 volatile*(IMAGE_LMA)))
@@ -20,8 +21,8 @@ __asm__(".code16gcc\n");
 
 /* XXX these must be at top */
 
-
-u8 kernel_name[] = "KERNEL  BIN";
+//u8 kernel_name[] = "KERNEL  BIN";
+u8 kernel_name[] = "KERNEL  ELF";
 
 /* BIOS interrupts must be done with inline assembly */
 //void    __NOINLINE __REGPARM print(const char   *s){
@@ -96,7 +97,7 @@ void print_num(int n, u8 *sy)
 
 
 
-void dump_u8(u8 *buff, u16 count)
+void dump_u8(volatile u8 *buff, u16 count)
 {
   void h2c(u8 hex, u8 ch[2]);
 
@@ -167,6 +168,7 @@ int __REGPARM read_sector(volatile u8 *buff, u8 sector_no, u8 track_no, u8 head_
   print_num(sector_no, "sector_no");
   print_num(track_no, "track_no");
   print_num(head_no, "head_no");
+  print_num(disk_no, "disk_no");
 #endif
 //  __asm__ __volatile__("movb $2, %ah\n"); 
 //  __asm__ __volatile__("movb $1, %al\n"); 
@@ -176,6 +178,7 @@ int __REGPARM read_sector(volatile u8 *buff, u8 sector_no, u8 track_no, u8 head_
                         :"a"(0x0200|blocks), "b"(buff), "c"(track_no << 8 | sector_no), "d"(head_no << 8 | disk_no)
 	               ); 
 #endif
+  //dump_u8(buff, 32*2);
   return 0;
 }
 
@@ -225,6 +228,65 @@ int s_strcmp(const char *s1, const char *s2)
         return  -1;
     }
   return 0;
+}
+
+#define OK 1
+#define FAIL -1
+
+// FAT occupies 9 sections, sector no 1 ~ 10
+int read_fat(volatile u8 *fat_buf, u16 fat_sector_no)
+{
+  u8 track_no = ((fat_sector_no/18) >> 1);
+  u8 head_no = ((fat_sector_no/18) & 1);
+  u8 sector_no = ((fat_sector_no%18) + 1);
+  u8 disk_no = 0;
+
+#if 0
+  print_num(track_no, "fat track_no");
+  print_num(head_no, "fat head_no");
+  print_num(sector_no, "fat sector_no");
+  print_num(disk_no, "fat disk_no");
+  print("\r\n");
+#endif
+  u8 r = read_sector(fat_buf, sector_no, track_no, head_no, disk_no, 2);
+  //dump_u8(fat_buf, 48);
+
+  return FAIL;
+}
+
+int is_odd(int n)
+{
+  if ((n%2) == 0 )
+    return -1;
+  else
+    return 1;
+}
+
+u16 get_next_cluster(volatile u8 *fat_buf, u16 cur_cluster)
+{
+  u16 offset, next_cluster=0;
+
+  if (is_odd(cur_cluster) == 1)
+  {
+    offset = (cur_cluster-1) * 3 / 2;
+    next_cluster = ((fat_buf[offset+1] >> 4) & 0x0f) | (fat_buf[offset+2] << 8);
+    //offset = f_c * 1.5; // if f_c : 12 because of  24, 12 * 2??
+    //offset = f_c >> 1;
+  }
+  else
+  {
+    offset = cur_cluster /2 *3; // if f_c : 12 -> 18
+    next_cluster = ((fat_buf[offset+1] & 0x0f) << 8)| fat_buf[offset];
+  }
+
+#if 0
+  print("\r\n");
+  print_num(offset, "offset");
+  print("\r\n");
+  print_num(next_cluster, "next_cluster");
+  print("\r\n");
+#endif
+  return next_cluster;
 }
 
 void start_c()
@@ -295,7 +357,8 @@ void start_c()
   print_num(root_dir_secotrs, "root_dir_secotrs"); // root dir occupy how many sectors
 
   u16 root_sec_no = 19;
-  u16 read_sec = 0;
+  u16 f_c = 0;
+  u32 file_size = 0;
 
   //for (int i=0 ; i < 1 ; ++i, ++cur_sec_no)
   //for (int i=0 ; i <= root_dir_secotrs ; ++i, ++cur_sec_no)
@@ -306,14 +369,17 @@ void start_c()
     track_no = (((i)/18) >> 1);
     head_no = (((i)/18) & 1);
     sector_no = (((i)%18) + 1);
+    disk_no = 0;
     r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
+    //dump_u8(buff, 32*2);
+    //while(1);
     
     //for (u16 j=0 ; j < 2 ; ++j)
     //for (u16 j=0 ; j < 16 ; ++j)
     for (u16 j=0 ; j < 512/32 ; ++j)
     {
-      u16 f_c = ((buff[0x1b+j*32] << 8) | buff[0x1a+j*32]); // first cluster
-      u32 file_size = (( buff[0x1f + (j*32)] << 24) | (buff[0x1e + (j*32)] << 16) | (buff[0x1d + (j*32)] << 8) | buff[0x1c + (j*32)]);
+      f_c = ((buff[0x1b+j*32] << 8) | buff[0x1a+j*32]); // first cluster
+      file_size = (( buff[0x1f + (j*32)] << 24) | (buff[0x1e + (j*32)] << 16) | (buff[0x1d + (j*32)] << 8) | buff[0x1c + (j*32)]);
       //u32 file_size = 0;
       //u32 file_size = ( buff[0x1f+(j*32)] << 24); 
 
@@ -346,7 +412,6 @@ void start_c()
         continue;
       }
 
-      r = 0;
       print("\r\n");
       print(filename);
       r = s_strncmp(filename, kernel_name, 11);
@@ -358,7 +423,6 @@ void start_c()
       //if (s_strcmp(filename, kernel_name) == 0) // find kernel
       if (r == 0)
       {
-        read_sec = f_c - 2 + root_dir_secotrs + 19;
         print("\r\n");
         print("load it\r\n");
 	goto search_end;
@@ -372,35 +436,104 @@ void start_c()
 
   }
 
+  u16 r_sec=0;
   search_end:
-  while(1);
-  if (read_sec != 0)
+  if (r==0)
   {
-    print_num(read_sec, "read_sec");
-    track_no = ((read_sec/18) >> 1);
-    head_no = ((read_sec/18) & 1);
-    sector_no = ((read_sec%18) + 1);
+    r_sec=f_c - 2 + root_dir_secotrs + 19;
+    print_num(r_sec, "r_sec");
+    track_no = ((r_sec/18) >> 1);
+    head_no = ((r_sec/18) & 1);
+    sector_no = ((r_sec%18) + 1);
     #if 0
     print_num(track_no, "track_no");
     print_num(head_no, "head_no");
     #endif
     // if no the line, buff will get wrong data, very strange.
-    print('s');
-    r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
-
-    for (int i=0 ; i < 32 ; ++i)
+    print("s");
+    if (file_size > 512) // need read FAT
     {
-      if (i%16==0)
-        print("\r\n");
-      u8 c[4]="";
-      u8 h=*(buff+i);
-      c[3]=0;
-      c[2]=0x20;
-      h2c(h, c);
-      print(c);
+      r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
+
+      volatile u8 *fat_buf = (volatile u8 *)READ_FAT_ADDR;
+      u16 fat_sector_no = 1;
+      read_fat(fat_buf, fat_sector_no); // FAT occupies 9 sections, sector no 1 ~ 10
+      //dump_u8(fat_buf, 32);
+      u16 offset, next_cluster, cur_cluster=f_c;
+
+#if 0
+      next_cluster=get_next_cluster(fat_buf, cur_cluster);
+  print_num(next_cluster, "xx next_cluster");
+  print("\r\n");
+  #if 1
+        cur_cluster = next_cluster;
+      next_cluster=get_next_cluster(fat_buf, cur_cluster);
+  print_num(next_cluster, "xx next_cluster");
+  print("\r\n");
+  #endif
+  while(1);
+  #endif
+#if 1
+      while ((next_cluster=get_next_cluster(fat_buf, cur_cluster)) != 0xfff)
+      {
+        r_sec=next_cluster + - 2 + root_dir_secotrs + 19;
+
+        print_num(r_sec, "r_sec");
+        //print("\r\n");
+        cur_cluster = next_cluster;
+	//if (i >= 2) break;
+	//++i;
+      }
+#endif
+
+#if 0
+      if (is_odd(f_c) == 1)
+      {
+        offset = (f_c-1) * 3 / 2;
+	next_cluster = ((fat_buf[offset+1] >> 4) & 0x0f) | (fat_buf[offset+2] << 8);
+        //offset = f_c * 1.5; // if f_c : 12 because of  24, 12 * 2??
+        //offset = f_c >> 1;
+      }
+      else
+      {
+        offset = f_c /2 *3; // if f_c : 12 -> 18
+	next_cluster = ((fat_buf[offset+1] & 0x0f) << 8)| fat_buf[offset];
+      }
+
+      print("\r\n");
+      print_num(offset, "offset");
+      print("\r\n");
+      print_num(next_cluster, "next_cluster");
+      print("\r\n");
+
+      f_c=next_cluster;
+      if (is_odd(f_c) == 1)
+      {
+        offset = (f_c-1) * 3 / 2;
+	next_cluster = ((fat_buf[offset+1] >> 4) & 0x0f) | (fat_buf[offset+2] << 4);
+        //offset = f_c * 1.5; // if f_c : 12 because of  24, 12 * 2??
+        //offset = f_c >> 1;
+      }
+      else
+      {
+        offset = f_c /2 *3; // if f_c : 12 -> 18
+	next_cluster = ((fat_buf[offset+1] & 0x0f) << 8)| fat_buf[offset];
+      }
+      print("\r\n");
+      print_num(offset, "offset");
+      print("\r\n");
+      print_num(next_cluster, "next_cluster");
+      print("\r\n");
+#endif
+
     }
+    else
+    {
+      r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
+    }
+    while(1);
     //void*   e = (void*)IMAGE_ENTRY;
-    void*   e = buff;
+    volatile void*   e = buff;
     //__asm__ __volatile__("" : : "d"(bios_drive));
     goto    *e;
   }
