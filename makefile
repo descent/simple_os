@@ -1,5 +1,5 @@
 #CFLAGS = -fno-stack-protector -std=c99 -march=i686 -ffreestanding -Wall -g
-CFLAGS = -fno-stack-protector -ffreestanding -g
+CFLAGS = -fno-stack-protector -ffreestanding -fno-builtin -g
 
 boot.img: c_init.bin
 	dd if=$< of=$@ bs=512 count=1
