@@ -21,9 +21,9 @@ __asm__(".code16gcc\n");
 
 /* XXX these must be at top */
 
-//u8 kernel_name[] = "KERNEL  BIN";
+u8 kernel_name[] = "KERNEL  BIN";
 //u8 kernel_name[] = "KERNEL  ELF";
-u8 kernel_name[]   = "TEST    BIN";
+//u8 kernel_name[]   = "TEST    BIN";
 
 /* BIOS interrupts must be done with inline assembly */
 //void    __NOINLINE __REGPARM print(const char   *s){
@@ -268,7 +268,7 @@ u16 get_next_cluster(u16 cur_cluster)
   u16 offset, next_cluster=0;
   volatile u8 *fat_buf = (volatile u8 *)READ_FAT_ADDR;
 
-  print_num(cur_cluster, "cur_cluster");
+  //print_num(cur_cluster, "cur_cluster");
 
   if (is_odd(cur_cluster) == 1)
   {
@@ -472,13 +472,17 @@ void start_c()
     #endif
     // if no the line, buff will get wrong data, very strange.
     print("s");
+
+    // read the 1st sector
+    r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
+    //buff += 0x200;
+
     if (file_size > 512) // need read FAT
     {
-      r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
-
-      u16 fat_sector_no = 1;
 
 #if 0
+      u16 fat_sector_no = 1;
+
       u16 fat_offset = f_c * 3 / 2;
       if (((f_c * 3) % 2) != 0)
       {
@@ -504,16 +508,23 @@ void start_c()
   while(1);
   #endif
 #if 1
-      int i=0;
+      //int i=0;
       while ((next_cluster=get_next_cluster(cur_cluster)) != 0xfff)
       {
         r_sec=next_cluster + - 2 + root_dir_secotrs + 19;
+        print_num(next_cluster, "next_cluster");
+        print_num(r_sec, "r_sec");
 
-        //print_num(r_sec, "r_sec");
+        track_no = ((r_sec/18) >> 1);
+        head_no = ((r_sec/18) & 1);
+        sector_no = ((r_sec%18) + 1);
+        buff += 0x200;
+        r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
+
         //print("\r\n");
         cur_cluster = next_cluster;
 	//if (i >= 2) break;
-	++i;
+	//++i;
       }
 #endif
 
@@ -560,12 +571,14 @@ void start_c()
     }
     else
     {
-      r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
+      //r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
     }
-    while(1);
-    //void*   e = (void*)IMAGE_ENTRY;
-    volatile void*   e = buff;
+    //while(1);
+    //volatile void*   e = (void*)IMAGE_ENTRY;
+    volatile void*   e = (void*)IMAGE_LMA;
+    //volatile void*   e = buff;
     //__asm__ __volatile__("" : : "d"(bios_drive));
+    print("\r\njmp it");
     goto    *e;
   }
 
