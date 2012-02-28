@@ -79,6 +79,41 @@ init_bss_asm:
   jne 1b
   ret
 
+# copy from: write_os/src/chapter3/8/lib.h
+.globl asm_memcpy
+asm_memcpy:
+    pushl   %ebp
+    mov     %esp, %ebp
+
+    pushl   %esi
+    pushl   %edi
+    pushl   %ecx
+
+    mov $0x7000, %ax
+    mov %ax, %fs
+
+    mov     8(%ebp), %edi    /* Destination */
+    mov     12(%ebp), %esi   /* Source */
+    mov     16(%ebp), %ecx   /* Counter */
+MemCpy.1:
+    cmp     $0, %ecx  /* Loop counter */
+    jz      MemCpy.2
+    movb    %ds:(%esi), %al
+    inc     %esi
+    movb    %al, %fs:(%edi)
+    inc     %edi
+    dec     %ecx
+    jmp     MemCpy.1
+MemCpy.2:
+    mov     8(%ebp), %eax
+    pop     %ecx
+    pop     %edi
+    pop     %esi
+    mov     %ebp, %esp
+    pop     %ebp
+    ret
+
+
 #  movw     16(%ebp), %ecx   /* Counter */
 #1:
 #    cmp     $0, %ecx  /* Loop counter */
