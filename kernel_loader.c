@@ -21,7 +21,8 @@ __asm__(".code16gcc\n");
 
 /* XXX these must be at top */
 
-u8 kernel_name[] = "KERNEL  BIN";
+//u8 kernel_name[] = "KERNEL  BIN";
+u8 kernel_name[] =   "IDT     COM";
 //u8 kernel_name[] = "KERNEL  ELF";
 //u8 kernel_name[]   = "TEST    BIN";
 
@@ -575,11 +576,18 @@ void start_c()
     }
     //while(1);
     //volatile void*   e = (void*)IMAGE_ENTRY;
+    // copy 0x7000:0x100
+    void asm_memcpy(u8 *dest, u8 *src, int n);
+
+    asm_memcpy((u8*)0x100, (u8 *)IMAGE_LMA, file_size);
+
     volatile void*   e = (void*)IMAGE_LMA;
     //volatile void*   e = buff;
     //__asm__ __volatile__("" : : "d"(bios_drive));
     print("\r\njmp it");
-    goto    *e;
+    //goto    *e;
+    __asm__ ("jmp $0x7000,$0x100");
+
   }
 
 
