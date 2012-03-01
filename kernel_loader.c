@@ -1,5 +1,8 @@
-#include "type.h"
 __asm__(".code16gcc\n");
+
+#include "type.h"
+#include "elf.h"
+
 
 // read fat floppy disk
 
@@ -22,7 +25,8 @@ __asm__(".code16gcc\n");
 /* XXX these must be at top */
 
 //u8 kernel_name[] = "KERNEL  BIN";
-u8 kernel_name[] =   "IDT     COM";
+//u8 kernel_name[] =   "IDT     COM";
+u8 kernel_name[] =   "IDT     ELF";
 //u8 kernel_name[] = "KERNEL  ELF";
 //u8 kernel_name[]   = "TEST    BIN";
 
@@ -578,8 +582,42 @@ void start_c()
     //volatile void*   e = (void*)IMAGE_ENTRY;
     // copy 0x7000:0x100
     void asm_memcpy(u8 *dest, u8 *src, int n);
+    void asm_absolute_memcpy(u8 *dest, u8 *src, int n);
 
-    asm_memcpy((u8*)0x100, (u8 *)IMAGE_LMA, file_size);
+    asm_memcpy((u8*)0x100, (u8 *)IMAGE_LMA, 512*3);
+
+    buff = (u8*)IMAGE_LMA;
+    Elf32Ehdr *elf_header = (Elf32Ehdr*)buff;
+    Elf32Phdr *elf_pheader = (Elf32Phdr*)((u8 *)buff + elf_header->e_phoff);
+
+    print_num(elf_header->e_entry, "elf_header->e_entry");
+    print_num(elf_header->e_phnum, "elf_header->e_phnum");
+
+    for (int i=0 ; i < elf_header->e_phnum; ++i)
+    {
+      if (CHECK_PT_TYPE_LOAD(elf_pheader))
+      {
+        print_num(elf_pheader->p_vaddr, "elf_pheader->p_vaddr");
+        print_num(elf_pheader->p_offset, "elf_pheader->p_offset");
+        print_num(elf_pheader->p_filesz, "elf_pheader->p_filesz");
+        asm_absolute_memcpy((u8*)elf_pheader->p_vaddr, buff+(elf_pheader->p_offset), elf_pheader->p_filesz);
+      }
+      ++elf_pheader;
+    }
+    __asm__ ("jmp $0x0,$0x4000");
+    //goto *elf_header->e_entry;
+    //while(1);
+
+
+
+#if 0
+    __asm__ ("mov $0x7000,%ax");
+    __asm__ ("mov %ax, %ds");
+    __asm__ ("mov %ax, %ss");
+#endif
+    //print("\r\n");
+    //dump_u8((u8 *)0x100, 32*2);
+    //while(1);
 
     volatile void*   e = (void*)IMAGE_LMA;
     //volatile void*   e = buff;
