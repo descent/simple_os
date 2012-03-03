@@ -604,9 +604,51 @@ void start_c()
       }
       ++elf_pheader;
     }
-    __asm__ ("jmp $0x0,$0x4000");
-    //goto *elf_header->e_entry;
+    __asm__ ("nop");
+    __asm__ ("nop");
     //while(1);
+    void init_protected_mode();
+
+    init_protected_mode();
+    //while(1);
+    //__asm__ ("jmp $0x0,$0x3000");
+    //__asm__ ("jmp $0x0,$0x4000");
+    #if 0
+    //__asm__ ("movw $0x0,%bx");
+    //__asm__ ("movw %bx, %ds");
+    __asm__ __volatile__ ("movw $0, %%bx\n"
+                          "movw %%bx, %%ds\n"
+                          "jmp %0\n"
+                          :
+                          :"m"(elf_header->e_entry)
+	                 ); 
+	#endif
+	#if 1
+	u8 seg=0;
+    __asm__ __volatile__ ("jmp *%0\n"
+                          :
+                          :"m"(elf_header->e_entry)
+	                 ); 
+	 #endif
+    //__asm__ __volatile__ ("jmp *%eax\n");
+    #if 0
+    __asm__ __volatile__ ("jmp *%%eax\n"
+                          :
+                          :"a"(elf_header->e_entry)
+	                 ); 
+		 #endif
+
+			 #if 0
+    __asm__ __volatile__ ("jmp %0\n"
+                          :
+                          :"a"(elf_header->e_entry)
+	                 ); 
+			 #endif
+    //__asm__ ("movw $0x0,%ax");
+    //__asm__ ("movw %ax,%cs");
+    //__asm__ ("movw %ax,%ds");
+    //__asm__ ("movw %ax,%ss");
+    //goto *elf_header->e_entry; // if elf_header->e_entry = 0x4000, will jmp to 0x9000:0x4000
 
 
 
