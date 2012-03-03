@@ -25,8 +25,9 @@ __asm__(".code16gcc\n");
 /* XXX these must be at top */
 
 //u8 kernel_name[] = "KERNEL  BIN";
+u8 kernel_name[] =   "P_KERNELELF";
 //u8 kernel_name[] =   "IDT     COM";
-u8 kernel_name[] =   "IDT     ELF";
+//u8 kernel_name[] =   "IDT     ELF";
 //u8 kernel_name[] = "KERNEL  ELF";
 //u8 kernel_name[]   = "TEST    BIN";
 
@@ -606,7 +607,6 @@ void start_c()
     }
     __asm__ ("nop");
     __asm__ ("nop");
-    //while(1);
     void init_protected_mode();
 
     init_protected_mode();
