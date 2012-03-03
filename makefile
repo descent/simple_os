@@ -1,7 +1,7 @@
 #CFLAGS = -fno-stack-protector -std=c99 -march=i686 -ffreestanding -Wall -g
 CFLAGS = -fno-stack-protector -ffreestanding -fno-builtin -g
 
-boot.img: c_init.bin
+boot1.img: c_init.bin
 	dd if=$< of=$@ bs=512 count=1
 	dd if=/dev/zero of=$@ skip=1 seek=1 bs=512 count=2879
 
@@ -38,8 +38,29 @@ kloader.bin: kernel_loader.elf
 
 kernel_loader.elf: c_init_by_boot_loader.o kernel_loader.o 
 	ld -nostdlib -g -o $@ -Tbss_dos.lds $^
-kernel_loader.o: kernel_loader.c
+#kernel_loader.o: kernel_loader.c elf.h
+#	gcc -std=c99 $(CFLAGS) -c $<
+kernel_loader.o: kernel_loader.s
 	gcc -std=c99 $(CFLAGS) -c $<
+kernel_loader.s: kernel_loader.c elf.h
+	gcc -std=c99 $(CFLAGS) -o $@ -S $<
+
+kernel.bin: kernel.elf
+	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
+kernel.elf: kernel.o
+	ld -nostdlib -g -o $@ -Tbss_dos.lds $^
+kernel.o: kernel.s
+	as -o $@ $<
+
+# enter protected mode kernel loader
+kloaderp.bin: kloaderp.bin.elf
+	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
+
+kloaderp.bin.elf: kloader_init.o kernel_loader.o
+	ld -nostdlib -g -o $@ -Tbss_dos.lds $^
+
+kloader_init.o: kloader_init.S
+	gcc $(CFLAGS) -o $@ -c $<
 
 .PHONE: clean distclean
 
