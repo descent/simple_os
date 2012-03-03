@@ -80,6 +80,9 @@ init_bss_asm:
   ret
 
 # copy from: write_os/src/chapter3/8/lib.h
+# ex: 
+# asm_memcpy((u8*)0x100, (u8 *)IMAGE_LMA, 512*3);
+# copy IMAGE_LMA to 0x7000:0x100
 .globl asm_memcpy
 asm_memcpy:
     pushl   %ebp
@@ -113,6 +116,41 @@ MemCpy.2:
     pop     %ebp
     ret
 
+.globl asm_absolute_memcpy
+# ex: 
+# asm_absolute_memcpy((u8*)0x100, (u8 *)IMAGE_LMA, 512*3);
+# copy IMAGE_LMA to 0x100
+asm_absolute_memcpy:
+    pushl   %ebp
+    mov     %esp, %ebp
+
+    pushl   %esi
+    pushl   %edi
+    pushl   %ecx
+
+    mov $0, %ax
+    mov %ax, %fs
+
+    mov     8(%ebp), %edi    /* Destination */
+    mov     12(%ebp), %esi   /* Source */
+    mov     16(%ebp), %ecx   /* Counter */
+1:
+    cmp     $0, %ecx  /* Loop counter */
+    jz      2f
+    movb    %ds:(%esi), %al
+    inc     %esi
+    movb    %al, %fs:(%edi)
+    inc     %edi
+    dec     %ecx
+    jmp     1b
+2:
+    mov     8(%ebp), %eax
+    pop     %ecx
+    pop     %edi
+    pop     %esi
+    mov     %ebp, %esp
+    pop     %ebp
+    ret
 
 #  movw     16(%ebp), %ecx   /* Counter */
 #1:
