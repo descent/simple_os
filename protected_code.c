@@ -23,4 +23,5 @@ void test_p(void)
 void jump_kernel()
 {
   __asm__ ("jmp $0x8, $0x5000\t\n");
+  __asm__ ("jmp 0x5000\t\n");
 }
