@@ -255,5 +255,5 @@ LABEL_PM_START:
   movb $'Z', %al
   mov %ax, %gs:(%edi)
 
-  jmp .
+  call test_p
 
