@@ -56,11 +56,14 @@ kernel.o: kernel.s
 kloaderp.bin: kloaderp.bin.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
 
-kloaderp.bin.elf: kloader_init.o kernel_loader.o
+kloaderp.bin.elf: kloader_init.o kernel_loader.o protected_code.o
 	ld -nostdlib -g -o $@ -Tbss_dos.lds $^
 
 kloader_init.o: kloader_init.S
 	gcc $(CFLAGS) -o $@ -c $<
+
+protected_code.o: protected_code.c
+	gcc $(CFLAGS) -c $<
 
 .PHONE: clean distclean
 
