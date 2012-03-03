@@ -65,6 +65,12 @@ kloader_init.o: kloader_init.S
 protected_code.o: protected_code.c
 	gcc $(CFLAGS) -c $<
 
+p_kernel.elf: p_kernel.o
+	ld -nostdlib -g -o $@ -Tk.ld $^
+
+p_kernel.o: p_kernel.s
+	as -o $@ $<
+
 .PHONE: clean distclean
 
 clean:
