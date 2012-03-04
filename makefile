@@ -64,6 +64,8 @@ kloader_init.o: kloader_init.S
 
 protected_code.o: protected_code.c
 	gcc $(CFLAGS) -c $<
+protected_code.s: protected_code.c
+	gcc $(CFLAGS) -o $@ -S $<
 
 p_kernel.elf: p_kernel.o
 	ld -nostdlib -g -o $@ -Tk.ld $^
