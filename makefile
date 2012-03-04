@@ -72,7 +72,7 @@ p_kernel.elf: p_kernel.o start.o
 
 p_kernel.o: p_kernel.s
 	as -o $@ $<
-start.o: start.c
+start.o: start.c type.h protect.h
 	gcc $(CFLAGS) -c $<
 
 .PHONE: clean distclean
