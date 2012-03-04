@@ -60,14 +60,56 @@ char* s32_itoa(int n, char* str, int radix)
 
 void p_asm_memcpy(void *dest, void *src, u16 n);
 
+void c_test()
+{
+#if 0
+{
+  u8 stack_str[10]="y";
+  u8 *sp = stack_str;
+  u16 *p_gdt_limit = (u16*)(&gdt_ptr[0]);
+  u32 *p_gdt_base = (u32*)(&gdt_ptr[2]);
+
+  sp = s32_itoa(*p_gdt_limit, stack_str, 10);
+  s32_print(sp, (u8*)(0xb8000+160*0));
+  sp = s32_itoa(*p_gdt_base, stack_str, 10);
+  s32_print(sp, (u8*)(0xb8000+160*1));
+}
+#endif
+}
+
 void init_protected_mode_by_c()
 {
+  u8 stack_str[10]="y";
+  u8 *sp = stack_str;
+  //int i=65535;
+#if 0
+{
+  u16 *p_gdt_limit = (u16*)(&gdt_ptr[0]);
+  u32 *p_gdt_base = (u32*)(&gdt_ptr[2]);
+
+  sp = s32_itoa(*p_gdt_limit, stack_str, 10);
+  s32_print(sp, (u8*)(0xb8000+160*2));
+  sp = s32_itoa(*p_gdt_base, stack_str, 10);
+  s32_print(sp, (u8*)(0xb8000+160*3));
+}
+#endif
+
+
   p_asm_memcpy(&gdt, (void*)(*((u32*)(&gdt_ptr[2]))), *((u16*)(&gdt_ptr[0])) + 1);
 
   u16 *p_gdt_limit = (u16*)(&gdt_ptr[0]);
   u32 *p_gdt_base = (u32*)(&gdt_ptr[2]);
   *p_gdt_limit = GDT_SIZE * sizeof(Descriptor) - 1;
-  *p_gdt_base = (u32)&gdt_ptr;
+  *p_gdt_base = (u32)&gdt;
+
+#if 0
+  sp = s32_itoa(*p_gdt_limit, stack_str, 10);
+  s32_print(sp, (u8*)(0xb8000+160*4));
+
+  sp = s32_itoa(*p_gdt_base, stack_str, 10);
+  s32_print(sp, (u8*)(0xb8000+160*5));
+#endif
+
 }
 
 void ptr_test(u8 *ch)
@@ -81,6 +123,7 @@ char data_str[]="data_string";
 
 void startc()
 {
+#if 0
   u8 *ro_str="ro_string";
   u8 *vb=(u8*)0xb8000;
   int i=65536;
@@ -112,5 +155,5 @@ void startc()
   s32_print(s_str, (u8*)(0xb8000+160*4));
   static char s_str_a[]="static_array"; 
   s32_print(s_str_a, (u8*)(0xb8000+160*5));
-
+#endif
 }
