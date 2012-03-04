@@ -77,6 +77,7 @@ void ptr_test(u8 *ch)
 }
 
 int AA;
+char data_str[]="data_string";
 
 void startc()
 {
@@ -106,4 +107,10 @@ void startc()
   //s32_put_char(sp[0], vb);
   sp = s32_itoa(c, stack_str, 10);
   s32_print(sp, (u8*)(0xb8000+160*2));
+  s32_print(data_str, (u8*)(0xb8000+160*3));
+  static char *s_str="static_point"; 
+  s32_print(s_str, (u8*)(0xb8000+160*4));
+  static char s_str_a[]="static_array"; 
+  s32_print(s_str_a, (u8*)(0xb8000+160*5));
+
 }
