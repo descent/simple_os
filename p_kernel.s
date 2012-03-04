@@ -14,6 +14,7 @@
 .text
 .global _start
 _start:
+  call c_test
   sgdt gdt_ptr
   call init_protected_mode_by_c
   lgdt gdt_ptr
