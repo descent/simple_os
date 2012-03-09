@@ -1,5 +1,6 @@
 #CFLAGS = -fno-stack-protector -std=c99 -march=i686 -ffreestanding -Wall -g
-CFLAGS = -fno-stack-protector -ffreestanding -fno-builtin -g
+#CFLAGS = -fno-stack-protector -ffreestanding -fno-builtin -g
+CFLAGS = -std=c99 -fno-stack-protector -ffreestanding -fno-builtin -g
 
 boot1.img: c_init.bin
 	dd if=$< of=$@ bs=512 count=1
@@ -68,7 +69,7 @@ protected_code.s: protected_code.c
 	gcc $(CFLAGS) -o $@ -S $<
 
 p_kernel.elf: p_kernel.o start.o
-	ld -nostdlib -g -o $@ -Tk.ld $^
+	ld -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
 
 p_kernel.o: p_kernel.s
 	as -o $@ $<
