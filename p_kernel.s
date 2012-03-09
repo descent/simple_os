@@ -5,23 +5,82 @@
 # setup page
 # setup idt
 
-.equ  SELECTOR_KERNEL_CS, 8
+.equ SELECTOR_KERNEL_CS, 8
+.equ ZERO, 0
+
+.set SelectorCode32, 8
+.set DA_386IGate, 0x8E    /* 32-bit Interrupt Gate */
+
+
+# Gate Descriptor data structure.
+#   Usage: Gate Selector, Offset, PCount, Attr
+#    Selector:  2byte
+#    Offset:    4byte
+#    PCount:    byte
+#    Attr:      byte 
+.macro Gate  Selector, Offset, PCount, Attr
+    .2byte     (\Offset & 0xFFFF)
+    .2byte     \Selector
+    .2byte     (\PCount & 0x1F) | ((\Attr << 8) & 0xFF00)
+    .2byte     ((\Offset >> 16) & 0xFFFF)
+.endm
+
 
 .extern gdt_ptr
-.extern gdt
+.extern idt_ptr
+#.extern	exception_handler
+
+.global	divide_error
+.global	single_step_exception
+.global	nmi
+.global	breakpoint_exception
+.global	overflow
+.global	bounds_check
+.global	inval_opcode
+.global	copr_not_available
+.global	double_fault
+.global	copr_seg_overrun
+.global	inval_tss
+.global	segment_not_present
+.global	stack_exception
+.global	general_protection
+.global	page_fault
+.global	copr_error
+.global	spurious_handler
 
 .code32
 .text
 .global _start
 _start:
   call c_test
+  cli
   sgdt gdt_ptr
   call init_protected_mode_by_c
-  lgdt gdt_ptr
+#  call asm_init_8259a
+#  movw $0x8, (IDT6+2)
+  #lidt asm_idt_ptr
+  #jmp .
+  nop
+  nop
+#  sidt s_idt_ptr
+#  lgdt gdt_ptr
+
   jmp csinit
 csinit:
   call init_bss_asm
-  call startc
+  #call asm_init_8259a
+  call init_idt_by_c
+  lidt idt_ptr
+
+#  movl $spurious_handler, %eax
+#  movw %ax, (IDT6)
+  
+
+#  call startc
+  #jmp .
+  #sti
+  nop
+  ud2
   mov $0xc,%ah
   mov $'K',%al
   mov %ax,%gs:((80*0+39)*2)
@@ -71,7 +130,8 @@ init_bss_asm:
   jmp 2f
 1:
   movw %si, %ax
-  movb $0x1, (%eax)
+  movb $0x0, (%eax)
+#  movb $0x1, (%eax)
 #  movb $0x1, %ds:(%eax)
   add $1, %si
 
@@ -80,3 +140,131 @@ init_bss_asm:
   jne 1b
   ret
 
+
+# copy from: oranges_os/chapter5/h/kernel/kernel.asm
+divide_error:
+	push	$0xFFFFFFFF	
+	push	$0	
+	jmp	exception
+
+single_step_exception:
+	push	$0xFFFFFFFF
+	push	$1	
+	jmp	exception
+nmi:
+	push	$0xFFFFFFFF
+	push	$2	
+	jmp	exception
+breakpoint_exception:
+	push	$0xFFFFFFFF
+	push	$3	
+	jmp	exception
+overflow:
+	push	$0xFFFFFFFF
+	push	$4	
+	jmp	exception
+bounds_check:
+	push	$0xFFFFFFFF
+	push	$5
+	jmp	exception
+inval_opcode:
+	push	$0xFFFFFFFF
+	push	$6
+	jmp	exception
+
+
+exception:
+	call	exception_handler
+	add	$4*2, %esp	# 讓堆疊頂指向 EIP，堆疊中從頂向下依次是：EIP、CS、EFLAGS
+	hlt
+
+io_delay:
+  nop
+  nop
+  nop
+  nop
+  ret
+asm_init_8259a:
+  mov $0x11, %al
+  outb %al, $0x20
+  call io_delay
+
+  outb %al, $0xa0
+  call io_delay
+
+  mov $0x20, %al
+  outb %al, $0x21
+  call io_delay
+
+  mov $0x28, %al
+  outb %al, $0xa1
+  call io_delay
+
+  mov $0x04, %al
+  outb %al, $0x21
+  call io_delay
+
+  mov $0x02, %al
+  outb %al, $0xa1
+  call io_delay
+
+  mov $0x01, %al
+  outb %al, $0x21
+  call io_delay
+
+  out %al, $0xa1
+  call io_delay
+
+  mov $0b11111110, %al
+  out %al, $0x21
+  call io_delay
+
+  mov $0b11111111, %al
+  out %al, $0xa1
+  call io_delay
+
+  ret
+
+spurious_handler:
+.set spurious_handler_offset, (.)
+  call exception_handler
+  mov $0x0c, %ah
+  mov $'%', %al
+  mov %ax, %gs:((80 * 1 + 75) * 2) # (1, 75)
+  jmp .
+  iretl
+
+#.align 32
+##.data
+#LABEL_IDT:
+#.rept 32
+##Gate SelectorCode32, spurious_handler_offset, 0, DA_386IGate
+#.endr
+##Gate SelectorCode32, spurious_handler, 0, DA_386IGate
+#IDT0: Gate SelectorCode32, 0x000050fb, 0, DA_386IGate
+#IDT1: Gate SelectorCode32, 0x000050fb, 0, DA_386IGate
+#IDT2: Gate SelectorCode32, 0x000050fb, 0, DA_386IGate
+#IDT3: Gate SelectorCode32, 0x000050fb, 0, DA_386IGate
+#IDT4: Gate SelectorCode32, 0x000050fb, 0, DA_386IGate
+#IDT5: Gate SelectorCode32, 0x000050fb, 0, DA_386IGate
+#IDT6: Gate SelectorCode32, 0x000050fb, 0, DA_386IGate
+#
+##Gate SelectorCode32, clock_handler_offset, 0, DA_386IGate # 0x20
+##Gate SelectorCode32, spurious_handler_offset, 0, DA_386IGate
+#
+#.rept 95
+##Gate SelectorCode32, spurious_handler_offset, 0, DA_386IGate
+#.endr
+#
+##Gate SelectorCode32, user_int_handler_offset, 0, DA_386IGate # 0x80
+#
+#.set asm_idt_len, (. - LABEL_IDT)  /* IDT Length */
+#
+#asm_idt_ptr: .2byte  (asm_idt_len - 1)  /* IDT Limit */
+#         .4byte  LABEL_IDT             /* IDT Base */
+#
+#
+#
+#LABEL_TEST:
+#  s_idt_ptr: .4byte 0x0
+#  t1: .8byte 0x1
