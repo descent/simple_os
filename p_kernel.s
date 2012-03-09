@@ -79,8 +79,8 @@ csinit:
 #  call startc
   #jmp .
   #sti
-  nop
   ud2
+  #jmp $0x40,$0
   mov $0xc,%ah
   mov $'K',%al
   mov %ax,%gs:((80*0+39)*2)
