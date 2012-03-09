@@ -297,6 +297,9 @@ void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags)
 
   if (err_code != 0xffffffff)
   {
+    str_ptr = s32_itoa(err_code, str_ptr, 16);
+    s32_print("err_code", (u8*)(0xb8000+160*6));
+    s32_print(str_ptr, (u8*)(0xb8000+160*7));
   }
 }
 
