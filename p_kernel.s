@@ -171,6 +171,37 @@ inval_opcode:
 	push	$0xFFFFFFFF
 	push	$6
 	jmp	exception
+copr_not_available:
+	push	$0xFFFFFFFF
+	push	$7
+	jmp	exception
+double_fault:
+	push	$8
+	jmp	exception
+copr_seg_overrun:
+	push	$0xFFFFFFFF
+	push	$9
+	jmp	exception
+
+inval_tss:
+	push	$10
+	jmp	exception
+segment_not_present:
+	push	$11
+	jmp	exception
+stack_exception:
+	push	$12
+	jmp	exception
+general_protection:
+	push	$13
+	jmp	exception
+page_fault:
+	push	$14
+	jmp	exception
+copr_error:
+	push	$0xFFFFFFFF
+	push	$16
+	jmp	exception
 
 
 exception:

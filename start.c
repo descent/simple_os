@@ -20,6 +20,16 @@ u8 *cur_vb = (u8*)0xb8000;
 #define BLUE 1
 #define WHITE 7
 
+void clear_line(u8 line_no)
+{
+  u8* vb = (u8*)0xb8000 + 160*line_no;
+
+  for (int x = 0; x < 80; ++x)
+  {
+    *vb++ = 0x20;
+    *vb++ = WHITE;
+  }
+}
 
 void clear()
 {
@@ -76,6 +86,7 @@ char* s32_itoa(int n, char* str, int radix)
     n/=radix;
   }
   *p=0;
+  #if 1
   for (--p; head < p ; ++head, --p)
   {
     char temp=*head;
@@ -85,6 +96,7 @@ char* s32_itoa(int n, char* str, int radix)
       *p=temp;
     }
   }
+  #endif
   return str;
 }
 
@@ -189,6 +201,16 @@ void init_idt_by_c()
   void bounds_check(void);
   void inval_opcode(void);
 
+  void copr_not_available(void);
+  void double_fault(void);
+  void copr_seg_overrun(void);
+  void inval_tss(void);
+  void segment_not_present(void);
+  void stack_exception(void);
+  void general_protection(void);
+  void page_fault(void);
+  void copr_error(void);
+
 #if 1
   init_idt_desc_by_c(DIVIDE_NO, DA_386IGate, divide_error, PRIVILEGE_KRNL);
   init_idt_desc_by_c(DEBUG_NO, DA_386IGate, single_step_exception, PRIVILEGE_KRNL);
@@ -197,6 +219,16 @@ void init_idt_by_c()
   init_idt_desc_by_c(OVERFLOW_NO, DA_386IGate, overflow, PRIVILEGE_KRNL);
   init_idt_desc_by_c(BOUNDS_NO, DA_386IGate, bounds_check, PRIVILEGE_KRNL);
   init_idt_desc_by_c(INVAL_OP_NO, DA_386IGate, inval_opcode, PRIVILEGE_KRNL);
+
+  init_idt_desc_by_c(COPROC_NOT_NO, DA_386IGate, copr_not_available, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(DOUBLE_FAULT_NO, DA_386IGate, double_fault, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(COPROC_SEG_NO, DA_386IGate, copr_seg_overrun, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(INVAL_TSS_NO, DA_386IGate, inval_tss, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(SEG_NOT_NO, DA_386IGate, segment_not_present, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(STACK_FAULT_NO, DA_386IGate, stack_exception, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(PROTECTION_NO, DA_386IGate, general_protection, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(PAGE_FAULT_NO, DA_386IGate, page_fault, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(COPROC_ERR_NO, DA_386IGate, copr_error, PRIVILEGE_KRNL);
   #endif
 
 #if 0
@@ -220,10 +252,52 @@ void init_idt_desc_by_c(u8 vector_no, u8 desc_type, IntHandler handler, u8 privi
   cur_gate->offset_high     = (base >> 16) & 0xFFFF;
 }
 
-void exception_handler(int vec_no,int err_code,int eip,int cs,int eflags)
+void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags)
 {
+  char *err_msg[] = {
+                      "#DE: Dvivde Error", 
+		      "#DB: RESERVED",
+		      "-- : NMI Interrupt", 
+		      "#BP: Breakppoint",
+		      "#OF: Overflow",
+		      "#BR: BOUND Range Exceeded",
+		      "#UD: Invalid Opcode (Undefined Opcode)",
+		      "#NM: Device Not Available (No Math Coprocessor)",
+		      "#DF: Double Fault",
+		      "   : Coprocessor Segment Overrun (reserved)",
+		      "#TS: Invalid TSS",
+		      "#NP: Segment Not Present",
+		      "#SS: Stack-Segment Fault",
+		      "#GP: General Protection",
+		      "#PF: Page Fault",
+		      "-- : (Intel reserved. Do not use.)",
+		      "#MF: x87 FPU Floating-Point Error (Math Fault)",
+		      "#AC: Alignment Check",
+		      "#MC: Machine Check",
+		      "#XF: SIMD Floating-Point Exceprion"
+                    };
   clear();
   s32_print("exception_handler", (u8*)(0xb8000+160*24));
+
+  u8 str[12]="";
+  u8 *str_ptr = str;
+
+  s32_print(err_msg[vec_no], (u8*)(0xb8000+160*23));
+  str_ptr = s32_itoa(eflags, str_ptr, 16);
+  s32_print("eflags", (u8*)(0xb8000+160*0));
+  s32_print(str_ptr, (u8*)(0xb8000+160*1));
+
+  str_ptr = s32_itoa(cs, str_ptr, 16);
+  s32_print("cs", (u8*)(0xb8000+160*2));
+  s32_print(str_ptr, (u8*)(0xb8000+160*3));
+  
+  str_ptr = s32_itoa(eip, str_ptr, 16);
+  s32_print("eip", (u8*)(0xb8000+160*4));
+  s32_print(str_ptr, (u8*)(0xb8000+160*5));
+
+  if (err_code != 0xffffffff)
+  {
+  }
 }
 
 
