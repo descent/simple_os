@@ -1,6 +1,13 @@
 #include "type.h"
 #include "protect.h"
 
+#define INT_M_PORT 0x20
+#define INT_S_PORT 0xa0
+#define INT_VECTOR_IRQ0 0x20
+#define INT_VECTOR_IRQ8 0x28
+#define INT_M_CTLMASK 0x21
+#define INT_S_CTLMASK 0xa1
+
 u8 gdt_ptr[6];
 Descriptor gdt[GDT_SIZE];
 
@@ -231,6 +238,40 @@ void init_idt_by_c()
   init_idt_desc_by_c(COPROC_ERR_NO, DA_386IGate, copr_error, PRIVILEGE_KRNL);
   #endif
 
+  void hwint00(void);
+  void hwint01(void);
+  void hwint02(void);
+  void hwint03(void);
+  void hwint04(void);
+  void hwint05(void);
+  void hwint06(void);
+  void hwint07(void);
+  void hwint08(void);
+  void hwint09(void);
+  void hwint10(void);
+  void hwint11(void);
+  void hwint12(void);
+  void hwint13(void);
+  void hwint14(void);
+  void hwint15(void);
+
+  init_idt_desc_by_c(INT_VECTOR_IRQ0, DA_386IGate, hwint00, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(INT_VECTOR_IRQ0 + 1, DA_386IGate, hwint01, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(INT_VECTOR_IRQ0 + 2, DA_386IGate, hwint02, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(INT_VECTOR_IRQ0 + 3, DA_386IGate, hwint03, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(INT_VECTOR_IRQ0 + 4, DA_386IGate, hwint04, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(INT_VECTOR_IRQ0 + 5, DA_386IGate, hwint05, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(INT_VECTOR_IRQ0 + 6, DA_386IGate, hwint06, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(INT_VECTOR_IRQ0 + 7, DA_386IGate, hwint07, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(INT_VECTOR_IRQ0 + 8, DA_386IGate, hwint08, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(INT_VECTOR_IRQ0 + 9, DA_386IGate, hwint09, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(INT_VECTOR_IRQ0 + 10, DA_386IGate, hwint10, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(INT_VECTOR_IRQ0 + 11, DA_386IGate, hwint11, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(INT_VECTOR_IRQ0 + 12, DA_386IGate, hwint12, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(INT_VECTOR_IRQ0 + 13, DA_386IGate, hwint13, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(INT_VECTOR_IRQ0 + 14, DA_386IGate, hwint14, PRIVILEGE_KRNL);
+  init_idt_desc_by_c(INT_VECTOR_IRQ0 + 15, DA_386IGate, hwint15, PRIVILEGE_KRNL);
+
 #if 0
   void spurious_handler(void);
 
@@ -383,12 +424,6 @@ void io_out16(u16 port, u16 data)
   __asm__ volatile("nop\t\n");
 }
 
-#define INT_M_PORT 0x20
-#define INT_S_PORT 0xa0
-#define INT_VECTOR_IRQ0 0x20
-#define INT_VECTOR_IRQ8 0x28
-#define INT_M_CTLMASK 0x21
-#define INT_S_CTLMASK 0xa1
 
 void init_8259a()
 {
@@ -417,9 +452,21 @@ void init_8259a()
   io_out8(INT_S_CTLMASK, 0x1);
 
   /* Master 8259, OCW1.  */
-  io_out8(INT_M_CTLMASK, 0xFF);
+  //io_out8(INT_M_CTLMASK, 0xFF);
+  io_out8(INT_M_CTLMASK, 0xfd);
 
   /* Slave  8259, OCW1.  */
   io_out8(INT_S_CTLMASK, 0xFF);
 
+}
+
+void spurious_irq(int irq)
+{
+  clear();
+  s32_print("spurious_irq", (u8*)(0xb8000+160*6));
+
+  u8 str[12]="";
+  u8 *str_ptr = str;
+  str_ptr = s32_itoa(irq, str_ptr, 16);
+  s32_print(str_ptr, (u8*)(0xb8000+160*7));
 }

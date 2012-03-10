@@ -48,6 +48,23 @@
 .global	copr_error
 .global	spurious_handler
 
+.global	hwint00
+.global	hwint01
+.global	hwint02
+.global	hwint03
+.global	hwint04
+.global	hwint05
+.global	hwint06
+.global	hwint07
+.global	hwint08
+.global	hwint09
+.global	hwint10
+.global	hwint11
+.global	hwint12
+.global	hwint13
+.global	hwint14
+.global	hwint15
+
 .code32
 .text
 .global _start
@@ -69,6 +86,7 @@ _start:
 csinit:
   call init_bss_asm
   #call asm_init_8259a
+  call init_8259a
   call init_idt_by_c
   lidt idt_ptr
 
@@ -78,8 +96,8 @@ csinit:
 
 #  call startc
   #jmp .
-  #sti
-  ud2
+  sti
+  #ud2
   #jmp $0x40,$0
   mov $0xc,%ah
   mov $'K',%al
@@ -299,3 +317,68 @@ spurious_handler:
 #LABEL_TEST:
 #  s_idt_ptr: .4byte 0x0
 #  t1: .8byte 0x1
+
+
+.macro HW_INT_MASTER irq_no
+    pushl \irq_no
+    call spurious_irq
+    add $4, %esp
+    hlt
+.endm
+
+.macro HW_INT_SLAVE irq_no
+    pushl \irq_no
+    call spurious_irq
+    add $4, %esp
+    hlt
+.endm
+
+.align 16
+hwint00:
+  HW_INT_MASTER $0
+
+.align 16
+hwint01:
+  HW_INT_MASTER $1
+.align 16
+hwint02:
+  HW_INT_MASTER $2
+.align 16
+hwint03:
+  HW_INT_MASTER $3
+.align 16
+hwint04:
+  HW_INT_MASTER $4
+.align 16
+hwint05:
+  HW_INT_MASTER $5
+.align 16
+hwint06:
+  HW_INT_MASTER $6
+.align 16
+hwint07:
+  HW_INT_MASTER $7
+.align 16
+hwint08:
+  HW_INT_SLAVE $8
+.align 16
+hwint09:
+  HW_INT_SLAVE $9
+.align 16
+hwint10:
+  HW_INT_SLAVE $10
+.align 16
+hwint11:
+  HW_INT_SLAVE $11
+.align 16
+hwint12:
+  HW_INT_SLAVE $12
+.align 16
+hwint13:
+  HW_INT_SLAVE $13
+.align 16
+hwint14:
+  HW_INT_SLAVE $14
+.align 16
+hwint15:
+  HW_INT_SLAVE $15
