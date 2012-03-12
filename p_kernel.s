@@ -5,8 +5,12 @@
 # setup page
 # setup idt
 
+
+
 .equ SELECTOR_KERNEL_CS, 8
-.equ ZERO, 0
+.equ LDT_SEL_OFFSET, 18*4
+.equ P_STACKTOP, 18*4
+.equ TSS3_S_SP0, 4
 
 .set SelectorCode32, 8
 .set DA_386IGate, 0x8E    /* 32-bit Interrupt Gate */
@@ -90,6 +94,8 @@ csinit:
   call init_8259a
   call init_idt_by_c
   lidt idt_ptr
+  call init_tss
+  call kernel_main
 
 #  movl $spurious_handler, %eax
 #  movw %ax, (IDT6)
@@ -98,7 +104,7 @@ csinit:
 #  call startc
   #jmp .
   #sti
-  ud2
+  #ud2
   #jmp $0x40,$0
   mov $0xc,%ah
   mov $'K',%al
@@ -139,6 +145,35 @@ MemCpy.2:
     pop     %ebp
     ret
 
+.globl p_asm_memset
+p_asm_memset:
+    pushl   %ebp
+    mov     %esp, %ebp
+
+    pushl   %esi
+    pushl   %edi
+    pushl   %ecx
+
+    mov     8(%ebp), %edi    /* Destination */
+    mov     12(%ebp), %edx   /* char to be put */
+    mov     16(%ebp), %ecx   /* Counter */
+1:
+    cmp     $0, %ecx  /* Loop counter */
+    jz      2f
+
+    movb    %dl, (%edi)
+    inc     %edi
+
+    dec     %ecx
+    jmp     1b
+2:
+    mov     8(%ebp), %eax
+    pop     %ecx
+    pop     %edi
+    pop     %esi
+    mov     %ebp, %esp
+    pop     %ebp
+    ret
 
 # init bss
 init_bss_asm:
@@ -384,6 +419,22 @@ hwint14:
 hwint15:
   HW_INT_SLAVE $15
 
+.globl restart
+restart:
+  nop
+  nop
+  movl (ready_process), %esp
+  lldt LDT_SEL_OFFSET(%esp)
+  lea P_STACKTOP(%esp), %eax
+  movl %eax, (tss+TSS3_S_SP0)
+
+  popl %gs
+  popl %fs
+  popl %es
+  popl %ds
+  popal
+  add $4, %esp
+  iretl
 
 .align 32
 .data
