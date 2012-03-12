@@ -69,6 +69,7 @@
 .text
 .global _start
 _start:
+  call init_bss_asm
   call c_test
   cli
   sgdt gdt_ptr
@@ -80,11 +81,10 @@ _start:
   nop
   nop
 #  sidt s_idt_ptr
-#  lgdt gdt_ptr
+  lgdt gdt_ptr
 
   jmp csinit
 csinit:
-  call init_bss_asm
   #call asm_init_8259a
   call init_8259a
   call init_idt_by_c
@@ -96,8 +96,8 @@ csinit:
 
 #  call startc
   #jmp .
-  sti
-  #ud2
+  #sti
+  ud2
   #jmp $0x40,$0
   mov $0xc,%ah
   mov $'K',%al
