@@ -1,5 +1,6 @@
 #include "type.h"
 #include "protect.h"
+#include "process.h"
 
 #define INT_M_PORT 0x20
 #define INT_S_PORT 0xa0
@@ -108,6 +109,7 @@ char* s32_itoa(int n, char* str, int radix)
 }
 
 void p_asm_memcpy(void *dest, void *src, u16 n);
+void p_asm_memset(void *dest, int c, u16 n);
 
 void c_test()
 {
@@ -317,11 +319,17 @@ void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags)
 		      "#MC: Machine Check",
 		      "#XF: SIMD Floating-Point Exceprion"
                     };
-  clear();
+  //clear();
   s32_print("exception_handler", (u8*)(0xb8000+160*24));
 
   u8 str[12]="";
   u8 *str_ptr = str;
+
+  clear_line(0);
+  clear_line(1);
+  clear_line(2);
+  clear_line(3);
+  clear_line(23);
 
   s32_print(err_msg[vec_no], (u8*)(0xb8000+160*23));
   str_ptr = s32_itoa(eflags, str_ptr, 16);
@@ -333,13 +341,17 @@ void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags)
   s32_print(str_ptr, (u8*)(0xb8000+160*3));
   
   str_ptr = s32_itoa(eip, str_ptr, 16);
+  clear_line(4);
   s32_print("eip", (u8*)(0xb8000+160*4));
+  clear_line(5);
   s32_print(str_ptr, (u8*)(0xb8000+160*5));
 
   if (err_code != 0xffffffff)
   {
     str_ptr = s32_itoa(err_code, str_ptr, 16);
+    clear_line(6);
     s32_print("err_code", (u8*)(0xb8000+160*6));
+    clear_line(7);
     s32_print(str_ptr, (u8*)(0xb8000+160*7));
   }
 }
@@ -460,6 +472,17 @@ void init_8259a()
 
 }
 
+void init_tss(void)
+{
+  p_asm_memset(&tss, 0, sizeof(tss));
+  tss.ss0 = SELECTOR_KERNEL_DS;
+  init_descriptor(&gdt[INDEX_TSS], linear2phy(seg2base(SELECTOR_KERNEL_DS), (u32)&tss), sizeof(tss)-1, DA_386TSS);
+  tss.iobase = sizeof(tss);
+
+  init_descriptor(&gdt[INDEX_LDT_FIRST], linear2phy(seg2base(SELECTOR_KERNEL_DS), (u32)proc_table[0].ldt), LDT_SIZE * sizeof(Descriptor) - 1, DA_LDT);
+  
+}
+
 void spurious_irq(int irq)
 {
   clear();
@@ -470,3 +493,70 @@ void spurious_irq(int irq)
   str_ptr = s32_itoa(irq, str_ptr, 16);
   s32_print(str_ptr, (u8*)(0xb8000+160*7));
 }
+
+void loop_delay(int time)
+{
+  int i, j, k;
+  for (k = 0; k < time; k++) 
+  {
+    for (i = 0; i < 10; i++) 
+    {
+      for (j = 0; j < 10000; j++) 
+      {
+      }
+    }
+  }
+}
+
+void proc_a()
+{
+  //u16 l=20;
+  while(1)
+  {
+    __asm__ volatile ("mov $0xc,%ah\t\n");
+    __asm__ volatile ("mov $'A',%al\t\n");
+    __asm__ volatile ("mov %ax,%gs:((80*0+39)*2)\t\n");
+
+//    s32_print("a process", (u8*)(0xb8000+160*l));
+//    ++l;
+//    l = ((l%5) + 20);
+//    loop_delay(1);
+  }
+
+}
+
+void kernel_main(void)
+{
+  clear_line(13);
+  s32_print("zzzzzzzz", (u8*)(0xb8000+160*13));
+  Process *proc = proc_table;
+
+  proc->ldt_sel = SELECTOR_LDT_FIRST;
+  p_asm_memcpy(&proc->ldt[0], &gdt[SELECTOR_KERNEL_CS >> 3], sizeof(Descriptor));
+  proc->ldt[0].attr1 = (DA_C | (PRIVILEGE_TASK << 5) );
+  p_asm_memcpy(&proc->ldt[1], &gdt[SELECTOR_KERNEL_DS >> 3], sizeof(Descriptor));
+  proc->ldt[1].attr1 = (DA_DRW | (PRIVILEGE_TASK << 5) );
+
+  proc->regs.cs = (0 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
+  proc->regs.ds = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
+  proc->regs.es = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
+  proc->regs.fs = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
+  proc->regs.ss = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
+  //proc->regs.gs = (SELECTOR_KERNEL_GS & 0xfff8) | SEL_USE_LDT | RPL_TASK;
+  proc->regs.gs = (SELECTOR_KERNEL_GS & 0xfff8) | RPL_TASK;
+  proc->regs.eip = (u32)proc_a;
+  proc->regs.esp = (u32)task_stack + STACK_SIZE_TOTAL;
+  proc->regs.eflags = 0x1202;
+  
+  clear_line(14);
+  s32_print("yyyyyyyyyyyyyy", (u8*)(0xb8000+160*14));
+  ready_process = proc_table;
+
+
+  void restart(void);
+  restart();
+  s32_print("xxxxxxxxxxx", (u8*)(0xb8000+160*15));
+  while(1);
+
+}
+
