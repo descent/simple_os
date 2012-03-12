@@ -68,13 +68,17 @@ protected_code.o: protected_code.c
 protected_code.s: protected_code.c
 	gcc $(CFLAGS) -o $@ -S $<
 
-p_kernel.elf: p_kernel.o start.o
+p_kernel.elf: p_kernel.o start.o process.o
 	ld -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
 
 p_kernel.o: p_kernel.s
 	as -o $@ $<
 start.o: start.c type.h protect.h
 	gcc $(CFLAGS) -c $<
+
+process.o: process.c process.h type.h protect.h
+	gcc $(CFLAGS) -c $<
+
 
 .PHONE: clean distclean
 
