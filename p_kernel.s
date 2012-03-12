@@ -69,6 +69,7 @@
 .text
 .global _start
 _start:
+  mov $STACK_TOP, %esp
   call init_bss_asm
   call c_test
   cli
@@ -382,3 +383,11 @@ hwint14:
 .align 16
 hwint15:
   HW_INT_SLAVE $15
+
+
+.align 32
+.data
+.space  2048, 0
+STACK_TOP:
+
+
