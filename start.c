@@ -510,17 +510,20 @@ void loop_delay(int time)
 
 void proc_a()
 {
-  //u16 l=20;
+  u16 l=20;
   while(1)
   {
+#if 0
     __asm__ volatile ("mov $0xc,%ah\t\n");
     __asm__ volatile ("mov $'A',%al\t\n");
     __asm__ volatile ("mov %ax,%gs:((80*0+39)*2)\t\n");
+#endif
 
-//    s32_print("a process", (u8*)(0xb8000+160*l));
-//    ++l;
-//    l = ((l%5) + 20);
-//    loop_delay(1);
+    s32_print("a process", (u8*)(0xb8000+160*l));
+    ++l;
+    l = ((l%5) + 20);
+    loop_delay(1000);
+    clear();
   }
 
 }
@@ -552,6 +555,7 @@ void kernel_main(void)
   s32_print("yyyyyyyyyyyyyy", (u8*)(0xb8000+160*14));
   ready_process = proc_table;
 
+  clear();
 
   void restart(void);
   restart();
