@@ -11,6 +11,7 @@
 .equ LDT_SEL_OFFSET, 18*4
 .equ P_STACKTOP, 18*4
 .equ TSS3_S_SP0, 4
+.equ SELECTOR_TSS, 4*8
 
 .set SelectorCode32, 8
 .set DA_386IGate, 0x8E    /* 32-bit Interrupt Gate */
@@ -95,6 +96,11 @@ csinit:
   call init_idt_by_c
   lidt idt_ptr
   call init_tss
+
+  xor %eax, %eax
+  mov $SELECTOR_TSS, %ax
+  ltr %ax
+
   call kernel_main
 
 #  movl $spurious_handler, %eax
