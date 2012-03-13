@@ -1,5 +1,6 @@
 write simple os.
 
 in kernel loader, init c runtime, then use c code (16 bit) read kerenl (elf) to memory, 
-and copy the the kernel.elf follow the elf header information.
+and copy the the kernel.elf follow the elf header information (Program Headers:
+).
 enter protected mode, call c code (32 bit) jump to the kernel address (elf entry point address).
