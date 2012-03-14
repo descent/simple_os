@@ -510,7 +510,9 @@ void loop_delay(int time)
 
 void proc_a()
 {
-  u16 l=20;
+  u16 l=10;
+  u8 stack_str[10]="y";
+  u8 *sp = stack_str;
   while(1)
   {
 #if 0
@@ -519,9 +521,11 @@ void proc_a()
     __asm__ volatile ("mov %ax,%gs:((80*0+39)*2)\t\n");
 #endif
 
-    s32_print("a process", (u8*)(0xb8000+160*l));
+    sp = s32_itoa(l, stack_str, 10);
+    s32_print(sp, (u8*)(0xb8000+160*l));
+    s32_print("a process", (u8*)(0xb8000+160*l+5*2));
     ++l;
-    l = ((l%5) + 20);
+    l = ((l%10) + 10);
     loop_delay(1000);
     clear();
   }
