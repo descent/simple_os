@@ -12,6 +12,9 @@
 .equ P_STACKTOP, 18*4
 .equ TSS3_S_SP0, 4
 .equ SELECTOR_TSS, 4*8
+.equ EOI, 0x20
+.equ INT_M_CTL, 0x20 # I/O port for interrupt controller        <Master>
+
 
 .set SelectorCode32, 8
 .set DA_386IGate, 0x8E    /* 32-bit Interrupt Gate */
@@ -377,7 +380,11 @@ spurious_handler:
 
 .align 16
 hwint00:
-  HW_INT_MASTER $0
+  #HW_INT_MASTER $0
+  incb %gs:(0)
+  mov $EOI, %al
+  outb %al, $INT_M_CTL
+  iretl
 
 .align 16
 hwint01:
@@ -432,6 +439,7 @@ restart:
   movl (ready_process), %esp
   lldt LDT_SEL_OFFSET(%esp)
   lea P_STACKTOP(%esp), %eax
+  #lea 0x1000(%esp), %eax
   movl %eax, (tss+TSS3_S_SP0)
 
   popl %gs
