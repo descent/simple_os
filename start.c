@@ -465,7 +465,8 @@ void init_8259a()
 
   /* Master 8259, OCW1.  */
   //io_out8(INT_M_CTLMASK, 0xFF);
-  io_out8(INT_M_CTLMASK, 0xfd);
+  //io_out8(INT_M_CTLMASK, 0xfd); // keyboard irq 1
+  io_out8(INT_M_CTLMASK, 0xfe); // timer irq 0
 
   /* Slave  8259, OCW1.  */
   io_out8(INT_S_CTLMASK, 0xFF);
