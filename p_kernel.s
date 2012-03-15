@@ -399,12 +399,19 @@ hwint00:
   incb %gs:(0)
   mov $EOI, %al
   outb %al, $INT_M_CTL
+  sti
 
   addl $2, (VB)
   pushl VB
   pushl $TIMER_STR
   call s32_print
   add $8, %esp
+
+  pushl $1000
+  call loop_delay
+  add $4, %esp
+
+  cli 
 
   movl (ready_process), %esp
 
