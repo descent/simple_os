@@ -381,9 +381,44 @@ spurious_handler:
 .align 16
 hwint00:
   #HW_INT_MASTER $0
+
+  sub $4, %esp
+   
+  pushal
+  pushl %ds
+  pushl %es
+  pushl %fs
+  pushl %gs
+
+  mov %ss, %dx
+  mov %dx, %ds
+  mov %dx, %es
+
+  mov $STACK_TOP, %esp
+
   incb %gs:(0)
   mov $EOI, %al
   outb %al, $INT_M_CTL
+
+  addl $2, (VB)
+  pushl VB
+  pushl $TIMER_STR
+  call s32_print
+  add $8, %esp
+
+  movl (ready_process), %esp
+
+  lea P_STACKTOP(%esp), %eax
+  movl %eax, (tss+TSS3_S_SP0)
+
+  popl %gs
+  popl %fs
+  popl %es
+  popl %ds
+  popal
+
+  add $4, %esp
+
   iretl
 
 .align 16
@@ -452,6 +487,8 @@ restart:
 
 .align 32
 .data
+TIMER_STR: .ascii "timer"
+VB: .long 0xb8006
 .space  2048, 0
 STACK_TOP:
 
