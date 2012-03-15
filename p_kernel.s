@@ -33,7 +33,7 @@
     .2byte     ((\Offset >> 16) & 0xFFFF)
 .endm
 
-
+.extern k_reenter
 .extern gdt_ptr
 .extern idt_ptr
 #.extern	exception_handler
@@ -394,11 +394,17 @@ hwint00:
   mov %dx, %ds
   mov %dx, %es
 
-  mov $STACK_TOP, %esp
 
   incb %gs:(0)
   mov $EOI, %al
   outb %al, $INT_M_CTL
+
+  # check k_reenter
+  incl (k_reenter)
+  cmpl $0, (k_reenter)
+  jne .re_enter
+
+  mov $STACK_TOP, %esp
   sti
 
   addl $2, (VB)
@@ -417,6 +423,9 @@ hwint00:
 
   lea P_STACKTOP(%esp), %eax
   movl %eax, (tss+TSS3_S_SP0)
+
+.re_enter:
+  decl (k_reenter)
 
   popl %gs
   popl %fs
