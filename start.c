@@ -478,9 +478,13 @@ void init_tss(void)
   p_asm_memset(&tss, 0, sizeof(tss));
   tss.ss0 = SELECTOR_KERNEL_DS;
   init_descriptor(&gdt[INDEX_TSS], linear2phy(seg2base(SELECTOR_KERNEL_DS), (u32)&tss), sizeof(tss)-1, DA_386TSS);
-  tss.iobase = sizeof(tss);
+  tss.iobase = sizeof(tss); // ???
 
-  init_descriptor(&gdt[INDEX_LDT_FIRST], linear2phy(seg2base(SELECTOR_KERNEL_DS), (u32)proc_table[0].ldt), LDT_SIZE * sizeof(Descriptor) - 1, DA_LDT);
+  for (int i = 0 ; i < NR_TASKS ; ++i)
+  {
+    init_descriptor(&gdt[INDEX_LDT_FIRST+i], linear2phy(seg2base(SELECTOR_KERNEL_DS), (u32)proc_table[i].ldt), LDT_SIZE * sizeof(Descriptor) - 1, DA_LDT);
+  }
+
   
 }
 
@@ -509,58 +513,20 @@ void loop_delay(int time)
   }
 }
 
-void proc_a()
-{
-  u16 l=10;
-  u8 stack_str[10]="y";
-  u8 *sp = stack_str;
-  while(1)
-  {
-#if 0
-    __asm__ volatile ("mov $0xc,%ah\t\n");
-    __asm__ volatile ("mov $'A',%al\t\n");
-    __asm__ volatile ("mov %ax,%gs:((80*0+39)*2)\t\n");
-#endif
 
-    sp = s32_itoa(l, stack_str, 10);
-    s32_print(sp, (u8*)(0xb8000+160*l));
-    s32_print("a process", (u8*)(0xb8000+160*l+5*2));
-    ++l;
-    l = ((l%10) + 10);
-    loop_delay(1000);
-    clear();
-  }
-
-}
 
 void kernel_main(void)
 {
   clear_line(13);
   s32_print("zzzzzzzz", (u8*)(0xb8000+160*13));
-  Process *proc = proc_table;
-
-  proc->ldt_sel = SELECTOR_LDT_FIRST;
-  p_asm_memcpy(&proc->ldt[0], &gdt[SELECTOR_KERNEL_CS >> 3], sizeof(Descriptor));
-  proc->ldt[0].attr1 = (DA_C | (PRIVILEGE_TASK << 5) );
-  p_asm_memcpy(&proc->ldt[1], &gdt[SELECTOR_KERNEL_DS >> 3], sizeof(Descriptor));
-  proc->ldt[1].attr1 = (DA_DRW | (PRIVILEGE_TASK << 5) );
-
-  proc->regs.cs = (0 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
-  proc->regs.ds = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
-  proc->regs.es = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
-  proc->regs.fs = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
-  proc->regs.ss = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
-  //proc->regs.gs = (SELECTOR_KERNEL_GS & 0xfff8) | SEL_USE_LDT | RPL_TASK;
-  proc->regs.gs = (SELECTOR_KERNEL_GS & 0xfff8) | RPL_TASK;
-  proc->regs.eip = (u32)proc_a;
-  proc->regs.esp = (u32)task_stack + STACK_SIZE_TOTAL;
-  proc->regs.eflags = 0x1202;
   
   clear_line(14);
   s32_print("yyyyyyyyyyyyyy", (u8*)(0xb8000+160*14));
   ready_process = proc_table;
 
   clear();
+
+  init_proc();
 
   void restart(void);
   restart();
