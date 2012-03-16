@@ -36,6 +36,8 @@
 .extern k_reenter
 .extern gdt_ptr
 .extern idt_ptr
+.extern __bss_start__ 
+.extern __bss_end__ 
 #.extern	exception_handler
 
 .global	divide_error
@@ -186,20 +188,20 @@ p_asm_memset:
 
 # init bss
 init_bss_asm:
-  movw $__bss_end__, %di    /* Destination */
-  movw $__bss_start__, %si   /* Source */
+  movl $__bss_end__, %edi    /* Destination */
+  movl $__bss_start__, %esi   /* Source */
 #  movw $0x0, %ax
 #  movw %ax, %gs
   jmp 2f
 1:
-  movw %si, %ax
+  movl %esi, %eax
   movb $0x0, (%eax)
 #  movb $0x1, (%eax)
 #  movb $0x1, %ds:(%eax)
-  add $1, %si
+  addl $1, %esi
 
 2:
-  cmpw %di, %si
+  cmpl %edi, %esi
   jne 1b
   ret
 
