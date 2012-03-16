@@ -5,10 +5,11 @@
 #include "protect.h"
 
 #define LDT_SIZE 2
-#define NR_TASKS 1
+#define NR_TASKS 2
 
 #define STACK_SIZE_TESTA 0x8000
-#define STACK_SIZE_TOTAL STACK_SIZE_TESTA
+#define TASK_STACK 0x8000
+#define STACK_SIZE_TOTAL (0x8000*NR_TASKS)
 #define SELECTOR_LDT_FIRST (INDEX_LDT_FIRST*8)
 
 #define PRIVILEGE_TASK 1
@@ -44,8 +45,22 @@ typedef struct Process_
   u16 ldt_sel;
   Descriptor ldt[LDT_SIZE];
   u32 pid;
-  char p_name[16];
+  const char *p_name;
 }Process;
+
+typedef void (*TaskAddr)(void);
+
+#define TASK_NAME_LEN 32
+typedef struct Task_
+{
+  TaskAddr init_eip;
+  u32 stack_size;
+  char name[TASK_NAME_LEN];
+}Task;
+
+void proc_a(void);
+void proc_b(void);
+
 
 typedef struct Tss_
 {
@@ -83,5 +98,6 @@ extern u8 task_stack[];
 extern Process *ready_process;
 extern Tss tss;
 
+void init_proc(void);
 
 #endif

@@ -2,7 +2,107 @@
 
 Process proc_table[NR_TASKS];
 u8 task_stack[STACK_SIZE_TOTAL];
+//u8 task_stack[0x9000];
 Process *ready_process;
 Tss tss;
 
+Task tasks[NR_TASKS] = {
+                         {proc_a, TASK_STACK, "proc a"},
+                         {proc_b, TASK_STACK, "proc b"}
+                       };
+
 int k_reenter = -1;
+
+char* s32_itoa(int n, char* str, int radix);
+void s32_print(const u8 *s, u8 *vb);
+void clear_line(u8 line_no);
+void loop_delay(int time);
+
+void proc_a(void)
+{
+  u16 l=10;
+  u8 stack_str[10]="y";
+  u8 *sp = stack_str;
+  while(1)
+  {
+#if 0
+    __asm__ volatile ("mov $0xc,%ah\t\n");
+    __asm__ volatile ("mov $'A',%al\t\n");
+    __asm__ volatile ("mov %ax,%gs:((80*0+39)*2)\t\n");
+#endif
+
+    sp = s32_itoa(l, stack_str, 10);
+    clear_line(l-1);
+    s32_print(sp, (u8*)(0xb8000+160*l));
+    s32_print("process a", (u8*)(0xb8000+160*l+5*2));
+    ++l;
+    l = ((l%10) + 10);
+    loop_delay(100);
+  }
+
+}
+
+void proc_b(void)
+{
+#define VB_OFFSET (35*2)
+  u16 l=10;
+  u8 stack_str[10]="y";
+  u8 *sp = stack_str;
+  while(1)
+  {
+#if 0
+    __asm__ volatile ("mov $0xc,%ah\t\n");
+    __asm__ volatile ("mov $'A',%al\t\n");
+    __asm__ volatile ("mov %ax,%gs:((80*0+39)*2)\t\n");
+#endif
+
+    sp = s32_itoa(l, stack_str, 10);
+    clear_line(l-1);
+    s32_print(sp, (u8*)(0xb8000+160*l+VB_OFFSET));
+    s32_print("process b", (u8*)(0xb8000+160*l+5*2+ VB_OFFSET));
+    ++l;
+    l = ((l%10) + 10);
+    loop_delay(100);
+  }
+}
+
+void init_proc(void)
+{
+  extern Descriptor gdt[];
+  void p_asm_memcpy(void *dest, void *src, u16 n);
+  void p_asm_memset(void *dest, int c, u16 n);
+
+  u32 task_stack_top = 0;
+  u16 selector_ldt = SELECTOR_LDT_FIRST;
+
+  for (int i = 0 ; i < NR_TASKS; ++i)
+  {
+    Process *proc = &proc_table[i];
+    proc->ldt_sel = selector_ldt;
+
+    p_asm_memcpy(&proc->ldt[0], &gdt[SELECTOR_KERNEL_CS >> 3], sizeof(Descriptor));
+    proc->ldt[0].attr1 = (DA_C | (PRIVILEGE_TASK << 5) );
+    p_asm_memcpy(&proc->ldt[1], &gdt[SELECTOR_KERNEL_DS >> 3], sizeof(Descriptor));
+    proc->ldt[1].attr1 = (DA_DRW | (PRIVILEGE_TASK << 5) );
+
+    proc->regs.cs = (0 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
+    proc->regs.ds = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
+    proc->regs.es = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
+    proc->regs.fs = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
+    proc->regs.ss = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
+    //proc->regs.gs = (SELECTOR_KERNEL_GS & 0xfff8) | SEL_USE_LDT | RPL_TASK;
+    proc->regs.gs = (SELECTOR_KERNEL_GS & 0xfff8) | RPL_TASK;
+    proc->regs.eip = (u32)tasks[i].init_eip;
+
+    task_stack_top += (u32)task_stack+tasks[i].stack_size;
+    proc->regs.esp = task_stack_top;
+
+    proc->regs.eflags = 0x1202;
+
+    proc->p_name = tasks[i].name;
+    selector_ldt += (1 << 3); // +8
+  }
+
+
+
+}
