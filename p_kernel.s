@@ -105,6 +105,7 @@ csinit:
   xor %eax, %eax
   mov $SELECTOR_TSS, %ax
   ltr %ax
+  #ud2
 
   call kernel_main
 
@@ -409,6 +410,10 @@ hwint00:
   mov $STACK_TOP, %esp
   sti
 
+  pushl 0
+  call clock_handler
+  addl $4, %esp
+
   addl $2, (VB)
   pushl VB
   pushl $TIMER_STR
@@ -422,6 +427,7 @@ hwint00:
   cli 
 
   movl (ready_process), %esp
+  lldt LDT_SEL_OFFSET(%esp)
 
   lea P_STACKTOP(%esp), %eax
   movl %eax, (tss+TSS3_S_SP0)
@@ -486,7 +492,7 @@ hwint15:
   HW_INT_SLAVE $15
 
 .globl restart
-restart:
+restart: # if timer isr run, the process switch will ok or fail ???
   nop
   nop
   movl (ready_process), %esp
@@ -506,7 +512,7 @@ restart:
 .align 32
 .data
 TIMER_STR: .ascii "timer"
-VB: .long 0xb8006
+VB: .long (0xb8006+160)
 .space  2048, 0
 STACK_TOP:
 
