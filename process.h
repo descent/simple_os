@@ -5,7 +5,7 @@
 #include "protect.h"
 
 #define LDT_SIZE 2
-#define NR_TASKS 2
+#define NR_TASKS 3
 
 #define STACK_SIZE_TESTA 0x8000
 #define TASK_STACK 0x8000
@@ -57,9 +57,6 @@ typedef struct Task_
   u32 stack_size;
   char name[TASK_NAME_LEN];
 }Task;
-
-void proc_a(void);
-void proc_b(void);
 
 
 typedef struct Tss_

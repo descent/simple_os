@@ -6,10 +6,6 @@ u8 task_stack[STACK_SIZE_TOTAL];
 Process *ready_process;
 Tss tss;
 
-Task tasks[NR_TASKS] = {
-                         {proc_a, TASK_STACK, "proc a"},
-                         {proc_b, TASK_STACK, "proc b"}
-                       };
 
 int k_reenter = -1;
 
@@ -37,15 +33,16 @@ void proc_a(void)
     s32_print("process a", (u8*)(0xb8000+160*l+5*2));
     ++l;
     l = ((l%10) + 10);
-    loop_delay(100);
+    loop_delay(10);
   }
 
 }
 
 void proc_b(void)
 {
-#define VB_OFFSET (35*2)
-  u16 l=10;
+  //#define VB_OFFSET (35*2)
+  const u16 VB_OFFSET = (30*2);
+  u16 l=12;
   u8 stack_str[10]="y";
   u8 *sp = stack_str;
   while(1)
@@ -62,9 +59,34 @@ void proc_b(void)
     s32_print("process b", (u8*)(0xb8000+160*l+5*2+ VB_OFFSET));
     ++l;
     l = ((l%10) + 10);
-    loop_delay(100);
+    loop_delay(10);
   }
 }
+
+void proc_c(void)
+{
+  const u16 VB_OFFSET = (50*2);
+  u16 l=14;
+  u8 stack_str[10]="y";
+  u8 *sp = stack_str;
+  while(1)
+  {
+
+    sp = s32_itoa(l, stack_str, 10);
+    clear_line(l-1);
+    s32_print(sp, (u8*)(0xb8000+160*l+VB_OFFSET));
+    s32_print("process c", (u8*)(0xb8000+160*l+5*2+ VB_OFFSET));
+    ++l;
+    l = ((l%10) + 10);
+    loop_delay(10);
+  }
+}
+
+Task tasks[NR_TASKS] = {
+                         {proc_a, TASK_STACK, "proc a"},
+                         {proc_b, TASK_STACK, "proc b"},
+                         {proc_c, TASK_STACK, "proc c"},
+                       };
 
 void init_proc(void)
 {
