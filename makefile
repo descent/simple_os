@@ -1,6 +1,6 @@
 #CFLAGS = -fno-stack-protector -std=c99 -march=i686 -ffreestanding -Wall -g
 #CFLAGS = -fno-stack-protector -ffreestanding -fno-builtin -g
-CFLAGS = -std=c99 -fno-stack-protector -ffreestanding -fno-builtin -g
+CFLAGS = -std=c99 -fno-stack-protector -ffreestanding -fno-builtin -g -O0
 
 boot1.img: c_init.bin
 	dd if=$< of=$@ bs=512 count=1
@@ -82,7 +82,8 @@ start.s: start.c type.h protect.h process.h
 
 process.o: process.c process.h type.h protect.h
 	gcc $(CFLAGS) -c $<
-clock.o: clock.c
+
+clock.o: clock.c clock.h type.h process.h protect.h
 	gcc $(CFLAGS) -c $<
 
 
