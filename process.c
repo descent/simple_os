@@ -14,11 +14,22 @@ void s32_print(const u8 *s, u8 *vb);
 void clear_line(u8 line_no);
 void loop_delay(int time);
 
+u8 get_privilege(void)
+{
+  u16 cs_reg;
+  __asm__ __volatile__ ("mov %%cs, %0\t\n"
+                          :"=a"(cs_reg)
+                       ); 
+  return (cs_reg & 0x03);
+}
+
 void proc_a(void)
 {
   u16 l=10;
   u8 stack_str[10]="y";
   u8 *sp = stack_str;
+  u8 privilege = get_privilege();
+
   while(1)
   {
 #if 0
@@ -27,10 +38,13 @@ void proc_a(void)
     __asm__ volatile ("mov %ax,%gs:((80*0+39)*2)\t\n");
 #endif
 
+    const char* proc_a_str="proc A privilege: ";
     sp = s32_itoa(l, stack_str, 10);
     clear_line(l-1);
     s32_print(sp, (u8*)(0xb8000+160*l));
-    s32_print("process a", (u8*)(0xb8000+160*l+5*2));
+    s32_print(proc_a_str, (u8*)(0xb8000+160*l+4*2));
+    sp = s32_itoa(privilege, stack_str, 10);
+    s32_print(sp, (u8*)(0xb8000+160*l + 22*2));
     ++l;
     l = ((l%10) + 10);
     loop_delay(10);
@@ -45,21 +59,20 @@ void proc_b(void)
   u16 l=12;
   u8 stack_str[10]="y";
   u8 *sp = stack_str;
+  u8 privilege = get_privilege();
   while(1)
   {
-#if 0
-    __asm__ volatile ("mov $0xc,%ah\t\n");
-    __asm__ volatile ("mov $'A',%al\t\n");
-    __asm__ volatile ("mov %ax,%gs:((80*0+39)*2)\t\n");
-#endif
-
+    const char* proc_a_str="proc B privilege: ";
     sp = s32_itoa(l, stack_str, 10);
     clear_line(l-1);
     s32_print(sp, (u8*)(0xb8000+160*l+VB_OFFSET));
-    s32_print("process b", (u8*)(0xb8000+160*l+5*2+ VB_OFFSET));
+    s32_print(proc_a_str, (u8*)(0xb8000+160*l+4*2 + VB_OFFSET));
+    sp = s32_itoa(privilege, stack_str, 10);
+    s32_print(sp, (u8*)(0xb8000+160*l + 22*2 + VB_OFFSET));
     ++l;
     l = ((l%10) + 10);
     loop_delay(10);
+
   }
 }
 
