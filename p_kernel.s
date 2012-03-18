@@ -420,7 +420,7 @@ hwint00:
   call s32_print
   add $8, %esp
 
-  pushl $1000
+  pushl $10
   call loop_delay
   add $4, %esp
 
@@ -508,6 +508,30 @@ restart: # if timer isr run, the process switch will ok or fail ???
   popal
   add $4, %esp
   iretl
+
+.globl io_load_eflags
+io_load_eflags:
+  pushfl
+  popl %eax
+  retl
+
+.globl io_store_eflags
+io_store_eflags:
+  mov 4(%esp), %eax
+  pushl %eax
+  popfl
+  retl
+
+.globl load_cr0
+load_cr0:
+  mov %cr0, %eax
+  retl
+.globl store_cr0
+store_cr0:
+  mov 4(%esp), %eax
+  mov %eax, %cr0 
+  retl
+
 
 .align 32
 .data
