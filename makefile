@@ -68,15 +68,21 @@ protected_code.o: protected_code.c
 protected_code.s: protected_code.c
 	gcc $(CFLAGS) -o $@ -S $<
 
-p_kernel.elf: p_kernel.o start.o process.o
+p_kernel.elf: p_kernel.o start.o process.o clock.o
 	ld -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
 
 p_kernel.o: p_kernel.s
 	as -o $@ $<
-start.o: start.c type.h protect.h
+
+start.o: start.c type.h protect.h process.h
 	gcc $(CFLAGS) -c $<
 
+start.s: start.c type.h protect.h process.h
+	gcc $(CFLAGS) -o $@ -S $<
+
 process.o: process.c process.h type.h protect.h
+	gcc $(CFLAGS) -c $<
+clock.o: clock.c
 	gcc $(CFLAGS) -c $<
 
 
