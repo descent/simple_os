@@ -28,6 +28,90 @@ u8 *cur_vb = (u8*)0xb8000;
 #define BLUE 1
 #define WHITE 7
 
+#define EFLAGS_AC_BIT           0x00040000
+#define CR0_CACHE_DISABLE       0x60000000
+
+u32 io_load_eflags(void);
+void io_store_eflags(u32 eflg);
+u32 load_cr0(void);
+void store_cr0(u32 cr0);
+
+#if 0
+u32 io_load_eflags(void)
+{
+}
+
+void io_store_eflags(u32 eflg)
+{
+}
+
+u32 load_cr0(void)
+{
+}
+
+void store_cr0(u32 cr0)
+{
+}
+#endif
+
+// copy from 30days_os/projects/09_day/harib06b/bootpack.c
+u32 memtest(volatile u32 start, volatile u32 end)
+{
+  u32 memtest_sub(volatile u32 start, volatile u32 end);
+
+	char flg486 = 0;
+	u32 eflg, cr0, i;
+
+	/* 386©A486È~ÈÌ©ÌmF */
+	eflg = io_load_eflags();
+	eflg |= EFLAGS_AC_BIT; /* AC-bit = 1 */
+	io_store_eflags(eflg);
+	eflg = io_load_eflags();
+	if ((eflg & EFLAGS_AC_BIT) != 0) { /* 386ÅÍAC=1ÉµÄà©®Å0ÉßÁÄµÜ¤ */
+		flg486 = 1;
+	}
+	eflg &= ~EFLAGS_AC_BIT; /* AC-bit = 0 */
+	io_store_eflags(eflg);
+
+	if (flg486 != 0) {
+		cr0 = load_cr0();
+		cr0 |= CR0_CACHE_DISABLE; /* LbVÖ~ */
+		store_cr0(cr0);
+	}
+
+	i = memtest_sub(start, end);
+
+	if (flg486 != 0) {
+		cr0 = load_cr0();
+		cr0 &= ~CR0_CACHE_DISABLE; /* LbVÂ */
+		store_cr0(cr0);
+	}
+
+	return i;
+}
+
+u32 memtest_sub(volatile u32 start, volatile u32 end)
+{
+	volatile unsigned int i, *p, old, pat0 = 0xaa55aa55, pat1 = 0x55aa55aa;
+	for (i = start; i <= end; i += 0x1000) {
+		p = (unsigned int *) (i + 0xffc);
+		old = *p;			/* ¢¶éOÌlðo¦Ä¨­ */
+		*p = pat0;			/* ½ßµÉ¢ÄÝé */
+		*p ^= 0xffffffff;	/* »µÄ»êð½]µÄÝé */
+		if (*p != pat1) {	/* ½]ÊÉÈÁ½©H */
+not_memory:
+			*p = old;
+			break;
+		}
+		*p ^= 0xffffffff;	/* à¤êx½]µÄÝé */
+		if (*p != pat0) {	/* ³ÉßÁ½©H */
+			goto not_memory;
+		}
+		*p = old;			/* ¢¶Á½lð³Éß· */
+	}
+	return i;
+}
+
 void clear_line(u8 line_no)
 {
   u8* vb = (u8*)0xb8000 + 160*line_no;
@@ -517,11 +601,20 @@ void loop_delay(int time)
 
 void kernel_main(void)
 {
+  clear();
+  int memsize = memtest(0x00400000, 0xbfffffff) / (1024 * 1024);
+
   clear_line(13);
-  s32_print("zzzzzzzz", (u8*)(0xb8000+160*13));
+  s32_print("memory size", (u8*)(0xb8000+160*13));
+
+  u8 stack_str[10]="y";
+  u8 *sp = stack_str;
+  sp = s32_itoa(memsize, stack_str, 10);
   
   clear_line(14);
-  s32_print("yyyyyyyyyyyyyy", (u8*)(0xb8000+160*14));
+  s32_print(sp, (u8*)(0xb8000+160*14));
+  while(1);
+
   ready_process = proc_table;
 
   clear();
