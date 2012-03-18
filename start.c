@@ -611,9 +611,11 @@ void kernel_main(void)
   u8 *sp = stack_str;
   sp = s32_itoa(memsize, stack_str, 10);
   
+#if 0
   clear_line(14);
   s32_print(sp, (u8*)(0xb8000+160*14));
   while(1);
+#endif
 
   ready_process = proc_table;
 
