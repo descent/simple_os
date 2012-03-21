@@ -79,6 +79,7 @@
 .text
 .global _start
 _start:
+  #call switch_mode
   mov $STACK_TOP, %esp
   call init_bss_asm
   call c_test
@@ -532,6 +533,41 @@ store_cr0:
   mov %eax, %cr0 
   retl
 
+
+
+.global memtest_sub
+memtest_sub:	# unsigned int memtest_sub(unsigned int start, unsigned int end)
+  pushl	%edi    # iEBX, ESI, EDI àg¢½¢ÌÅj
+  pushl	%esi
+  pushl	%ebx
+  mov $0xaa55aa55, %esi			# pat0 = 0xaa55aa55;
+  mov $0x55aa55aa, %edi			# pat1 = 0x55aa55aa;
+  mov 12+4(%ESP), %eax			# i = start;
+mts_loop:
+  mov %eax, %ebx
+  add 0xffc, %ebx				# p = i + 0xffc;
+  mov (%ebx), %edx				# old = *p;
+  mov %esi, (%ebx)
+  xorl $0xffffffff, (%ebx)	# *p ^= 0xffffffff;
+  cmp (%ebx), %edi   # if (*p != pat1) goto fin;
+  jne mts_fin
+  xorl $0xffffffff, (%ebx)	# *p ^= 0xffffffff;
+  cmp (%ebx), %esi	# if (*p != pat0) goto fin;
+  jne		mts_fin
+  mov %edx, (%ebx)				# *p = old;
+  add $0x1000, %eax				# i += 0x1000;
+  cmp 12+8(%esp), %eax			# if (i <= end) goto mts_loop;
+  jbe		mts_loop
+  pop %ebx
+  pop %esi
+  pop %edi
+  retl
+mts_fin:
+  mov %edx, (%ebx)				# *p = old;
+  pop %ebx
+  pop %esi
+  pop %edi
+  retl
 
 .align 32
 .data
