@@ -91,6 +91,7 @@ u32 memtest(volatile u32 start, volatile u32 end)
 	return i;
 }
 
+#if 0
 u32 memtest_sub(volatile u32 start, volatile u32 end)
 {
 	volatile unsigned int i, *p, old, pat0 = 0xaa55aa55, pat1 = 0x55aa55aa;
@@ -112,6 +113,7 @@ not_memory:
 	}
 	return i;
 }
+#endif
 
 void clear_line(u8 line_no)
 {
@@ -581,15 +583,17 @@ void kernel_main(void)
   u8 *sp = stack_str;
   sp = s32_itoa(memsize, stack_str, 10);
   
-#if 0
-  clear_line(14);
-  s32_print(sp, (u8*)(0xb8000+160*14));
-  while(1);
+  clear();
+#if 1
+  clear_line(24);
+  s32_print("memory size", (u8*)(0xb8000+160*24));
+  s32_print(sp, (u8*)(0xb8000+160*24 + 12*2));
+  s32_print("MB", (u8*)(0xb8000+160*24 + 12*2 + 4*2));
+  //while(1);
 #endif
 
   ready_process = proc_table;
 
-  clear();
 
   init_proc();
 
