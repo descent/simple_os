@@ -571,7 +571,7 @@ mts_fin:
 
 .align 32
 .data
-TIMER_STR: .ascii "timer"
+TIMER_STR: .asciz "timer"
 VB: .long (0xb8006+160)
 .space  2048, 0
 STACK_TOP:
