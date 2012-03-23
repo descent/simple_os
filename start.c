@@ -570,18 +570,23 @@ void loop_delay(int time)
 }
 
 
+u32 memsize;
 
 void kernel_main(void)
 {
   clear();
-  int memsize = memtest(0x00400000, 0xbfffffff) / (1024 * 1024);
-
   clear_line(13);
   s32_print("memory size", (u8*)(0xb8000+160*13));
+  //int memsize = memtest(0x00400000, 0xbfffffff) / (1024 * 1024);
+  // 0x2000000 = 32MB
+  // because of bochs will alert memory access more than the memory size,
+  //   so limit address to 0x2000000, if use qemu, it works fine.
+  memsize = memtest(0x00400000, 0x2000000);
+  int memsize_mb = memsize / (1024 * 1024);
 
   u8 stack_str[10]="y";
   u8 *sp = stack_str;
-  sp = s32_itoa(memsize, stack_str, 10);
+  sp = s32_itoa(memsize_mb, stack_str, 10);
   
   clear();
 #if 1
@@ -589,7 +594,6 @@ void kernel_main(void)
   s32_print("memory size", (u8*)(0xb8000+160*24));
   s32_print(sp, (u8*)(0xb8000+160*24 + 12*2));
   s32_print("MB", (u8*)(0xb8000+160*24 + 12*2 + 4*2));
-  //while(1);
 #endif
 
   ready_process = proc_table;
