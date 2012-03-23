@@ -8,12 +8,29 @@
 
 
 .equ SELECTOR_KERNEL_CS, 8
+.equ SELECTOR_FLAT_RW, 8*2
 .equ LDT_SEL_OFFSET, 18*4
 .equ P_STACKTOP, 18*4
 .equ TSS3_S_SP0, 4
 .equ SELECTOR_TSS, 4*8
 .equ EOI, 0x20
 .equ INT_M_CTL, 0x20 # I/O port for interrupt controller        <Master>
+
+.equ PAGE_DIR_BASE, 0x200000
+.equ PAGE_TBL_BASE, 0x201000
+
+#----------------------------------------------------------------------------
+# 分頁機制使用的常量說明
+#----------------------------------------------------------------------------
+.equ PG_P            ,     1       # 頁存在屬性位
+.equ PG_RWR          ,     0       # R/W 屬性位值, 讀/執行
+.equ PG_RWW          ,     2       # R/W 屬性位值, 讀/寫/執行
+.equ PG_USS          ,     0       # U/S 屬性位值, 系統級
+.equ PG_USU          ,     4       # U/S 屬性位值, 用戶級
+
+.equ PG_ATTR , PG_P  | PG_USU | PG_RWW
+.equ PG_ATTR1 , PAGE_TBL_BASE | PG_P  | PG_USU | PG_RWW
+
 
 
 .set SelectorCode32, 8
@@ -38,6 +55,7 @@
 .extern idt_ptr
 .extern __bss_start__ 
 .extern __bss_end__ 
+.extern memsize
 #.extern	exception_handler
 
 .global	divide_error
@@ -101,6 +119,7 @@ csinit:
   call init_8259a
   call init_idt_by_c
   lidt idt_ptr
+  call setup_paging
   call init_tss
 
   xor %eax, %eax
@@ -569,8 +588,65 @@ mts_fin:
   pop %edi
   retl
 
+# ref: oranges_os/chapter6/d/boot/loader.asm
+# 启动分页机制 --------------------------------------------------------------
+setup_paging:
+	# 根据記憶體大小计算应初始化多少PDE以及多少页表
+	xor	%edx, %edx
+	mov	(memsize), %eax
+	mov	$0x400000, %ebx	# 400000h = 4M = 4096 * 1024, 一个页表对应的内存大小
+	div	%ebx
+	mov	%eax, %ecx	# 此时 ecx 为页表的个数，也即 PDE 应该的个数
+	test	%edx, %edx
+	jz	.no_remainder
+	inc	%ecx		# 如果余数不为 0 就需增加一个页表
+.no_remainder:
+	push	%ecx		# 暂存页表个数
+
+	# 为简化处理, 所有线性位址对应相等的物理位址. 并且不考虑内存空洞.
+
+	# 首先初始化页目录
+	mov	$SELECTOR_FLAT_RW, %ax
+	mov	%ax, %es
+
+	mov	$PAGE_DIR_BASE, %edi	# 此段首位址为 PageDirBase
+	xor	%eax, %eax
+#	mov	eax, PageTblBase | PG_P  | PG_USU | PG_RWW
+	mov	$PG_ATTR1, %eax
+1:
+	stosl
+	add	$4096, %eax		# 为了简化, 所有页表在内存中是连续的.
+	loop	1b
+
+	# 再初始化所有页表
+	pop	%eax			# 页表个数
+	mov	$1024, %ebx		# 每个页表 1024 个 PTE
+	mul	%ebx
+	mov	%eax, %ecx		# PTE个数 = 页表个数 * 1024
+	mov	$PAGE_TBL_BASE, %edi	# 此段首位址为 PageTblBase
+	xor	%eax, %eax
+	#mov	$PG_P  | $PG_USU | $PG_RWW, %eax
+	mov	$PG_ATTR, %eax
+2:
+	stosl
+	add	$4096, %eax		# 每一页指向 4K 的空间
+	loop	2b
+
+	mov	$PAGE_DIR_BASE, %eax
+	mov	%eax, %cr3
+	mov	%cr0, %eax
+	or	$0x80000000, %eax
+	mov	%eax, %cr0
+	jmp	3f
+3:
+	nop
+
+	retl
+# 分页机制启动完毕 ----------------------------------------------------------
+
 .align 32
 .data
+mem_size: .int 0x0
 TIMER_STR: .asciz "timer"
 VB: .long (0xb8006+160)
 .space  2048, 0
