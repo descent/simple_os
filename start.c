@@ -10,6 +10,9 @@
 #define INT_M_CTLMASK 0x21
 #define INT_S_CTLMASK 0xa1
 
+//void __attribute__((aligned(16))) function() { }
+
+//__attribute__((aligned(512))) 
 u8 gdt_ptr[6];
 Descriptor gdt[GDT_SIZE];
 
