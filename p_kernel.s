@@ -590,6 +590,7 @@ mts_fin:
 
 # ref: oranges_os/chapter6/d/boot/loader.asm
 # 启动分页机制 --------------------------------------------------------------
+.global setup_paging
 setup_paging:
 	# 根据記憶體大小计算应初始化多少PDE以及多少页表
 	xor	%edx, %edx
