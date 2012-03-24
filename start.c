@@ -596,6 +596,9 @@ void kernel_main(void)
   s32_print("MB", (u8*)(0xb8000+160*24 + 12*2 + 4*2));
 #endif
 
+  void setup_paging(void);
+  setup_paging();
+
   ready_process = proc_table;
 
 
