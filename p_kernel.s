@@ -425,9 +425,18 @@ hwint00:
   # check k_reenter
   incl (k_reenter)
   cmpl $0, (k_reenter)
-  jne .re_enter
+  #jne .re_enter
+  jne 1 # reenter
 
-  mov $STACK_TOP, %esp
+  mov $STACK_TOP, %esp # switch to kernel stack
+   
+  pushl $restart_v2
+  jmp 2f
+
+1: # reenter
+  pushl $restart_reenter_v2
+
+2: # non reenter
   sti
 
   pushl 0
@@ -440,19 +449,26 @@ hwint00:
   call s32_print
   add $8, %esp
 
-  pushl $10
-  call loop_delay
-  add $4, %esp
+  #jmp .
+  #nop
+  #nop
+
+#  pushl $10
+#  call loop_delay
+#  add $4, %esp
 
   cli 
+  ret
 
+restart_v2:
   movl (ready_process), %esp
   lldt LDT_SEL_OFFSET(%esp)
 
   lea P_STACKTOP(%esp), %eax
   movl %eax, (tss+TSS3_S_SP0)
 
-.re_enter:
+#.re_enter:
+restart_reenter_v2:
   decl (k_reenter)
 
   popl %gs
