@@ -119,7 +119,7 @@ csinit:
   call init_8259a
   call init_idt_by_c
   lidt idt_ptr
-  call setup_paging
+  #call setup_paging
   call init_tss
 
   xor %eax, %eax
