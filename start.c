@@ -19,7 +19,7 @@ Descriptor gdt[GDT_SIZE];
 u8 idt_ptr[6];
 Gate idt[IDT_SIZE];
 
-u8 *cur_vb = (u8*)0xb8000;
+u8 *cur_vb = (u8*)0xb8000+160;
 
 // char fg attribute 
 #define HRED 0xc
@@ -155,6 +155,9 @@ void s32_print(const u8 *s, u8 *vb)
     ++s;
     vb+=2;
   }
+  cur_vb = vb;
+  if (cur_vb >= 0xb8000+160*24)
+    cur_vb = 0xb8000+160;
 }
 
 char* s32_itoa(int n, char* str, int radix)
@@ -615,6 +618,8 @@ void kernel_main(void)
 
 
   init_proc();
+
+  cur_vb = (u8*)0xb8000+160;
 
   void restart(void);
   restart();
