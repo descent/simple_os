@@ -198,6 +198,15 @@ char* s32_itoa(int n, char* str, int radix)
   return str;
 }
 
+void s32_print_int(int i, u8 *vb, int radix)
+{
+  u8 str[12]="";
+  u8 *str_ptr = str;
+
+  str_ptr = s32_itoa(i, str_ptr, radix);
+  s32_print(str_ptr, vb);
+}
+
 void p_asm_memcpy(void *dest, void *src, u16 n);
 void p_asm_memset(void *dest, int c, u16 n);
 
