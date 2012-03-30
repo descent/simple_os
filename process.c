@@ -6,11 +6,14 @@ u8 task_stack[STACK_SIZE_TOTAL];
 Process *ready_process;
 Tss tss;
 
+extern u8 *cur_vb;
+
 
 int k_reenter = -1;
 
 char* s32_itoa(int n, char* str, int radix);
 void s32_print(const u8 *s, u8 *vb);
+void s32_print_int(int i, u8 *vb, int radix);
 void clear_line(u8 line_no);
 void loop_delay(int time);
 
@@ -25,6 +28,7 @@ u8 get_privilege(void)
 
 void proc_a(void)
 {
+#if 0
   u16 l=10;
   u8 stack_str[10]="y";
   u8 *sp = stack_str;
@@ -49,11 +53,23 @@ void proc_a(void)
     l = ((l%10) + 10);
     loop_delay(10);
   }
+#endif
+
+  int i = 0;
+  
+  while(1)
+  {
+    s32_print("A", cur_vb);
+    s32_print_int(i++, cur_vb, 10);
+    s32_print(".", cur_vb);
+    loop_delay(100);
+  }
 
 }
 
 void proc_b(void)
 {
+#if 0
   //#define VB_OFFSET (35*2)
   const u16 VB_OFFSET = (30*2);
   u16 l=12;
@@ -74,10 +90,21 @@ void proc_b(void)
     loop_delay(10);
 
   }
+#endif
+  int i = 0;
+  
+  while(1)
+  {
+    s32_print("B", cur_vb);
+    s32_print_int(i++, cur_vb, 10);
+    s32_print(".", cur_vb);
+    loop_delay(1);
+  }
 }
 
 void proc_c(void)
 {
+#if 0
   const u16 VB_OFFSET = (50*2);
   u16 l=14;
   u8 stack_str[10]="y";
@@ -92,6 +119,16 @@ void proc_c(void)
     ++l;
     l = ((l%10) + 10);
     loop_delay(10);
+  }
+#endif
+  int i = 0;
+  
+  while(1)
+  {
+    s32_print("C", cur_vb);
+    s32_print_int(i++, cur_vb, 10);
+    s32_print(".", cur_vb);
+    loop_delay(1);
   }
 }
 
