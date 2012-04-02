@@ -10,6 +10,8 @@
 #define INT_M_CTLMASK 0x21
 #define INT_S_CTLMASK 0xa1
 
+#define NR_IRQ 16
+
 //void __attribute__((aligned(16))) function() { }
 
 //__attribute__((aligned(512))) 
@@ -20,6 +22,10 @@ u8 idt_ptr[6];
 Gate idt[IDT_SIZE];
 
 u8 *cur_vb = (u8*)0xb8000+160;
+
+IrqHandler irq_table[NR_IRQ];
+
+void disable_irq(int irq);
 
 // char fg attribute 
 #define HRED 0xc
@@ -510,6 +516,8 @@ void startc()
 
 void init_8259a()
 {
+  void spurious_irq(int irq);
+
   // master 8259 icw1
   io_out8(INT_M_PORT, 0x11);
 
@@ -542,7 +550,19 @@ void init_8259a()
   /* Slave  8259, OCW1.  */
   io_out8(INT_S_CTLMASK, 0xFF);
 
+  for (int i = 0 ; i < NR_IRQ ; ++i)
+  {
+    irq_table[i] = spurious_irq;
+  }
+
 }
+
+void put_irq_handler(int irq, IrqHandler handler)
+{
+  disable_irq(irq);
+  irq_table[irq] = handler;
+}
+
 
 void init_tss(void)
 {
