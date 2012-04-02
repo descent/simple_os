@@ -156,8 +156,8 @@ void s32_print(const u8 *s, u8 *vb)
     vb+=2;
   }
   cur_vb = vb;
-  if (cur_vb >= 0xb8000+160*24)
-    cur_vb = 0xb8000+160;
+  if ((int)cur_vb >= 0xb8000+160*24)
+    cur_vb = (u8*)0xb8000+160;
 }
 
 char* s32_itoa(int n, char* str, int radix)
