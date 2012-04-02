@@ -404,22 +404,39 @@ spurious_handler:
     hlt
 .endm
 
+.macro HWINT_MASTER IRQ_NO
+  call save
+  inb $INT_M_CTLMASK, %al    # \
+  orb $(1 << \IRQ_NO), %al   # | mask irq no interrupt
+  outb %al, $INT_M_CTLMASK   # /
+  mov $EOI, %al           
+  outb %al, $INT_M_CTL   
+  sti
+  pushl \IRQ_NO
+  call (irq_table + 4 * \IRQ_NO)
+  pop %ecx
+  cli 
+  inb $INT_M_CTLMASK, %al     # \
+  andb $~(1 << \IRQ_NO), %al  # | unmask irq no interrupt
+  outb %al, $INT_M_CTLMASK    # /
+#  pushl (cur_vb)
+#  pushl $TIMER_STR
+#  call s32_print
+#  add $8, %esp
+  retl
+.endm
+
 .align 16
 hwint00:
+  HWINT_MASTER 0
   #HW_INT_MASTER $0
 
   #sub $4, %esp
-  call save
 
-  inb $INT_M_CTLMASK, %al   # \
-  orb $1, %al               # | mask timer interrupt
-  outb %al, $INT_M_CTLMASK  # /
 
   #incb %gs:(0)
 
   # reenable 8259a interrupt
-  mov $EOI, %al           
-  outb %al, $INT_M_CTL   
    
   #pushl $restart_v2
 #  pushl $restart
@@ -430,24 +447,12 @@ hwint00:
 #  pushl $restart_reenter
 
 #2: # non reenter
-  sti
 
-  pushl $0
-  call clock_handler
-  addl $4, %esp
 
-  cli 
 
-  inb $INT_M_CTLMASK, %al   # \
-  andb $0xfe, %al           # | unmask timer interrupt
-  outb %al, $INT_M_CTLMASK  # /
 
   #addl $2, (VB)
   #pushl VB
-  pushl (cur_vb)
-  pushl $TIMER_STR
-  call s32_print
-  add $8, %esp
 
   #jmp .
   #nop
@@ -457,7 +462,6 @@ hwint00:
 #  call loop_delay
 #  add $4, %esp
 
-  ret
 
 #restart_v2:
 restart:
