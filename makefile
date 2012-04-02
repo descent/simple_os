@@ -68,7 +68,7 @@ protected_code.o: protected_code.c
 protected_code.s: protected_code.c
 	gcc $(CFLAGS) -o $@ -S $<
 
-p_kernel.elf: p_kernel.o start.o process.o clock.o
+p_kernel.elf: p_kernel.o start.o process.o clock.o asm_func.o
 	ld -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
 
 p_kernel.o: p_kernel.s
@@ -86,6 +86,11 @@ process.o: process.c process.h type.h protect.h
 clock.o: clock.c clock.h type.h process.h protect.h
 	gcc $(CFLAGS) -c $<
 
+asm_func.o: asm_func.s
+	as -o $@ $<
+
+asm_func.s: asm_func.S
+	gcc $(CFLAGS) -o $@ -E $<
 
 .PHONE: clean distclean
 
