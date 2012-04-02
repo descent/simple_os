@@ -50,6 +50,7 @@
     .2byte     ((\Offset >> 16) & 0xFFFF)
 .endm
 
+.extern cur_vb
 .extern k_reenter
 .extern gdt_ptr
 .extern idt_ptr
@@ -443,8 +444,9 @@ hwint00:
   call clock_handler
   addl $4, %esp
 
-  addl $2, (VB)
-  pushl VB
+  #addl $2, (VB)
+  #pushl VB
+  pushl (cur_vb)
   pushl $TIMER_STR
   call s32_print
   add $8, %esp
@@ -664,7 +666,7 @@ setup_paging:
 .align 32
 .data
 mem_size: .int 0x0
-TIMER_STR: .asciz "timer"
+TIMER_STR: .asciz "^"
 VB: .long (0xb8006+160)
 .space  2048, 0
 STACK_TOP:
