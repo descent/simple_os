@@ -6,5 +6,7 @@ typedef unsigned int u32;
 
 typedef void (*IntHandler)();
 
+typedef void (*IrqHandler)();
+
 #endif
 
