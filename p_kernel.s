@@ -11,10 +11,12 @@
 .equ SELECTOR_FLAT_RW, 8*2
 .equ LDT_SEL_OFFSET, 18*4
 .equ P_STACKTOP, 18*4
+.equ RETADDR, 48
 .equ TSS3_S_SP0, 4
 .equ SELECTOR_TSS, 4*8
 .equ EOI, 0x20
 .equ INT_M_CTL, 0x20 # I/O port for interrupt controller        <Master>
+.equ INT_M_CTLMASK, 0x21
 
 .equ PAGE_DIR_BASE, 0x200000
 .equ PAGE_TBL_BASE, 0x201000
@@ -406,43 +408,39 @@ spurious_handler:
 hwint00:
   #HW_INT_MASTER $0
 
-  sub $4, %esp
+  #sub $4, %esp
+  call save
+
+  inb $INT_M_CTLMASK, %al   # \
+  orb $1, %al               # | mask timer interrupt
+  outb %al, $INT_M_CTLMASK  # /
+
+  #incb %gs:(0)
+
+  # reenable 8259a interrupt
+  mov $EOI, %al           
+  outb %al, $INT_M_CTL   
    
-  pushal
-  pushl %ds
-  pushl %es
-  pushl %fs
-  pushl %gs
+  #pushl $restart_v2
+#  pushl $restart
+#  jmp 2f
 
-  mov %ss, %dx
-  mov %dx, %ds
-  mov %dx, %es
+#1: # reenter
+  #pushl $restart_reenter_v2
+#  pushl $restart_reenter
 
-
-  incb %gs:(0)
-  mov $EOI, %al
-  outb %al, $INT_M_CTL
-
-  # check k_reenter
-  incl (k_reenter)
-  cmpl $0, (k_reenter)
-  #jne .re_enter
-  jne 1 # reenter
-
-  mov $STACK_TOP, %esp # switch to kernel stack
-   
-  pushl $restart_v2
-  jmp 2f
-
-1: # reenter
-  pushl $restart_reenter_v2
-
-2: # non reenter
+#2: # non reenter
   sti
 
-  pushl 0
+  pushl $0
   call clock_handler
   addl $4, %esp
+
+  cli 
+
+  inb $INT_M_CTLMASK, %al   # \
+  andb $0xfe, %al           # | unmask timer interrupt
+  outb %al, $INT_M_CTLMASK  # /
 
   #addl $2, (VB)
   #pushl VB
@@ -459,10 +457,10 @@ hwint00:
 #  call loop_delay
 #  add $4, %esp
 
-  cli 
   ret
 
-restart_v2:
+#restart_v2:
+restart:
   movl (ready_process), %esp
   lldt LDT_SEL_OFFSET(%esp)
 
@@ -470,7 +468,8 @@ restart_v2:
   movl %eax, (tss+TSS3_S_SP0)
 
 #.re_enter:
-restart_reenter_v2:
+#restart_reenter_v2:
+restart_reenter:
   decl (k_reenter)
 
   popl %gs
@@ -482,6 +481,31 @@ restart_reenter_v2:
   add $4, %esp
 
   iretl
+
+save:
+  pushal
+  pushl %ds
+  pushl %es
+  pushl %fs
+  pushl %gs
+
+  mov %ss, %dx
+  mov %dx, %ds
+  mov %dx, %es
+
+  mov %esp, %eax
+
+  # check k_reenter
+  incl (k_reenter)
+  cmpl $0, (k_reenter)
+  jne 1f # reenter
+  mov $STACK_TOP, %esp # switch to kernel stack
+  pushl $restart
+  jmp *RETADDR(%eax)
+
+1:
+  pushl $restart_reenter
+  jmp *RETADDR(%eax)
 
 .align 16
 hwint01:
@@ -530,22 +554,21 @@ hwint15:
   HW_INT_SLAVE $15
 
 .globl restart
-restart: # if timer isr run, the process switch will ok or fail ???
-  nop
-  nop
-  movl (ready_process), %esp
-  lldt LDT_SEL_OFFSET(%esp)
-  lea P_STACKTOP(%esp), %eax
-  #lea 0x1000(%esp), %eax
-  movl %eax, (tss+TSS3_S_SP0)
-
-  popl %gs
-  popl %fs
-  popl %es
-  popl %ds
-  popal
-  add $4, %esp
-  iretl
+#restart: # if timer isr run, the process switch will ok or fail ???
+#  movl (ready_process), %esp
+#  lldt LDT_SEL_OFFSET(%esp)
+#
+#  lea P_STACKTOP(%esp), %eax
+#  #lea 0x1000(%esp), %eax
+#  movl %eax, (tss+TSS3_S_SP0)
+#
+#  popl %gs
+#  popl %fs
+#  popl %es
+#  popl %ds
+#  popal
+#  add $4, %esp
+#  iretl
 
 .globl io_load_eflags
 io_load_eflags:
