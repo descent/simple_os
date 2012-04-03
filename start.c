@@ -1,5 +1,6 @@
 #include "io.h"
 #include "type.h"
+#include "clock.h"
 #include "protect.h"
 #include "process.h"
 
@@ -11,6 +12,11 @@
 #define INT_S_CTLMASK 0xa1
 
 #define NR_IRQ 16
+
+#define CLOCK_IRQ 0
+
+int disable_irq(int irq_no);
+int enable_irq(int irq_no);
 
 //void __attribute__((aligned(16))) function() { }
 
@@ -25,7 +31,6 @@ u8 *cur_vb = (u8*)0xb8000+160;
 
 IrqHandler irq_table[NR_IRQ];
 
-void disable_irq(int irq);
 
 // char fg attribute 
 #define HRED 0xc
@@ -543,9 +548,9 @@ void init_8259a()
   io_out8(INT_S_CTLMASK, 0x1);
 
   /* Master 8259, OCW1.  */
-  //io_out8(INT_M_CTLMASK, 0xFF);
+  io_out8(INT_M_CTLMASK, 0xFF);
   //io_out8(INT_M_CTLMASK, 0xfd); // keyboard irq 1
-  io_out8(INT_M_CTLMASK, 0xfe); // timer irq 0
+  //io_out8(INT_M_CTLMASK, 0xfe); // timer irq 0
 
   /* Slave  8259, OCW1.  */
   io_out8(INT_S_CTLMASK, 0xFF);
@@ -632,9 +637,13 @@ void kernel_main(void)
 #endif
 
   void setup_paging(void);
-  setup_paging();
+  //setup_paging();
+ 
+  put_irq_handler(CLOCK_IRQ, clock_handler);
+  enable_irq(CLOCK_IRQ);
 
   ready_process = proc_table;
+
 
 
   init_proc();
