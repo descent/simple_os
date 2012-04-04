@@ -412,8 +412,8 @@ spurious_handler:
   mov $EOI, %al           
   outb %al, $INT_M_CTL   
   sti
-  pushl \IRQ_NO
-  call (irq_table + 4 * \IRQ_NO)
+  pushl $\IRQ_NO
+  call *(irq_table + 4 * \IRQ_NO)
   pop %ecx
   cli 
   inb $INT_M_CTLMASK, %al     # \
