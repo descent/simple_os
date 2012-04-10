@@ -1,5 +1,6 @@
 #include "io.h"
 #include "type.h"
+#include "clock.h"
 #include "protect.h"
 #include "process.h"
 
@@ -9,6 +10,13 @@
 #define INT_VECTOR_IRQ8 0x28
 #define INT_M_CTLMASK 0x21
 #define INT_S_CTLMASK 0xa1
+
+#define NR_IRQ 16
+
+#define CLOCK_IRQ 0
+
+int disable_irq(int irq_no);
+int enable_irq(int irq_no);
 
 //void __attribute__((aligned(16))) function() { }
 
@@ -20,6 +28,9 @@ u8 idt_ptr[6];
 Gate idt[IDT_SIZE];
 
 u8 *cur_vb = (u8*)0xb8000+160;
+
+IrqHandler irq_table[NR_IRQ];
+
 
 // char fg attribute 
 #define HRED 0xc
@@ -156,8 +167,8 @@ void s32_print(const u8 *s, u8 *vb)
     vb+=2;
   }
   cur_vb = vb;
-  if (cur_vb >= 0xb8000+160*24)
-    cur_vb = 0xb8000+160;
+  if ((int)cur_vb >= 0xb8000+160*24)
+    cur_vb = (u8*)0xb8000+160;
 }
 
 char* s32_itoa(int n, char* str, int radix)
@@ -510,6 +521,8 @@ void startc()
 
 void init_8259a()
 {
+  void spurious_irq(int irq);
+
   // master 8259 icw1
   io_out8(INT_M_PORT, 0x11);
 
@@ -535,14 +548,26 @@ void init_8259a()
   io_out8(INT_S_CTLMASK, 0x1);
 
   /* Master 8259, OCW1.  */
-  //io_out8(INT_M_CTLMASK, 0xFF);
+  io_out8(INT_M_CTLMASK, 0xFF);
   //io_out8(INT_M_CTLMASK, 0xfd); // keyboard irq 1
-  io_out8(INT_M_CTLMASK, 0xfe); // timer irq 0
+  //io_out8(INT_M_CTLMASK, 0xfe); // timer irq 0
 
   /* Slave  8259, OCW1.  */
   io_out8(INT_S_CTLMASK, 0xFF);
 
+  for (int i = 0 ; i < NR_IRQ ; ++i)
+  {
+    irq_table[i] = spurious_irq;
+  }
+
 }
+
+void put_irq_handler(int irq, IrqHandler handler)
+{
+  disable_irq(irq);
+  irq_table[irq] = handler;
+}
+
 
 void init_tss(void)
 {
@@ -561,13 +586,16 @@ void init_tss(void)
 
 void spurious_irq(int irq)
 {
-  clear();
-  s32_print("spurious_irq", (u8*)(0xb8000+160*6));
+  //clear();
+  //s32_print("spurious_irq", (u8*)(0xb8000+160*6));
 
   u8 str[12]="";
   u8 *str_ptr = str;
   str_ptr = s32_itoa(irq, str_ptr, 16);
-  s32_print(str_ptr, (u8*)(0xb8000+160*7));
+  //s32_print(str_ptr, (u8*)(0xb8000+160*7));
+  s32_print("*", cur_vb);
+  io_in8(0x60);
+  io_out8(0x20, 0x20); // EOI
 }
 
 void loop_delay(int time)
@@ -612,9 +640,17 @@ void kernel_main(void)
 #endif
 
   void setup_paging(void);
-  setup_paging();
+  //setup_paging();
+ 
+  put_irq_handler(CLOCK_IRQ, clock_handler);
+  //enable_irq(CLOCK_IRQ);
+
+  enable_irq(1);
+  __asm__ ("sti\t\n");
+  while(1);
 
   ready_process = proc_table;
+
 
 
   init_proc();
