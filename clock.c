@@ -1,6 +1,7 @@
 #include "clock.h"
 #include "type.h"
 #include "process.h"
+#include "io.h"
 
 char* s32_itoa(int n, char* str, int radix);
 void s32_print(const u8 *s, u8 *vb);
@@ -10,6 +11,7 @@ void loop_delay(int time);
 
 void clock_handler(int irq)
 {
+  io_in8(0x60);
   static u16 p = 4;
   s32_print("@", (u8*)(0xb8000+p*2));
   ++p;

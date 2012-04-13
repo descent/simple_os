@@ -295,6 +295,7 @@ exception:
 	add	$4*2, %esp	# 讓堆疊頂指向 EIP，堆疊中從頂向下依次是：EIP、CS、EFLAGS
 	hlt
 
+//.align 32
 io_delay:
   nop
   nop
@@ -402,7 +403,7 @@ spurious_handler:
 .endm
 
 .align 16
-hwint00:
+hwint01:
   #HW_INT_MASTER $0
 
   sub $4, %esp
@@ -419,6 +420,7 @@ hwint00:
 
 
   incb %gs:(0)
+
   mov $EOI, %al
   outb %al, $INT_M_CTL
 
@@ -426,7 +428,7 @@ hwint00:
   incl (k_reenter)
   cmpl $0, (k_reenter)
   #jne .re_enter
-  jne 1 # reenter
+  jne 1f # reenter
 
   mov $STACK_TOP, %esp # switch to kernel stack
    
@@ -443,22 +445,24 @@ hwint00:
   call clock_handler
   addl $4, %esp
 
+
   addl $2, (VB)
   pushl VB
   pushl $TIMER_STR
   call s32_print
   add $8, %esp
 
+
   #jmp .
   #nop
   #nop
 
-#  pushl $10
-#  call loop_delay
-#  add $4, %esp
+  pushl $100
+  call loop_delay
+  add $4, %esp
 
   cli 
-  ret
+  retl
 
 restart_v2:
   movl (ready_process), %esp
@@ -482,7 +486,7 @@ restart_reenter_v2:
   iretl
 
 .align 16
-hwint01:
+hwint00:
   HW_INT_MASTER $1
 .align 16
 hwint02:

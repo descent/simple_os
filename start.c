@@ -387,6 +387,7 @@ void init_idt_desc_by_c(u8 vector_no, u8 desc_type, IntHandler handler, u8 privi
 
 void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags)
 {
+#if 1
   char *err_msg[] = {
                       "#DE: Dvivde Error", 
 		      "#DB: RESERVED",
@@ -415,35 +416,37 @@ void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags)
   u8 str[12]="";
   u8 *str_ptr = str;
 
+#if 0
   clear_line(0);
   clear_line(1);
   clear_line(2);
   clear_line(3);
   clear_line(23);
-
+#endif
   s32_print(err_msg[vec_no], (u8*)(0xb8000+160*23));
   str_ptr = s32_itoa(eflags, str_ptr, 16);
-  s32_print("eflags", (u8*)(0xb8000+160*0));
-  s32_print(str_ptr, (u8*)(0xb8000+160*1));
+  s32_print("eflags", (u8*)(0xb8000+160*21));
+  s32_print(str_ptr, (u8*)(0xb8000+160*22));
 
   str_ptr = s32_itoa(cs, str_ptr, 16);
-  s32_print("cs", (u8*)(0xb8000+160*2));
-  s32_print(str_ptr, (u8*)(0xb8000+160*3));
+  s32_print("cs", (u8*)(0xb8000+160*19));
+  s32_print(str_ptr, (u8*)(0xb8000+160*20));
   
   str_ptr = s32_itoa(eip, str_ptr, 16);
-  clear_line(4);
-  s32_print("eip", (u8*)(0xb8000+160*4));
-  clear_line(5);
-  s32_print(str_ptr, (u8*)(0xb8000+160*5));
+  //clear_line(4);
+  s32_print("eip", (u8*)(0xb8000+160*17));
+  //clear_line(5);
+  s32_print(str_ptr, (u8*)(0xb8000+160*18));
 
   if (err_code != 0xffffffff)
   {
     str_ptr = s32_itoa(err_code, str_ptr, 16);
-    clear_line(6);
-    s32_print("err_code", (u8*)(0xb8000+160*6));
-    clear_line(7);
-    s32_print(str_ptr, (u8*)(0xb8000+160*7));
+    //clear_line(6);
+    s32_print("err_code", (u8*)(0xb8000+160*16));
+    //clear_line(7);
+    s32_print(str_ptr, (u8*)(0xb8000+160*17));
   }
+#endif
 }
 
 
@@ -524,8 +527,8 @@ void init_8259a()
 
   /* Master 8259, OCW1.  */
   //io_out8(INT_M_CTLMASK, 0xFF);
-  //io_out8(INT_M_CTLMASK, 0xfd); // keyboard irq 1
-  io_out8(INT_M_CTLMASK, 0xfe); // timer irq 0
+  io_out8(INT_M_CTLMASK, 0xfd); // keyboard irq 1
+  //io_out8(INT_M_CTLMASK, 0xfe); // timer irq 0
 
   /* Slave  8259, OCW1.  */
   io_out8(INT_S_CTLMASK, 0xFF);
@@ -565,7 +568,7 @@ void loop_delay(int time)
   {
     for (i = 0; i < 10; i++) 
     {
-      for (j = 0; j < 10000; j++) 
+      for (j = 0; j < 1000; j++) 
       {
       }
     }

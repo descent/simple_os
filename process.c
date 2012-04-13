@@ -1,4 +1,5 @@
 #include "process.h"
+#include "io.h"
 
 Process proc_table[NR_TASKS];
 u8 task_stack[STACK_SIZE_TOTAL];
@@ -25,6 +26,7 @@ u8 get_privilege(void)
 
 void proc_a(void)
 {
+
   u16 l=10;
   u8 stack_str[10]="y";
   u8 *sp = stack_str;
@@ -32,6 +34,8 @@ void proc_a(void)
 
   while(1)
   {
+    //io_out8(0x20, 0x20);
+  //io_in8(0x60);
 #if 0
     __asm__ volatile ("mov $0xc,%ah\t\n");
     __asm__ volatile ("mov $'A',%al\t\n");
@@ -54,6 +58,7 @@ void proc_a(void)
 
 void proc_b(void)
 {
+  //io_in8(0x60);
   //#define VB_OFFSET (35*2)
   const u16 VB_OFFSET = (30*2);
   u16 l=12;
@@ -62,6 +67,8 @@ void proc_b(void)
   u8 privilege = get_privilege();
   while(1)
   {
+    //io_out8(0x20, 0x20);
+    //io_in8(0x60);
     const char* proc_a_str="proc B privilege: ";
     sp = s32_itoa(l, stack_str, 10);
     clear_line(l-1);
@@ -84,6 +91,8 @@ void proc_c(void)
   u8 *sp = stack_str;
   while(1)
   {
+    //io_out8(0x20, 0x20);
+    //io_in8(0x60);
 
     sp = s32_itoa(l, stack_str, 10);
     clear_line(l-1);
