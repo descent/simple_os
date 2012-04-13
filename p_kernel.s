@@ -426,7 +426,7 @@ hwint00:
   incl (k_reenter)
   cmpl $0, (k_reenter)
   #jne .re_enter
-  jne 1 # reenter
+  jne 1f # reenter
 
   mov $STACK_TOP, %esp # switch to kernel stack
    
@@ -453,9 +453,9 @@ hwint00:
   #nop
   #nop
 
-#  pushl $10
-#  call loop_delay
-#  add $4, %esp
+  pushl $100
+  call loop_delay
+  add $4, %esp
 
   cli 
   ret
