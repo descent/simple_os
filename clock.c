@@ -8,15 +8,19 @@ void clear_line(u8 line_no);
 void loop_delay(int time);
 
 extern int k_reenter;
+extern u8 *cur_vb;
 
 void clock_handler(int irq)
 {
   static u16 p = 4;
-  s32_print("@", (u8*)(0xb8000+p*2));
+  //s32_print("@", (u8*)(0xb8000+p*2));
+  s32_print("@", cur_vb);
+
   ++p;
   if (k_reenter != 0)
   {
-    s32_print("!", (u8*)(0xb8000+p*2));
+    //s32_print("!", (u8*)(0xb8000+p*2));
+    s32_print("!", cur_vb);
     return;
   }
 

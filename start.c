@@ -644,9 +644,8 @@ void kernel_main(void)
  
   put_irq_handler(CLOCK_IRQ, clock_handler);
   //enable_irq(CLOCK_IRQ);
-
   enable_irq(1);
-  __asm__ ("sti\t\n");
+  __asm__ __volatile__ ("sti\t\n");
   while(1);
 
   ready_process = proc_table;
@@ -660,7 +659,6 @@ void kernel_main(void)
   void restart(void);
   restart();
   s32_print("xxxxxxxxxxx", (u8*)(0xb8000+160*15));
-  while(1);
 
 }
 

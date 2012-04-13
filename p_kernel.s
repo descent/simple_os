@@ -394,7 +394,7 @@ spurious_handler:
     pushl \irq_no
     call spurious_irq
     add $4, %esp
-    iretl
+    iret
     hlt
 .endm
 

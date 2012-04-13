@@ -9,7 +9,8 @@ Tss tss;
 extern u8 *cur_vb;
 
 
-int k_reenter = -1;
+//int k_reenter = -1;
+int k_reenter = 0;
 
 char* s32_itoa(int n, char* str, int radix);
 void s32_print(const u8 *s, u8 *vb);
