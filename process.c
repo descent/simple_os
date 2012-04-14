@@ -36,8 +36,8 @@ void proc_a(void)
     __asm__ volatile ("mov $0xc,%ah\t\n");
     __asm__ volatile ("mov $'A',%al\t\n");
     __asm__ volatile ("mov %ax,%gs:((80*0+39)*2)\t\n");
-#endif
-
+    __asm__ volatile ("incb %gs:((80*20+39)*2)\t\n");
+#else
     const char* proc_a_str="proc A privilege: ";
     sp = s32_itoa(l, stack_str, 10);
     clear_line(l-1);
@@ -47,7 +47,8 @@ void proc_a(void)
     s32_print(sp, (u8*)(0xb8000+160*l + 22*2));
     ++l;
     l = ((l%10) + 10);
-    loop_delay(10);
+    loop_delay(1);
+#endif
   }
 
 }
