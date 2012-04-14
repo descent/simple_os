@@ -6,6 +6,7 @@
 # setup idt
 
 
+.equ STACK_TOP, 0x300000
 
 .equ SELECTOR_KERNEL_CS, 8
 .equ SELECTOR_FLAT_RW, 8*2
@@ -453,7 +454,7 @@ hwint00:
   #nop
   #nop
 
-  pushl $100
+  pushl $26
   call loop_delay
   add $4, %esp
 
@@ -666,7 +667,7 @@ setup_paging:
 mem_size: .int 0x0
 TIMER_STR: .asciz "timer"
 VB: .long (0xb8006+160)
-.space  2048, 0
-STACK_TOP:
+#.space  10240, 0
+#STACK_TOP:
 
 
