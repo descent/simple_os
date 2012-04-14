@@ -147,6 +147,8 @@ void s32_put_char(u8 ch, u8 *vb)
   *vb = ch;
 }
 
+
+
 void s32_print(const u8 *s, u8 *vb)
 {
   while(*s)
@@ -196,6 +198,15 @@ char* s32_itoa(int n, char* str, int radix)
   }
   #endif
   return str;
+}
+
+void s32_print_int(int i, u8 *vb, int radix)
+{
+  u8 str[12]="";
+  u8 *str_ptr = str;
+
+  str_ptr = s32_itoa(i, str_ptr, radix);
+  s32_print(str_ptr, vb);
 }
 
 void p_asm_memcpy(void *dest, void *src, u16 n);
@@ -414,7 +425,10 @@ void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags)
 
   u8 str[12]="";
   u8 *str_ptr = str;
+  //s32_print(err_msg[vec_no], (u8*)(0xb8000+160*23));
+  s32_print("err", (u8*)(0xb8000+160*23));
 
+#if 0
   clear_line(0);
   clear_line(1);
   clear_line(2);
@@ -444,6 +458,7 @@ void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags)
     clear_line(7);
     s32_print(str_ptr, (u8*)(0xb8000+160*7));
   }
+#endif
 }
 
 
