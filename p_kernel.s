@@ -119,6 +119,7 @@ _start:
   jmp csinit
 csinit:
   #call asm_init_8259a
+  call init_timer
   call init_8259a
   call init_idt_by_c
   lidt idt_ptr
@@ -415,6 +416,9 @@ spurious_handler:
   pushl $\IRQ_NO
   call *(irq_table + 4 * \IRQ_NO)
   pop %ecx
+  pushl $5
+  call loop_delay
+  add $4, %esp
   cli 
   inb $INT_M_CTLMASK, %al     # \
   andb $~(1 << \IRQ_NO), %al  # | unmask irq no interrupt
