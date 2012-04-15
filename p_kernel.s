@@ -6,6 +6,7 @@
 # setup idt
 
 
+.equ STACK_TOP, 0x300000
 
 .equ SELECTOR_KERNEL_CS, 8
 .equ SELECTOR_FLAT_RW, 8*2
@@ -415,6 +416,9 @@ spurious_handler:
   pushl $\IRQ_NO
   call *(irq_table + 4 * \IRQ_NO)
   pop %ecx
+  pushl $100
+  call loop_delay
+  add $4, %esp
   cli 
   inb $INT_M_CTLMASK, %al     # \
   andb $~(1 << \IRQ_NO), %al  # | unmask irq no interrupt
@@ -428,6 +432,8 @@ spurious_handler:
 
 .align 16
 hwint00:
+  nop
+  nop
   HWINT_MASTER 0
   #HW_INT_MASTER $0
 
@@ -443,7 +449,7 @@ hwint00:
 #  jmp 2f
 
 #1: # reenter
-  #pushl $restart_reenter_v2
+  #pushl $#restart_reenter_v2
 #  pushl $restart_reenter
 
 #2: # non reenter
@@ -505,11 +511,11 @@ save:
   jne 1f # reenter
   mov $STACK_TOP, %esp # switch to kernel stack
   pushl $restart
-  jmp *RETADDR(%eax)
+  jmpl *RETADDR(%eax)
 
 1:
   pushl $restart_reenter
-  jmp *RETADDR(%eax)
+  jmpl *RETADDR(%eax)
 
 .align 16
 hwint01:
@@ -695,7 +701,7 @@ setup_paging:
 mem_size: .int 0x0
 TIMER_STR: .asciz "^"
 VB: .long (0xb8006+160)
-.space  2048, 0
-STACK_TOP:
+#.space  2048, 0
+#STACK_TOP:
 
 
