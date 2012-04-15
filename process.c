@@ -29,7 +29,7 @@ u8 get_privilege(void)
 
 void proc_a(void)
 {
-#if 0
+#if 1
   u16 l=10;
   u8 stack_str[10]="y";
   u8 *sp = stack_str;
@@ -52,10 +52,11 @@ void proc_a(void)
     s32_print(sp, (u8*)(0xb8000+160*l + 22*2));
     ++l;
     l = ((l%10) + 10);
-    loop_delay(10);
+    //loop_delay(10);
   }
 #endif
 
+#if 0
   int i = 0;
   
   while(1)
@@ -63,9 +64,10 @@ void proc_a(void)
     s32_print("A", cur_vb);
     s32_print_int(i++, cur_vb, 10);
     s32_print(".", cur_vb);
-    loop_delay(100);
+    //loop_delay(1);
+    //loop_delay(100);
   }
-
+#endif
 }
 
 void proc_b(void)
@@ -135,8 +137,8 @@ void proc_c(void)
 
 Task tasks[NR_TASKS] = {
                          {proc_a, TASK_STACK, "proc a"},
-                         {proc_b, TASK_STACK, "proc b"},
-                         {proc_c, TASK_STACK, "proc c"},
+                         //{proc_b, TASK_STACK, "proc b"},
+                         //{proc_c, TASK_STACK, "proc c"},
                        };
 
 void init_proc(void)
