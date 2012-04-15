@@ -612,6 +612,20 @@ void loop_delay(int time)
 
 u32 memsize;
 
+#define TIMER_MODE 0x43
+#define RATE_GENERATOR 0x34 // 00110100
+#define TIMER0 0x40
+#define TIMER_FREQ 1193182L
+#define HZ 100
+
+// 8254
+void init_timer(void)
+{
+  io_out8(TIMER_MODE, RATE_GENERATOR);
+  io_out8(TIMER0, (u8)(TIMER_FREQ/HZ) );
+  io_out8(TIMER0, (u8)(TIMER_FREQ/HZ) >> 8 );
+}
+
 void kernel_main(void)
 {
   clear();
