@@ -486,6 +486,7 @@ restart_reenter:
 
   iretl
 
+.global save
 save:
   pushal
   pushl %ds
