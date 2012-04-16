@@ -42,7 +42,8 @@ typedef struct Gate_
 #define DA_386TSS               0x89    /* 可用 386 任務狀態段類型值            */
 #define DA_LDT                  0x82    /* 局部描述符表段類型值                 */
 
-#define	PRIVILEGE_KRNL	0
+#define	PRIVILEGE_KRNL 0
+#define	PRIVILEGE_USER 3
 
 #define SEL_USE_LDT 4
 #define SEL_USE_GDT 0
