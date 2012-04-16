@@ -497,7 +497,7 @@ save:
   mov %dx, %ds
   mov %dx, %es
 
-  mov %esp, %eax
+  mov %esp, %esi
 
   # check k_reenter
   incl (k_reenter)
@@ -505,11 +505,11 @@ save:
   jne 1f # reenter
   mov $STACK_TOP, %esp # switch to kernel stack
   pushl $restart
-  jmp *RETADDR(%eax)
+  jmp *RETADDR(%esi)
 
 1:
   pushl $restart_reenter
-  jmp *RETADDR(%eax)
+  jmp *RETADDR(%esi)
 
 .align 16
 hwint01:
