@@ -3,6 +3,7 @@
 #include "clock.h"
 #include "protect.h"
 #include "process.h"
+#include "syscall.h"
 
 #define INT_M_PORT 0x20
 #define INT_S_PORT 0xa0
@@ -387,6 +388,8 @@ void init_idt_by_c()
   init_idt_desc_by_c(INT_VECTOR_IRQ0 + 14, DA_386IGate, hwint14, PRIVILEGE_KRNL);
   init_idt_desc_by_c(INT_VECTOR_IRQ0 + 15, DA_386IGate, hwint15, PRIVILEGE_KRNL);
 
+  void sys_call(void);
+  init_idt_desc_by_c(INT_VECTOR_SYS_CALL, DA_386IGate, sys_call, PRIVILEGE_USER);
 #if 0
   void spurious_handler(void);
 
