@@ -145,8 +145,8 @@ void proc_c(void)
 
 Task tasks[NR_TASKS] = {
                          {proc_a, TASK_STACK, "proc a"},
-//                         {proc_b, TASK_STACK, "proc b"},
-//                         {proc_c, TASK_STACK, "proc c"},
+                         {proc_b, TASK_STACK, "proc b"},
+                         {proc_c, TASK_STACK, "proc c"},
                        };
 
 void init_proc(void)
