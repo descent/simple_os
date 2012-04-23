@@ -66,10 +66,10 @@ void proc_a(void)
     //int r = sys_get_ticks();
     int r = get_ticks();
     s32_print("A", cur_vb);
-    s32_print_int(i++, cur_vb, 10);
+    //s32_print_int(i++, cur_vb, 10);
     s32_print(".", cur_vb);
     s32_print_int(r, cur_vb, 10);
-    loop_delay(1);
+    loop_delay(100);
   }
 
 }
@@ -102,10 +102,12 @@ void proc_b(void)
   
   while(1)
   {
+    int r = get_ticks();
     s32_print("B", cur_vb);
-    s32_print_int(i++, cur_vb, 10);
+    //s32_print_int(i++, cur_vb, 10);
     s32_print(".", cur_vb);
-    loop_delay(1);
+    s32_print_int(r, cur_vb, 10);
+    loop_delay(100);
   }
 }
 
@@ -132,17 +134,19 @@ void proc_c(void)
   
   while(1)
   {
+    int r = get_ticks();
     s32_print("C", cur_vb);
-    s32_print_int(i++, cur_vb, 10);
+    //s32_print_int(i++, cur_vb, 10);
     s32_print(".", cur_vb);
-    loop_delay(1);
+    s32_print_int(r, cur_vb, 10);
+    loop_delay(100);
   }
 }
 
 Task tasks[NR_TASKS] = {
                          {proc_a, TASK_STACK, "proc a"},
-//                         {proc_b, TASK_STACK, "proc b"},
-//                         {proc_c, TASK_STACK, "proc c"},
+                         {proc_b, TASK_STACK, "proc b"},
+                         {proc_c, TASK_STACK, "proc c"},
                        };
 
 void init_proc(void)
