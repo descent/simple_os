@@ -10,8 +10,11 @@ void loop_delay(int time);
 extern int k_reenter;
 extern u8 *cur_vb;
 
+u8 ticks;
+
 void clock_handler(int irq)
 {
+  ++ticks;
   static u16 p = 4;
   //s32_print("@", (u8*)(0xb8000+p*2));
   s32_print("@", cur_vb);
