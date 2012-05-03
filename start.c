@@ -16,6 +16,15 @@
 
 #define CLOCK_IRQ 0
 
+#define TIMER_MODE 0x43
+#define RATE_GENERATOR 0x34 // 00110100
+#define TIMER0 0x40
+#define TIMER_FREQ 1193182L
+#define HZ 100
+
+int get_ticks(void);
+
+
 int disable_irq(int irq_no);
 int enable_irq(int irq_no);
 
@@ -600,6 +609,14 @@ void spurious_irq(int irq)
   s32_print(str_ptr, (u8*)(0xb8000+160*7));
 }
 
+// when HZ is 100 (10 ms), milli_sec needs more than 10
+void milli_delay(int milli_sec)
+{
+  int t = get_ticks();
+
+  while(((get_ticks() - t ) * 1000 / HZ) < milli_sec);
+}
+
 void loop_delay(int time)
 {
   int i, j, k;
@@ -617,11 +634,6 @@ void loop_delay(int time)
 
 u32 memsize;
 
-#define TIMER_MODE 0x43
-#define RATE_GENERATOR 0x34 // 00110100
-#define TIMER0 0x40
-#define TIMER_FREQ 1193182L
-#define HZ 100
 
 // 8254
 void init_timer(void)
@@ -682,6 +694,7 @@ static InitFunc init[]={
                          init_8259a,
 			 init_idt_by_c,
 			 init_tss,
+			 init_timer,
                          0
                        };
 
