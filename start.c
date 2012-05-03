@@ -397,6 +397,8 @@ void init_idt_by_c()
     init_idt_desc_by_c(i, DA_386IGate, spurious_handler, PRIVILEGE_KRNL);
 #endif
 
+  __asm__ volatile ("lidt idt_ptr");
+
 }
 
 void init_idt_desc_by_c(u8 vector_no, u8 desc_type, IntHandler handler, u8 privilege)
@@ -674,3 +676,25 @@ void kernel_main(void)
 
 }
 
+typedef void (*InitFunc)(void);
+
+static InitFunc init[]={
+                         init_8259a,
+			 init_idt_by_c,
+			 init_tss,
+                         0
+                       };
+
+void load_init_boot(InitFunc *init_func)
+{
+  for (int i = 0 ; init_func[i] ; ++i)
+  {
+    init_func[i]();
+  }
+
+}
+
+void plat_boot(void)
+{
+  load_init_boot(init);
+}
