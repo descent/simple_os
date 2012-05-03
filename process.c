@@ -17,6 +17,9 @@ void s32_print(const u8 *s, u8 *vb);
 void s32_print_int(int i, u8 *vb, int radix);
 void clear_line(u8 line_no);
 void loop_delay(int time);
+void milli_delay(int milli_sec);
+
+int get_ticks(void);
 
 u8 get_privilege(void)
 {
@@ -69,7 +72,8 @@ void proc_a(void)
     //s32_print_int(i++, cur_vb, 10);
     s32_print(".", cur_vb);
     s32_print_int(r, cur_vb, 10);
-    loop_delay(100);
+    //loop_delay(100);
+    milli_delay(1000);
   }
 
 }
@@ -107,7 +111,8 @@ void proc_b(void)
     //s32_print_int(i++, cur_vb, 10);
     s32_print(".", cur_vb);
     s32_print_int(r, cur_vb, 10);
-    loop_delay(100);
+    //loop_delay(100);
+    milli_delay(1000);
   }
 }
 
@@ -139,7 +144,8 @@ void proc_c(void)
     //s32_print_int(i++, cur_vb, 10);
     s32_print(".", cur_vb);
     s32_print_int(r, cur_vb, 10);
-    loop_delay(100);
+    //loop_delay(100);
+    milli_delay(1000);
   }
 }
 
