@@ -666,6 +666,9 @@ void kernel_main(void)
   s32_print(sp, (u8*)(0xb8000+160*24 + 12*2));
   s32_print("MB", (u8*)(0xb8000+160*24 + 12*2 + 4*2));
 #endif
+  //   printf("gcc: %d %d %d\n", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
+  s32_print("gcc version:", (u8*)(0xb8000+160*24 + 22*2));
+  s32_print(__VERSION__, (u8*)(0xb8000+160*24 + 35*2));
 
   void setup_paging(void);
   //setup_paging();
