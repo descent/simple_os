@@ -52,6 +52,7 @@
     .2byte     ((\Offset >> 16) & 0xFFFF)
 .endm
 
+.extern plat_boot
 .extern cur_vb
 .extern k_reenter
 .extern gdt_ptr
@@ -118,12 +119,13 @@ _start:
 
   jmp csinit
 csinit:
+  call plat_boot
   #call asm_init_8259a
-  call init_8259a
-  call init_idt_by_c
-  lidt idt_ptr
+#  call init_8259a
+#  call init_idt_by_c
+#  lidt idt_ptr
   #call setup_paging
-  call init_tss
+#  call init_tss
 
   xor %eax, %eax
   mov $SELECTOR_TSS, %ax
