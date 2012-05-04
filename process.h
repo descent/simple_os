@@ -44,6 +44,8 @@ typedef struct Process_
   StackFrame regs;
   u16 ldt_sel;
   Descriptor ldt[LDT_SIZE];
+  int ticks;
+  int priority;
   u32 pid;
   const char *p_name;
 }Process;
