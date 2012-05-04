@@ -681,6 +681,9 @@ void kernel_main(void)
 
 
   init_proc();
+  proc_table[0].ticks = proc_table[0].priority = 150;
+  proc_table[1].ticks = proc_table[1].priority = 50;
+  proc_table[2].ticks = proc_table[2].priority = 30;
 
   cur_vb = (u8*)0xb8000+160;
 
