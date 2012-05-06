@@ -55,6 +55,16 @@ cb.elf: cb.o
 cb.bin: cb.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary cb.elf cb.bin
 
+bh.s.o: bh.s
+	as -o $@ $<
+bh.s.elf: bh.s.o
+	ld -Tas.ld -o $@ $<
+
+bh.s.bin: bh.s.elf
+	objcopy -O binary $< $@
+
+bh.asm.bin: bh.asm
+	nasm bh.asm -o bh.asm.bin
 
 clean:
 	rm -rf *.o
