@@ -65,6 +65,12 @@ bh.s.bin: bh.s.elf
 
 bh.asm.bin: bh.asm
 	nasm bh.asm -o bh.asm.bin
+bhp.o: bhp.S
+	gcc -c bhp.S
+bhp.elf: bhp.o
+	ld -Tas.ld -o bhp.elf bhp.o
+bhp.bin: bhp.elf
+	objcopy -O binary $< $@
 
 clean:
 	rm -rf *.o
