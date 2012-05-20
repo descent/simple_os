@@ -1,10 +1,14 @@
 __asm__(".code16gcc\n");
 
+//#define POINTER_TEST
+
 void print(const char   *s);
+
+int bbb=0; // test bss section
 
 void main(void)
 {
-#if 1
+#ifdef POINTER_TEST
   unsigned char *vb = (unsigned char *)0xb8000;
   *vb = 'A';
   *(unsigned char *)0xb8001 = 0xc;
@@ -16,7 +20,7 @@ void main(void)
   while(1);
 }
 
-#if 0
+#ifndef POINTER_TEST
 void print(const char   *s)
 {
   while(*s)
