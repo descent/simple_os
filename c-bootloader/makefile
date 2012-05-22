@@ -3,7 +3,7 @@
 #objcopy -O binary vbr.elf vbr.bin
 CFLAGS = -fno-stack-protector -std=c99 -Os -march=i686 -ffreestanding -Wall
 #CB_CFLAGS = -fno-stack-protector -std=c99 -march=i686 -ffreestanding -Wall
-CB_CFLAGS = -fno-stack-protector -std=c99 -m32 -ffreestanding -Wall
+CB_CFLAGS = -fno-stack-protector -std=c99 -m32 -ffreestanding -Wall -g
 CB_LDFLAGS = -m elf_i386
 
 vbr.bin: vbr.elf
@@ -52,7 +52,7 @@ cb.s: cb.c
 	gcc $(CB_CFLAGS) -I. -S $<
 cb.o: cb.c
 	gcc $(CB_CFLAGS) -c $<
-cb.elf: cb.o
+cb.elf: cb.o l.ld
 	ld $(CB_LDFLAGS) -static -Tl.ld -nostdlib -M -o cb.elf cb.o > cb.elf.map
 cb.bin: cb.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary cb.elf cb.bin
