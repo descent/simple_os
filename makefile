@@ -1,6 +1,9 @@
 #CFLAGS = -fno-stack-protector -std=c99 -march=i686 -ffreestanding -Wall -g
 #CFLAGS = -fno-stack-protector -ffreestanding -fno-builtin -g
-CFLAGS = -std=c99 -fno-stack-protector -ffreestanding -fno-builtin -g -O0
+CFLAGS = -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -O0
+ASFLAGS = --32
+LDFLAGS = -m elf_i386
+
 
 boot1.img: c_init.bin
 	dd if=$< of=$@ bs=512 count=1
@@ -10,9 +13,9 @@ c_init.bin: c_init.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
 
 c_init.elf: c_init.o b.o bss.lds
-	ld -nostdlib -g -o $@ -Tbss.lds c_init.o b.o 
+	ld $(LDFLAGS) -nostdlib -g -o $@ -Tbss.lds c_init.o b.o 
 c_init.o: c_init.s
-	as -o $@ $<
+	as $(ASFLAGS) -o $@ $<
 b.o: b.c
 	gcc $(CFLAGS) -c $<
 b.s: b.c
@@ -22,9 +25,9 @@ c_init_by_boot_loader.bin: c_init_by_boot_loader.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
 
 c_init_by_boot_loader.elf: c_init_by_boot_loader.o b_by_bootloader.o switch_vga_mode.o bss_dos.lds
-	ld -nostdlib -g -o $@ -Tbss_dos.lds c_init_by_boot_loader.o b_by_bootloader.o switch_vga_mode.o
+	ld $(LDFLAGS) -nostdlib -g -o $@ -Tbss_dos.lds c_init_by_boot_loader.o b_by_bootloader.o switch_vga_mode.o
 c_init_by_boot_loader.o: c_init_by_boot_loader.s
-	as -o $@ $<
+	as $(ASFLAGS) -o $@ $<
 b_by_bootloader.o: b_by_bootloader.c
 	gcc $(CFLAGS) -c $<
 b_by_bootloader.s: b_by_bootloader.c
@@ -38,27 +41,27 @@ kloader.bin: kernel_loader.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
 
 kernel_loader.elf: c_init_by_boot_loader.o kernel_loader.o 
-	ld -nostdlib -g -o $@ -Tbss_dos.lds $^
+	ld $(LDFLAGS) -nostdlib -g -o $@ -Tbss_dos.lds $^
 #kernel_loader.o: kernel_loader.c elf.h
 #	gcc -std=c99 $(CFLAGS) -c $<
 kernel_loader.o: kernel_loader.s
-	gcc -std=c99 $(CFLAGS) -c $<
+	as $(ASFLAGS) -o $@ $<
 kernel_loader.s: kernel_loader.c elf.h
 	gcc -std=c99 $(CFLAGS) -o $@ -S $<
 
 kernel.bin: kernel.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
 kernel.elf: kernel.o
-	ld -nostdlib -g -o $@ -Tbss_dos.lds $^
+	ld $(LDFLAGS) -nostdlib -g -o $@ -Tbss_dos.lds $^
 kernel.o: kernel.s
-	as -o $@ $<
+	as $(ASFLAGS) -o $@ $<
 
 # enter protected mode kernel loader
 kloaderp.bin: kloaderp.bin.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
 
 kloaderp.bin.elf: kloader_init.o kernel_loader.o protected_code.o
-	ld -nostdlib -g -o $@ -Tbss_dos.lds $^
+	ld $(LDFLAGS) -nostdlib -g -o $@ -Tbss_dos.lds $^
 
 kloader_init.o: kloader_init.S
 	gcc $(CFLAGS) -o $@ -c $<
@@ -69,10 +72,10 @@ protected_code.s: protected_code.c
 	gcc $(CFLAGS) -o $@ -S $<
 
 p_kernel.elf: p_kernel.o start.o process.o clock.o asm_func.o syscall.o asm_syscall.o
-	ld -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
+	ld $(LDFLAGS) -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
 
 p_kernel.o: p_kernel.s
-	as -o $@ $<
+	as --32 -o $@ $<
 
 start.o: start.c type.h protect.h process.h
 	gcc $(CFLAGS) -c $<
@@ -87,13 +90,13 @@ clock.o: clock.c clock.h type.h process.h protect.h
 	gcc $(CFLAGS) -c $<
 
 asm_func.o: asm_func.s
-	as -o $@ $<
+	as --32 -o $@ $<
 
 asm_func.s: asm_func.S
 	gcc $(CFLAGS) -o $@ -E $<
 
 asm_syscall.o: asm_syscall.s
-	as -o $@ $<
+	as --32 -o $@ $<
 asm_syscall.s: asm_syscall.S syscall.h process_const.h
 	gcc $(CFLAGS) -o $@ -E $<
 
