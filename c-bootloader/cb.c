@@ -1,12 +1,15 @@
 __asm__(".code16gcc\n");
+/*
+ * c bootloader
+ */
 
 //#define POINTER_TEST
 
-void print(const char   *s);
+void main(const char   *s);
 
 int bbb=0; // test bss section
 
-void main(void)
+void WinMain(void)
 {
 #ifdef POINTER_TEST
   unsigned char *vb = (unsigned char *)0xb8000;
@@ -15,13 +18,13 @@ void main(void)
   *(unsigned char *)0xb8002 = 'B';
   *(unsigned char *)0xb8003 = 0xc;
 #else
-  print("hello world");
+  main("hello world");
 #endif
   while(1);
 }
 
 #ifndef POINTER_TEST
-void print(const char   *s)
+void main(const char   *s)
 {
   while(*s)
   {
