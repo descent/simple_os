@@ -698,7 +698,7 @@ setup_paging:
 mem_size: .int 0x0
 TIMER_STR: .asciz "^"
 VB: .long (0xb8006+160)
-.space  2048, 0
+.space  4096, 0
 STACK_TOP:
 
 
