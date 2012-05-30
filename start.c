@@ -4,6 +4,7 @@
 #include "protect.h"
 #include "process.h"
 #include "syscall.h"
+#include "storage.h"
 
 #define INT_M_PORT 0x20
 #define INT_S_PORT 0xa0
@@ -704,6 +705,13 @@ void load_init_boot(InitFunc *init_func)
   {
     init_func[i]();
   }
+  ramdisk_driver_init();
+  u8 buf[128];
+  storage[RAMDISK]->dout(storage[RAMDISK], buf, 0, sizeof(buf));
+
+  u8 *vb = (u8 *)0xb8000;
+  for (int i=0 ; i < sizeof(buf) ; ++i)
+    s32_print_int(buf[i], vb, 16);
 
 }
 
