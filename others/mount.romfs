@@ -1,0 +1,4 @@
+#!/bin/sh
+# example for mounting romfs.
+#sudo mount -t romfs -o loop rom.fs  /mnt/
+
