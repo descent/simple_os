@@ -42,12 +42,6 @@ kloader.bin: kernel_loader.elf
 
 kernel_loader.elf: c_init_by_boot_loader.o kernel_loader.o 
 	ld $(LDFLAGS) -nostdlib -g -o $@ -Tbss_dos.lds $^
-#kernel_loader.o: kernel_loader.c elf.h
-#	gcc -std=c99 $(CFLAGS) -c $<
-kernel_loader.o: kernel_loader.s
-	as $(ASFLAGS) -o $@ $<
-kernel_loader.s: kernel_loader.c elf.h
-	gcc -std=c99 $(CFLAGS) -o $@ -S $<
 
 kernel.bin: kernel.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
@@ -56,20 +50,6 @@ kernel.elf: kernel.o
 kernel.o: kernel.s
 	as $(ASFLAGS) -o $@ $<
 
-# enter protected mode kernel loader
-kloaderp.bin: kloaderp.bin.elf
-	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
-
-kloaderp.bin.elf: kloader_init.o kernel_loader.o protected_code.o
-	ld $(LDFLAGS) -nostdlib -g -o $@ -Tbss_dos.lds $^
-
-kloader_init.o: kloader_init.S
-	gcc $(CFLAGS) -o $@ -c $<
-
-protected_code.o: protected_code.c
-	gcc $(CFLAGS) -c $<
-protected_code.s: protected_code.c
-	gcc $(CFLAGS) -o $@ -S $<
 
 p_kernel.elf: p_kernel.o start.o process.o clock.o asm_func.o syscall.o asm_syscall.o storage.o
 	ld $(LDFLAGS) -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
