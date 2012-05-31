@@ -1,5 +1,5 @@
 // test protected mode
-#include "type.h"
+#include "../type.h"
 
 int AA;
 

@@ -2,8 +2,8 @@
  * the kernel loader will initialize c runtime and enter x86 protected mode 
  */
 
-#include "pm.h"
-#include "common.h"
+#include "../pm.h"
+#include "../common.h"
 
 .code16
 .extern __bss_start__

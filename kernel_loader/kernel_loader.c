@@ -1,7 +1,7 @@
 __asm__(".code16gcc\n");
 
-#include "type.h"
-#include "elf.h"
+#include "../type.h"
+#include "../elf.h"
 
 
 // read fat floppy disk
