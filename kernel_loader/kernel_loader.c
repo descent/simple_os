@@ -21,6 +21,7 @@ __asm__(".code16gcc\n");
 #define IMAGE_ENTRY 0x800c
 #define buf_addr_val (*(u8 volatile*(IMAGE_LMA)))
 
+#define BOCHS_MB __asm__ __volatile__("xchg %bx, %bx");
 
 /* XXX these must be at top */
 
@@ -90,6 +91,17 @@ char* itoa(int n, char* str, int radix)
   }
   return str;
 }
+
+// prefix s16 means Simple 16 bit code
+void s16_print_int(int i, int radix)
+{
+  u8 str[12]="";
+  u8 *str_ptr = str;
+
+  str_ptr = itoa(i, str_ptr, radix);
+  print(str_ptr);
+}
+
 
 void print_num(int n, u8 *sy)
 {
@@ -336,6 +348,12 @@ void start_c()
   u16 root_entry_count = 0;
   volatile u8 *buff = (u8*)IMAGE_LMA;
 
+
+  print("number test\r\n");
+  s16_print_int(25, 10);
+  BOCHS_MB
+ //__asm__ __volatile__("xchg %bx, %bx");
+
 //#ifdef DOS_COM
   //int r = read_sector(buff, sector_no, 0, 0, 0);
 
@@ -459,6 +477,7 @@ void start_c()
 
 
     }
+    BOCHS_MB
 
 
   }
