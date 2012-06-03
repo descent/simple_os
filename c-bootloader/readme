@@ -1,2 +1,8 @@
 ref: http://dc0d32.blogspot.com/2010/06/real-mode-in-c-with-gcc-writing.html
 write bootloader by c (practice)
+
+bhp.S - enter x86 protected mode
+cb.c  - c bootloader example and test real mode c pointer.
+bh.asm - nasm bootloader code
+bh.s - gas bootloader code
+
