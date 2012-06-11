@@ -6,15 +6,18 @@ CFLAGS = -fno-stack-protector -std=c99 -Os -march=i686 -ffreestanding -Wall
 CB_CFLAGS = -fno-stack-protector -std=c99 -m32 -ffreestanding -Wall -g
 CB_LDFLAGS = -m elf_i386
 
+all: bh.asm.bin bh.s.bin  cb.bin bhp.bin vbr.bin
+
 vbr.bin: vbr.elf
 	objcopy -O binary $< $@
 
 vbr.elf: vbr.o
-	ld -static -Tlinker.ld -nostdlib --nmagic -o $@ $<
+	ld -m elf_i386 -static -Tlinker.ld -nostdlib --nmagic -o $@ $<
 
 vbr.o: vbr.c code16gcc.h
 	#gcc -g -Os -march=i686 -ffreestanding -Wall -Werror -I. -c $<
-	gcc -Os -march=i686 -ffreestanding -Wall -Werror -I. -c $<
+	#gcc -Os -march=i686 -ffreestanding -Wall -Werror -I. -c $<
+	gcc -Os $(CB_CFLAGS) -I. -c $<
 
 vbr-lba.bin: vbr-lba.elf
 	objcopy -O binary $< $@
