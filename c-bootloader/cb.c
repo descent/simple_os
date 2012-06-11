@@ -11,6 +11,10 @@ int bbb=0; // test bss section
 
 void WinMain(void)
 {
+  __asm__ ("mov  %cs, %ax\n");
+  __asm__ ("mov  %ax, %ds\n");
+  __asm__ ("mov  %ax, %ss\n");
+  __asm__ ("mov  $0xff00, %sp\n");
 #ifdef POINTER_TEST
   unsigned char *vb = (unsigned char *)0xb8000;
   *vb = 'A';
