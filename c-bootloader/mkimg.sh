@@ -1,11 +1,35 @@
 #!/bin/sh
-if [ "$1" == "" ] ; then
-  echo "usage: $0 a.bin"
-  exit -1
-fi
+
+#if [ "$1" == "" ] ; then
+#  echo "usage: $0 a.bin"
+#  exit -1
+#fi
 
 FN=./floppy.img
-if [ -f $FN ]
+BIN=""
+
+# ref: http://wiki.bash-hackers.org/howto/getopts_tutorial
+while getopts "b:d:" opt; do
+  case $opt in
+    b)
+      echo $OPTARG
+      BIN=$OPTARG
+      ;;
+    d)
+      echo $OPTARG
+      FN=$OPTARG
+      ;;
+    \?)
+      echo "usage: $0 -b bin -d dev"
+      ;;
+    *)
+      echo "xx invalid"
+      ;;
+  esac
+
+done
+
+if [ -e $FN ]
 then
     echo "$FN exists"
 else
@@ -15,8 +39,8 @@ fi
 
 echo ""
 
-echo "write $1 to $FN"
-dd if=$1 of=$FN bs=1 count=512 conv=notrunc
+echo "write $BIN to $FN"
+dd if=$BIN of=$FN bs=1 count=512 conv=notrunc
 
 
 
