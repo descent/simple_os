@@ -8,7 +8,11 @@ void p_asm_memcpy(u8 *dest, u8 *src, int n);
 
 int ramdisk_dout(StorageDevice *sd, void *dest, u32 addr, u32 size)
 {
-  p_asm_memcpy((u8*)dest, (u8 *)addr+sd->start_pos, size);
+  p_asm_memcpy((u8*)dest, (u8 *)(addr+sd->start_pos), size);
+  //dump_u8((u8 *)(addr+sd->start_pos) , 16);
+  //dump_u8((u8 *)(dest) , 16);
+  //*(u8 *)(dest) = 0xff;
+
   return 0;
 }
 
@@ -18,7 +22,8 @@ StorageDevice ramdisk_sd=
   .dout = ramdisk_dout,
   .sector_size = RAMDISK_SECTOR_SIZE,
   .storage_size = 2*1024*1024,
-  .start_pos = 0x40800000,
+  //.start_pos = 0x40800000,
+  .start_pos = 0x94000, // 0x9000:0x4000 loaded by kloaderp.bin
 };
 
 int ramdisk_driver_init(void)
