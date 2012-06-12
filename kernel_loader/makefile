@@ -1,5 +1,6 @@
-CFLAGS = -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -O0
-ASFLAGS = --32
+#CFLAGS = -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -O0
+CFLAGS = -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g
+ASFLAGS = --32 -g
 LDFLAGS = -m elf_i386
 
 # enter protected mode kernel loader
@@ -22,7 +23,7 @@ kernel_loader.o: kernel_loader.s
 	as $(ASFLAGS) -o $@ $<
 #kernel_loader.s: kernel_loader.c elf.h
 kernel_loader.s: kernel_loader.c 
-	gcc -std=c99 $(CFLAGS) -o $@ -S $<
+	gcc $(CFLAGS) -o $@ -S $<
 
 .PHONE: clean 
 
