@@ -23,8 +23,11 @@
 #define TIMER_FREQ 1193182L
 #define HZ 100
 
-int get_ticks(void);
+#define BOCHS_MB __asm__ __volatile__("xchg %bx, %bx");
 
+
+int get_ticks(void);
+void s32_print(const u8 *s, u8 *vb);
 
 int disable_irq(int irq_no);
 int enable_irq(int irq_no);
@@ -79,6 +82,53 @@ void store_cr0(u32 cr0)
 {
 }
 #endif
+
+void h2c(u8 hex, u8 ch[2])
+{
+  u8 l = hex >> 4;
+
+  if ( 0<= l && l <= 9)
+  {
+    ch[0]=l+0x30;
+  }
+  else
+  {
+    ch[0]=l+0x41-0xa; //a
+    ch[0]=l+0x61-0xa; // A
+  }
+
+  l = hex & 0x0f;
+
+  if ( 0<= l && l <= 9)
+  {
+    ch[1]=l+0x30;
+  }
+  else
+  {
+    ch[1]=l+0x41-0xa; //a
+    ch[1]=l+0x61-0xa; // A
+  }
+}
+
+void dump_u8(u8 *buff, u16 count)
+{
+  void h2c(u8 hex, u8 ch[2]);
+
+  u8 *vb = (u8*)0xb8000;
+
+    for (int i=0 ; i < count ; ++i)
+    {
+      //if (i%16==0)
+      //  s32_print("\r\n", vb);
+      u8 c[4]="";
+      u8 h=*(buff+i);
+      c[3]=0;
+      c[2]=0x20;
+      h2c(h, c);
+      s32_print(c, vb);
+      vb+=6;
+    }
+}
 
 // copy from 30days_os/projects/09_day/harib06b/bootpack.c
 u32 memtest(volatile u32 start, volatile u32 end)
@@ -671,6 +721,7 @@ void kernel_main(void)
   void setup_paging(void);
   //setup_paging();
  
+  while(1);
   put_irq_handler(CLOCK_IRQ, clock_handler);
   enable_irq(CLOCK_IRQ);
 
@@ -709,9 +760,8 @@ void load_init_boot(InitFunc *init_func)
   u8 buf[128];
   storage[RAMDISK]->dout(storage[RAMDISK], buf, 0, sizeof(buf));
 
-  u8 *vb = (u8 *)0xb8000;
-  for (int i=0 ; i < sizeof(buf) ; ++i)
-    s32_print_int(buf[i], vb, 16);
+  dump_u8(buf, 32);
+  BOCHS_MB
 
 }
 
