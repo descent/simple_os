@@ -4,3 +4,10 @@ in kernel loader, init c runtime, then use c code (16 bit) read kerenl (elf) to 
 and copy the the kernel.elf follow the elf header information (Program Headers:
 ).
 enter protected mode, call c code (32 bit) jump to the kernel address (elf entry point address).
+
+kloaderp.bin load p_kernel.elf to 0x9000:0x4000, than copy p_kernel.elf by elf 
+information to absolute address 0x5000.
+kernel load address depends k.ld (. = 0x5000), current is 0x5000,
+p_kernel.elf entry pointer is 0x5000.
+
+ramdisk is loaded by kloaderp.bin to 0x9000:0x4000.
