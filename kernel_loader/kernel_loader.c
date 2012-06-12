@@ -360,8 +360,8 @@ int load_file_to_ram(int begin_cluster, int fat)
     while ((next_cluster=get_next_cluster(cur_cluster)) != 0xfff)
     {
         r_sec=next_cluster + - 2 + root_dir_secotrs + 19;
-        print_num(next_cluster, "next_cluster");
-        print_num(r_sec, "r_sec");
+        //print_num(next_cluster, "next_cluster");
+        //print_num(r_sec, "r_sec");
 
         track_no = ((r_sec/18) >> 1);
         head_no = ((r_sec/18) & 1);
@@ -489,7 +489,7 @@ void start_c()
     //for (u16 j=0 ; j < 16 ; ++j)
     for (u16 j=0 ; j < 512/32 ; ++j)
     {
-      BOCHS_MB
+      //BOCHS_MB
       f_c = ((buff[0x1b+j*32] << 8) | buff[0x1a+j*32]); // first cluster
       file_size = (( buff[0x1f + (j*32)] << 24) | (buff[0x1e + (j*32)] << 16) | (buff[0x1d + (j*32)] << 8) | buff[0x1c + (j*32)]);
       //u32 file_size = 0;
@@ -571,7 +571,7 @@ void start_c()
 
   print("\r\nfirst_ramdisk_cluster: ");
   s16_print_int(first_ramdisk_cluster, 10);
-  BOCHS_MB
+  //BOCHS_MB
 
   print("\r\nload kernel: ");
   print(kernel_name);
