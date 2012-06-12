@@ -26,11 +26,14 @@ __asm__(".code16gcc\n");
 /* XXX these must be at top */
 
 //u8 kernel_name[] = "KERNEL  BIN";
-u8 kernel_name[] =   "P_KERNELELF";
+const u8 kernel_name[] =   "P_KERNELELF";
+const u8 ramdisk_name[] =  "ROM     FS ";
 //u8 kernel_name[] =   "IDT     COM";
 //u8 kernel_name[] =   "IDT     ELF";
 //u8 kernel_name[] = "KERNEL  ELF";
 //u8 kernel_name[]   = "TEST    BIN";
+
+u16 root_dir_secotrs = 0;
 
 /* BIOS interrupts must be done with inline assembly */
 //void    __NOINLINE __REGPARM print(const char   *s){
@@ -116,7 +119,7 @@ void print_num(int n, u8 *sy)
 
 
 
-void dump_u8(volatile u8 *buff, u16 count)
+void dump_u8(u8 *buff, u16 count)
 {
   void h2c(u8 hex, u8 ch[2]);
 
@@ -192,6 +195,9 @@ int __REGPARM read_sector(volatile u8 *buff, u8 sector_no, u8 track_no, u8 head_
 //  __asm__ __volatile__("movb $2, %ah\n"); 
 //  __asm__ __volatile__("movb $1, %al\n"); 
 #if 1
+    //BOCHS_MB
+  // read sector to %es:%bx, if %bx is more than 64k, need change %es
+  // to next 64k beginning address
   __asm__ __volatile__ ("int $0x13\n"
                         :
                         :"a"(0x0200|blocks), "b"(buff), "c"(track_no << 8 | sector_no), "d"(head_no << 8 | disk_no)
@@ -328,8 +334,63 @@ u16 get_next_cluster(u16 cur_cluster)
   return next_cluster;
 }
 
+// fat == 1, read fat
+int load_file_to_ram(int begin_cluster, int fat)
+{
+  int r;
+  int r_sec = begin_cluster - 2 + root_dir_secotrs + 19;
+  volatile u8 *buff = (u8*)IMAGE_LMA;
+
+  print_num(begin_cluster, "begin_cluster");
+  print_num(r_sec, "cluster sector no");
+  int track_no = ((r_sec/18) >> 1);
+  int head_no = ((r_sec/18) & 1);
+  int sector_no = ((r_sec%18) + 1);
+  int disk_no = 0;
+
+  // read the 1st sector
+  r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
+
+  if (fat) // need read FAT
+  {
+    //dump_u8(fat_buf, 32);
+    u16 offset, next_cluster, cur_cluster=begin_cluster;
+
+#if 1
+    while ((next_cluster=get_next_cluster(cur_cluster)) != 0xfff)
+    {
+        r_sec=next_cluster + - 2 + root_dir_secotrs + 19;
+        print_num(next_cluster, "next_cluster");
+        print_num(r_sec, "r_sec");
+
+        track_no = ((r_sec/18) >> 1);
+        head_no = ((r_sec/18) & 1);
+        sector_no = ((r_sec%18) + 1);
+        buff += 0x200;
+        r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
+
+        //print("\r\n");
+        cur_cluster = next_cluster;
+	//if (i >= 2) break;
+	//++i;
+    }
+#endif
+
+
+    }
+    else
+    {
+      //r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
+    }
+
+}
+
+
 void start_c()
 {
+  int first_kernel_cluster = -1;
+  int first_ramdisk_cluster = -1;
+  
   print("\r\n");
   print("start c");
   print("\r\n");
@@ -351,7 +412,7 @@ void start_c()
 
   print("number test\r\n");
   s16_print_int(25, 10);
-  BOCHS_MB
+  //BOCHS_MB
  //__asm__ __volatile__("xchg %bx, %bx");
 
 //#ifdef DOS_COM
@@ -393,24 +454,29 @@ void start_c()
 #endif
 
 
-  u16 root_dir_secotrs = 0;
   if (root_entry_count * 32 % byte_per_sector != 0)
     root_dir_secotrs = (root_entry_count * 32 / byte_per_sector) + 1;
   else
     root_dir_secotrs = (root_entry_count * 32 / byte_per_sector);
 
-  print_num(root_dir_secotrs, "root_dir_secotrs"); // root dir occupy how many sectors
+  // root dir occupy how many sectors
+  print("\r\nroot dir occupies sectors: ");
+  s16_print_int(root_dir_secotrs, 10);
+  //print_num(root_dir_secotrs, "root_dir_secotrs"); 
 
   u16 root_sec_no = 19;
   u16 f_c = 0;
   u32 file_size = 0;
+  print("\r\nroot dir sector starts: ");
+  s16_print_int(root_sec_no, 10);
+  print("\r\nread root dir sector to get file name info");
 
   //for (int i=0 ; i < 1 ; ++i, ++cur_sec_no)
   //for (int i=0 ; i <= root_dir_secotrs ; ++i, ++cur_sec_no)
   for (int i=root_sec_no ; i <= root_dir_secotrs+root_sec_no ; ++i)
   {
-    print("\r\n");
-    print_num(i, "cur sec no"); // root dir occupy how many sectors
+    print("\r\nread sector no: ");
+    s16_print_int(i, 10);
     track_no = (((i)/18) >> 1);
     head_no = (((i)/18) & 1);
     sector_no = (((i)%18) + 1);
@@ -423,6 +489,7 @@ void start_c()
     //for (u16 j=0 ; j < 16 ; ++j)
     for (u16 j=0 ; j < 512/32 ; ++j)
     {
+      BOCHS_MB
       f_c = ((buff[0x1b+j*32] << 8) | buff[0x1a+j*32]); // first cluster
       file_size = (( buff[0x1f + (j*32)] << 24) | (buff[0x1e + (j*32)] << 16) | (buff[0x1d + (j*32)] << 8) | buff[0x1c + (j*32)]);
       //u32 file_size = 0;
@@ -459,180 +526,131 @@ void start_c()
 
       print("\r\n");
       print(filename);
-      r = s_strncmp(filename, kernel_name, 11);
-      //print("\r\n");
-      //print_num(r, "r");
-        print_num(f_c, " f_c");
-        print_num(file_size, " file_size");
+      #if 0
+      print("\r\nfirst cluster:");
+      s16_print_int(f_c, 10);
 
-      //if (s_strcmp(filename, kernel_name) == 0) // find kernel
+      print("\r\nsize:");
+      s16_print_int(file_size, 10);
+      #endif
+#if 1
+      r = s_strncmp(filename, kernel_name, 11);
+
       if (r == 0)
       {
+        first_kernel_cluster = f_c;
         print("\r\n");
         print("load it\r\n");
+      }
+      r = s_strncmp(filename, ramdisk_name, 11);
+      if (r == 0)
+      {
+        first_ramdisk_cluster = f_c;
+        print("\r\n");
+        print("load it\r\n");
+      }
+      if ( (first_ramdisk_cluster != -1) && (first_kernel_cluster != -1) )
+      {
 	goto search_end;
       }
 
-
+#endif
 
 
     }
-    BOCHS_MB
 
 
   }
 
+
+
   u16 r_sec=0;
   search_end:
-  if (r==0)
+  print("\r\nfirst_kernel_cluster: ");
+  s16_print_int(first_kernel_cluster, 10);
+
+  print("\r\nfirst_ramdisk_cluster: ");
+  s16_print_int(first_ramdisk_cluster, 10);
+  BOCHS_MB
+
+  print("\r\nload kernel: ");
+  print(kernel_name);
+  // load kernel
+  load_file_to_ram(first_kernel_cluster, (file_size> 512) ? 1: 0);
+
+  // copy kernel to proper position by elf information
+  void asm_memcpy(u8 *dest, u8 *src, int n);
+  void asm_absolute_memcpy(u8 *dest, u8 *src, int n);
+
+  asm_memcpy((u8*)0x100, (u8 *)IMAGE_LMA, 512*3);
+
+  buff = (u8*)IMAGE_LMA;
+  Elf32Ehdr *elf_header = (Elf32Ehdr*)buff;
+  Elf32Phdr *elf_pheader = (Elf32Phdr*)((u8 *)buff + elf_header->e_phoff);
+
+  print("\r\nelf_header->e_entry: ");
+  s16_print_int(elf_header->e_entry, 10);
+
+  print("\r\nelf_header->e_phnum: ");
+  s16_print_int(elf_header->e_phnum, 10);
+
+  for (int i=0 ; i < elf_header->e_phnum; ++i)
   {
-    r_sec=f_c - 2 + root_dir_secotrs + 19;
-    print_num(r_sec, "r_sec");
-    track_no = ((r_sec/18) >> 1);
-    head_no = ((r_sec/18) & 1);
-    sector_no = ((r_sec%18) + 1);
-    #if 0
-    print_num(track_no, "track_no");
-    print_num(head_no, "head_no");
-    #endif
-    // if no the line, buff will get wrong data, very strange.
-    print("s");
-
-    // read the 1st sector
-    r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
-    //buff += 0x200;
-
-    if (file_size > 512) // need read FAT
+    if (CHECK_PT_TYPE_LOAD(elf_pheader))
     {
-
-#if 0
-      u16 fat_sector_no = 1;
-
-      u16 fat_offset = f_c * 3 / 2;
-      if (((f_c * 3) % 2) != 0)
-      {
-      }
-      else
-      {
-      }
-#endif
-      //read_fat(fat_buf, fat_sector_no); // FAT occupies 9 sections, sector no 1 ~ 10
-      //dump_u8(fat_buf, 32);
-      u16 offset, next_cluster, cur_cluster=f_c;
-
-#if 0
-      next_cluster=get_next_cluster(fat_buf, cur_cluster);
-  print_num(next_cluster, "xx next_cluster");
-  print("\r\n");
-  #if 1
-        cur_cluster = next_cluster;
-      next_cluster=get_next_cluster(fat_buf, cur_cluster);
-  print_num(next_cluster, "xx next_cluster");
-  print("\r\n");
-  #endif
-  while(1);
-  #endif
-#if 1
-      //int i=0;
-      while ((next_cluster=get_next_cluster(cur_cluster)) != 0xfff)
-      {
-        r_sec=next_cluster + - 2 + root_dir_secotrs + 19;
-        print_num(next_cluster, "next_cluster");
-        print_num(r_sec, "r_sec");
-
-        track_no = ((r_sec/18) >> 1);
-        head_no = ((r_sec/18) & 1);
-        sector_no = ((r_sec%18) + 1);
-        buff += 0x200;
-        r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
-
-        //print("\r\n");
-        cur_cluster = next_cluster;
-	//if (i >= 2) break;
-	//++i;
-      }
-#endif
-
-#if 0
-      if (is_odd(f_c) == 1)
-      {
-        offset = (f_c-1) * 3 / 2;
-	next_cluster = ((fat_buf[offset+1] >> 4) & 0x0f) | (fat_buf[offset+2] << 8);
-        //offset = f_c * 1.5; // if f_c : 12 because of  24, 12 * 2??
-        //offset = f_c >> 1;
-      }
-      else
-      {
-        offset = f_c /2 *3; // if f_c : 12 -> 18
-	next_cluster = ((fat_buf[offset+1] & 0x0f) << 8)| fat_buf[offset];
-      }
-
-      print("\r\n");
-      print_num(offset, "offset");
-      print("\r\n");
-      print_num(next_cluster, "next_cluster");
-      print("\r\n");
-
-      f_c=next_cluster;
-      if (is_odd(f_c) == 1)
-      {
-        offset = (f_c-1) * 3 / 2;
-	next_cluster = ((fat_buf[offset+1] >> 4) & 0x0f) | (fat_buf[offset+2] << 4);
-        //offset = f_c * 1.5; // if f_c : 12 because of  24, 12 * 2??
-        //offset = f_c >> 1;
-      }
-      else
-      {
-        offset = f_c /2 *3; // if f_c : 12 -> 18
-	next_cluster = ((fat_buf[offset+1] & 0x0f) << 8)| fat_buf[offset];
-      }
-      print("\r\n");
-      print_num(offset, "offset");
-      print("\r\n");
-      print_num(next_cluster, "next_cluster");
-      print("\r\n");
-#endif
-
+      print_num(elf_pheader->p_vaddr, "elf_pheader->p_vaddr");
+      print_num(elf_pheader->p_offset, "elf_pheader->p_offset");
+      print_num(elf_pheader->p_filesz, "elf_pheader->p_filesz");
+      asm_absolute_memcpy((u8*)elf_pheader->p_vaddr, buff+(elf_pheader->p_offset), elf_pheader->p_filesz);
     }
-    else
-    {
-      //r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
-    }
+    ++elf_pheader;
+  }
+
+
+  // load ramdisk
+  print("\r\nload ramdisk:");
+  print(ramdisk_name);
+  load_file_to_ram(first_ramdisk_cluster, (file_size> 512) ? 1: 0);
+  dump_u8((u8 *)IMAGE_LMA, 32);
+  BOCHS_MB
+
     //while(1);
     //volatile void*   e = (void*)IMAGE_ENTRY;
     // copy 0x7000:0x100
-    void asm_memcpy(u8 *dest, u8 *src, int n);
-    void asm_absolute_memcpy(u8 *dest, u8 *src, int n);
 
-    asm_memcpy((u8*)0x100, (u8 *)IMAGE_LMA, 512*3);
+  void init_protected_mode();
 
-    buff = (u8*)IMAGE_LMA;
-    Elf32Ehdr *elf_header = (Elf32Ehdr*)buff;
-    Elf32Phdr *elf_pheader = (Elf32Phdr*)((u8 *)buff + elf_header->e_phoff);
+  init_protected_mode();
 
-    print_num(elf_header->e_entry, "elf_header->e_entry");
-    print_num(elf_header->e_phnum, "elf_header->e_phnum");
+  #if 1
+  u8 seg=0;
+  __asm__ __volatile__ ("jmp *%0\n"
+                          :
+                          :"m"(elf_header->e_entry)
+                       ); 
+  #endif
 
-    for (int i=0 ; i < elf_header->e_phnum; ++i)
-    {
-      if (CHECK_PT_TYPE_LOAD(elf_pheader))
-      {
-        print_num(elf_pheader->p_vaddr, "elf_pheader->p_vaddr");
-        print_num(elf_pheader->p_offset, "elf_pheader->p_offset");
-        print_num(elf_pheader->p_filesz, "elf_pheader->p_filesz");
-        asm_absolute_memcpy((u8*)elf_pheader->p_vaddr, buff+(elf_pheader->p_offset), elf_pheader->p_filesz);
-      }
-      ++elf_pheader;
-    }
-    __asm__ ("nop");
-    __asm__ ("nop");
-    void init_protected_mode();
-
-    init_protected_mode();
-    //while(1);
-    //__asm__ ("jmp $0x0,$0x3000");
-    //__asm__ ("jmp $0x0,$0x4000");
-    #if 0
+#if 0
+    volatile void*   e = (void*)IMAGE_LMA;
+    //volatile void*   e = buff;
+    //__asm__ __volatile__("" : : "d"(bios_drive));
+    print("\r\njmp it");
+    //goto    *e;
+    __asm__ ("jmp $0x7000,$0x100");
+    //__asm__ __volatile__ ("jmp *%eax\n");
+    __asm__ __volatile__ ("jmp *%%eax\n"
+                          :
+                          :"a"(elf_header->e_entry)
+	                 ); 
+    __asm__ __volatile__ ("jmp %0\n"
+                          :
+                          :"a"(elf_header->e_entry)
+	                 ); 
+    //__asm__ ("movw $0x0,%ax");
+    //__asm__ ("movw %ax,%cs");
+    //__asm__ ("movw %ax,%ds");
+    //__asm__ ("movw %ax,%ss");
+    //goto *elf_header->e_entry; // if elf_header->e_entry = 0x4000, will jmp to 0x9000:0x4000
     //__asm__ ("movw $0x0,%bx");
     //__asm__ ("movw %bx, %ds");
     __asm__ __volatile__ ("movw $0, %%bx\n"
@@ -641,54 +659,7 @@ void start_c()
                           :
                           :"m"(elf_header->e_entry)
 	                 ); 
-	#endif
-	#if 1
-	u8 seg=0;
-    __asm__ __volatile__ ("jmp *%0\n"
-                          :
-                          :"m"(elf_header->e_entry)
-	                 ); 
-	 #endif
-    //__asm__ __volatile__ ("jmp *%eax\n");
-    #if 0
-    __asm__ __volatile__ ("jmp *%%eax\n"
-                          :
-                          :"a"(elf_header->e_entry)
-	                 ); 
-		 #endif
-
-			 #if 0
-    __asm__ __volatile__ ("jmp %0\n"
-                          :
-                          :"a"(elf_header->e_entry)
-	                 ); 
-			 #endif
-    //__asm__ ("movw $0x0,%ax");
-    //__asm__ ("movw %ax,%cs");
-    //__asm__ ("movw %ax,%ds");
-    //__asm__ ("movw %ax,%ss");
-    //goto *elf_header->e_entry; // if elf_header->e_entry = 0x4000, will jmp to 0x9000:0x4000
-
-
-
-#if 0
-    __asm__ ("mov $0x7000,%ax");
-    __asm__ ("mov %ax, %ds");
-    __asm__ ("mov %ax, %ss");
 #endif
-    //print("\r\n");
-    //dump_u8((u8 *)0x100, 32*2);
-    //while(1);
-
-    volatile void*   e = (void*)IMAGE_LMA;
-    //volatile void*   e = buff;
-    //__asm__ __volatile__("" : : "d"(bios_drive));
-    print("\r\njmp it");
-    //goto    *e;
-    __asm__ ("jmp $0x7000,$0x100");
-
-  }
-
 
 
 
