@@ -38,11 +38,17 @@
 .global begin
 begin:
 #MOV $MODE12H, %si
+xchg %bx, %bx #bochs magic break point
+mov %cs, %ax
+mov %ax, %ds
+mov %ax, %es
+mov %ax, %ss
+
 MOV $MODE10H, %si
 CALL SETMODE
 call SET_OUT
 # draw screen
-   PUSH $12
+   pushw $12
    CALL CLEAR10H
   jmp .
 
@@ -57,15 +63,15 @@ XOR %DI,%DI
 MOV $7000, %cx
 
 CLEAR_LOOP2:
-   MOV 0x03CE, %dx
-   MOV 0x0FF08, %ax
+   MOV $0x03CE, %dx
+   MOV $0x0FF08, %ax
    OUT %AX, %dx
 
    MOV $0, %eax
    #XCHG DWORD PTR ES:[DI],EAX
    xchgl %EAX, %es:(%di)
 
-   MOV 0x03C4, %dx
+   MOV $0x03C4, %dx
    #MOV AH,BYTE PTR [BP+4]
    movb 4(%BP), %ah
    MOV $2, %AL
@@ -74,11 +80,11 @@ CLEAR_LOOP2:
    #MOV DWORD PTR ES:[DI],0FFFFFFFFH
    movl $0xFFFFFFFF, %es:(%di)
 
-   MOV 0x0F02, %ax
+   MOV $0x0F02, %ax
    OUT %AX, %dx
 
-   MOV 0x03CE, %dx
-   MOV 0x0FF08, %ax
+   MOV $0x03CE, %dx
+   MOV $0x0FF08, %ax
    OUT %AX, %dx
 
    ADD $4, %DI
@@ -92,7 +98,7 @@ CLEAR_LOOP2:
 
 SETMODE:
    # Send MISC regs
-   MOV MISC_ADDR, %dx
+   MOV $MISC_ADDR, %dx
    MOV (%si), %AL
    OUT %al, %DX
    call iodelay
@@ -112,7 +118,7 @@ REG_LOOP:
    OUT %AL, %dx
    call iodelay
 
-   MOV SEQ_ADDR, %dx
+   MOV $SEQ_ADDR, %dx
    INC %DX
    MOV (%si), %AL
    OUT %AL, %dx
@@ -198,7 +204,7 @@ REG_LOOP4:
 #SETMODE ENDP
 SET_OUT:
   CALL SETPALETTE
-  POP %BP
+  #POP %BP
   RET
 
 iodelay:
@@ -216,21 +222,21 @@ SETPALETTE:
 PAL_LOOP:
    MOV %CX, %ax
    # Send color
-   MOV 0x03C8, %dx
+   MOV $0x03C8, %dx
    OUT %AL, %dx
 
    # Write R value
-   MOV 0x03C9, %dx
+   MOV $0x03C9, %dx
    movb (%DI), %al
    OUT %AL, %dx
 
    # Write G value
-   MOV 0x03C9, %dx
+   MOV $0x03C9, %dx
    movb 1(%DI), %al
    OUT %AL, %dx
 
    # Write B value
-   MOV 0x03C9, %dx
+   MOV $0x03C9, %dx
    movb 2(%DI), %al
    OUT %AL, %dx
 
