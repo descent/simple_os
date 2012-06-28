@@ -6,7 +6,7 @@ void draw_box()
   u8 *vb = (u8*)0xa0000;
 
   for (int x=0 ; x < 320 ; ++x)
-    for (int y=0 ; y < 240 ; ++y)
+    for (int y=0 ; y < 200 ; ++y)
     {
       *(vb + x + 320*y) = 1; // 0: black, 1: blue
     }
