@@ -71,7 +71,7 @@ protected_code.o: protected_code.c
 protected_code.s: protected_code.c
 	gcc $(CFLAGS) -o $@ -S $<
 
-p_kernel.elf: p_kernel.o start.o process.o clock.o asm_func.o syscall.o asm_syscall.o vga/set_mode_p.o
+p_kernel.elf: p_kernel.o start.o process.o clock.o asm_func.o syscall.o asm_syscall.o vga/set_mode_p.o vga/draw_func.o
 	ld $(LDFLAGS) -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
 
 p_kernel.o: p_kernel.s
@@ -102,9 +102,12 @@ asm_syscall.s: asm_syscall.S syscall.h process_const.h
 
 syscall.o: syscall.c syscall.h
 	gcc $(CFLAGS) -c $<
+
 vga/set_mode_p.o: vga/set_mode_p.S
 	(cd vga; make set_mode_p.o)
 
+vga/draw_func.o: vga/draw_func.c
+	(cd vga; make draw_func.o)
 
 .PHONE: clean distclean
 
