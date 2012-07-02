@@ -3,6 +3,8 @@ __asm__(".code16gcc\n");
 #include "../type.h"
 #include "../elf.h"
 
+#define MORE_ERR_MSG
+
 #define NAME_VALUE(name) \
 { \
   print("\r\n"); \
@@ -248,6 +250,10 @@ void print_bpb(BPB *bpb)
   __asm__ __volatile__("movb $0, %dl\n"); // disk no, 0 -> A disk
   #endif
 
+// return 0: ok
+// not 0: fail
+// if using the function read floppy fail, suggest reset floppy disk,
+// than try twice again.
 int __REGPARM read_sector(volatile u8 *buff, u8 sector_no, u8 track_no, u8 head_no, u8 disk_no, u8 blocks)
 {
 #if 0
@@ -269,13 +275,27 @@ int __REGPARM read_sector(volatile u8 *buff, u8 sector_no, u8 track_no, u8 head_
     //BOCHS_MB
   // read sector to %es:%bx, if %bx is more than 64k, need change %es
   // to next 64k beginning address
-  __asm__ __volatile__ ("int $0x13\n"
-                        :
-                        :"a"(0x0200|blocks), "b"(buff), "c"(track_no << 8 | sector_no), "d"(head_no << 8 | disk_no)
-	               ); 
+  // ref: http://dc0d32.blogspot.tw/2010/06/real-mode-in-c-with-gcc-writing.html
+  u16 num_blocks_transferred = 0;
+  u8 failed = 0;
+
+  __asm__ __volatile__ 
+    (
+      "movw  $0, %0\n"
+      "int $0x13\n"
+      "setcb %0"
+      :"=m"(failed), "=a"(num_blocks_transferred)
+      :"a"(0x0200|blocks), "b"(buff), "c"(track_no << 8 | sector_no), "d"(head_no << 8 | disk_no)
+    ); 
 #endif
-  //dump_u8(buff, 32*2);
-  return 0;
+  u8 ret_status = (num_blocks_transferred >> 8);
+  #ifdef MORE_ERR_MSG
+  NAME_VALUE(num_blocks_transferred)
+  NAME_VALUE(failed)
+  NAME_VALUE(ret_status)
+  BOCHS_MB
+  #endif
+  return failed || (num_blocks_transferred != blocks);
 }
 
 u8 s_strlen(const char *s1)
