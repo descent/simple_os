@@ -3,6 +3,13 @@ __asm__(".code16gcc\n");
 #include "../type.h"
 #include "../elf.h"
 
+#define NAME_VALUE(name) \
+{ \
+  print("\r\n"); \
+  print(#name); \
+  print(": "); \
+  s16_print_int(name, 10); \
+}
 
 // read fat floppy disk
 
@@ -15,7 +22,7 @@ __asm__(".code16gcc\n");
 
 #define IMAGE_SIZE  8192
 #define BLOCK_SIZE  512
-#define READ_FAT_ADDR (0x2000)
+#define READ_FAT_ADDR (0x3000) // original is 0x2000, but will overwrite bss (variable bpb), so change to 0x3000
 #define IMAGE_LMA   (0x4000)
 //#define IMAGE_LMA   0x8000
 #define IMAGE_ENTRY 0x800c
@@ -33,7 +40,51 @@ const u8 ramdisk_name[] =  "ROM     FS ";
 //u8 kernel_name[] = "KERNEL  ELF";
 //u8 kernel_name[]   = "TEST    BIN";
 
-u16 root_dir_secotrs = 0;
+void asm_memcpy(u8 *dest, u8 *src, int n);
+void asm_absolute_memcpy(u8 *dest, u8 *src, int n);
+
+// BIOS parameter block
+typedef struct BPB_
+{
+  u8 vendor_name[9];
+  u16 byte_per_sector;
+  u8 sector_per_cluster;
+  u16 boot_occupy_sector;
+  u8 fat_count;
+  u16 root_entry_count;
+  u16 logic_sector_count;
+  u8 floppy_type;
+  u16 fat_occupy_sector;
+  u16 sector_per_track;
+  u16 head_count;
+  u16 hidden_sector_count;
+  u16 root_dir_occupy_sector; // not BPB part, only for convenience
+  u16 root_dir_start_sector;  // not BPB part, only for convenience
+}BPB;
+
+BPB bpb;
+
+void init_bpb(u8 *buff, BPB *bpb)
+{
+  // ref : http://home.educities.edu.tw/wanker742126/asm/ch18.html
+  for (int i=0 ; i <9 ; ++i)
+  {
+    bpb->vendor_name[i] = buff[0x3+i];
+  }
+  bpb->byte_per_sector = ((buff[12] << 8) | buff[11]);
+  bpb->sector_per_cluster = buff[0xd];
+  bpb->boot_occupy_sector = ((buff[0xf] << 8) | buff[0xe]);
+  bpb->fat_count = buff[0x10];
+  bpb->root_entry_count = ((buff[18] << 8) | buff[17]);
+  bpb->logic_sector_count = ((buff[0x14] << 8) | buff[0x13]);
+  if (bpb->logic_sector_count==0)
+    bpb->logic_sector_count = ((buff[0x23] << 8) | buff[0x20]); // more than 32MB
+  bpb->fat_occupy_sector = ((buff[0x17] << 8) | buff[0x16]);
+  bpb->sector_per_track = ((buff[0x19] << 8) | buff[0x18]);
+  bpb->head_count = ((buff[0x1b] << 8) | buff[0x1a]);
+  bpb->hidden_sector_count = ((buff[0x1f] << 8) | buff[0x1c]);
+}
+
 
 /* BIOS interrupts must be done with inline assembly */
 //void    __NOINLINE __REGPARM print(const char   *s){
@@ -163,6 +214,26 @@ void h2c(u8 hex, u8 ch[2])
   }
 }
 
+void print_bpb(BPB *bpb)
+{
+  print("\r\nbpb->vendor_name: ");
+  print(bpb->vendor_name);
+  #if 1
+  NAME_VALUE(bpb->byte_per_sector)
+
+  NAME_VALUE(bpb->sector_per_cluster)
+  NAME_VALUE(bpb->boot_occupy_sector)
+  NAME_VALUE(bpb->fat_count)
+  NAME_VALUE(bpb->root_entry_count)
+  NAME_VALUE(bpb->logic_sector_count)
+  NAME_VALUE(bpb->fat_occupy_sector)
+  NAME_VALUE(bpb->sector_per_track)
+  NAME_VALUE(bpb->head_count)
+  NAME_VALUE(bpb->hidden_sector_count)
+  NAME_VALUE(bpb->root_dir_occupy_sector)
+  #endif
+}
+
 //ref: http://forum.osdev.org/viewtopic.php?f=1&t=7762
   // read a sector
   // 1.44 MB floppy
@@ -274,8 +345,6 @@ int read_fat(volatile u8 *fat_buf, u16 fat_sector_no)
   print("\r\n");
 #endif
   u8 r = read_sector(fat_buf, sector_no, track_no, head_no, disk_no, 2);
-  //dump_u8(fat_buf, 48);
-
   return OK;
 }
 
@@ -291,6 +360,7 @@ u16 get_next_cluster(u16 cur_cluster)
 {
   u16 offset, next_cluster=0;
   volatile u8 *fat_buf = (volatile u8 *)READ_FAT_ADDR;
+
 
   //print_num(cur_cluster, "cur_cluster");
 
@@ -312,7 +382,8 @@ u16 get_next_cluster(u16 cur_cluster)
     u16 fat_sector_no = (offset / 1024) + 1;
     //print_num(offset, "offset");
     //print_num(fat_sector_no, "fat_sector_no");
-    read_fat(fat_buf, fat_sector_no); // FAT occupies 9 sections, sector no 1 ~ 10
+
+   read_fat(fat_buf, fat_sector_no); // FAT occupies 9 sections, sector no 1 ~ 10
   }
   if (is_odd(cur_cluster) == 1)
   {
@@ -322,7 +393,6 @@ u16 get_next_cluster(u16 cur_cluster)
   {
     next_cluster = ((fat_buf[offset+1] & 0x0f) << 8)| fat_buf[offset];
   }
-
 #if 0
     print("\r\nodd");
   print_num(offset, "offset");
@@ -338,11 +408,12 @@ u16 get_next_cluster(u16 cur_cluster)
 int load_file_to_ram(int begin_cluster, int fat)
 {
   int r;
-  int r_sec = begin_cluster - 2 + root_dir_secotrs + 19;
+  int r_sec = begin_cluster - 2 + bpb.root_dir_occupy_sector + bpb.root_dir_start_sector;
   volatile u8 *buff = (u8*)IMAGE_LMA;
 
   print_num(begin_cluster, "begin_cluster");
   print_num(r_sec, "cluster sector no");
+  BOCHS_MB
   int track_no = ((r_sec/18) >> 1);
   int head_no = ((r_sec/18) & 1);
   int sector_no = ((r_sec%18) + 1);
@@ -359,9 +430,10 @@ int load_file_to_ram(int begin_cluster, int fat)
 #if 1
     while ((next_cluster=get_next_cluster(cur_cluster)) != 0xfff)
     {
-        r_sec=next_cluster + - 2 + root_dir_secotrs + 19;
-        //print_num(next_cluster, "next_cluster");
-        //print_num(r_sec, "r_sec");
+        r_sec=next_cluster - 2 + bpb.root_dir_occupy_sector + bpb.root_dir_start_sector;
+        print_num(next_cluster, "next_cluster");
+        print_num(r_sec, "r_sec");
+  BOCHS_MB
 
         track_no = ((r_sec/18) >> 1);
         head_no = ((r_sec/18) & 1);
@@ -407,11 +479,8 @@ void start_c()
 
   u16 byte_per_sector = 512;
   u16 root_entry_count = 0;
-  volatile u8 *buff = (u8*)IMAGE_LMA;
+  u8 *buff = (u8*)IMAGE_LMA;
 
-
-  print("number test\r\n");
-  s16_print_int(25, 10);
   //BOCHS_MB
  //__asm__ __volatile__("xchg %bx, %bx");
 
@@ -428,15 +497,14 @@ void start_c()
   *buff = 0x1;
 
   int r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
-  byte_per_sector = ((buff[12] << 8) | buff[11]);
-  //byte_per_sector = 512;
-  //root_entry_count = ((buff[18] << 8) | buff[17]);
-//  root_entry_count = 224;
-//  print_num(byte_per_sector, "byte_per_sector");
-  byte_per_sector = ((buff[12] << 8) | buff[11]);
-  root_entry_count = ((buff[18] << 8) | buff[17]);
-  print_num(byte_per_sector, "byte_per_sector");
-  print_num(root_entry_count, "root_entry_count");
+  init_bpb(buff, &bpb);
+
+  if (bpb.root_entry_count * 32 % bpb.byte_per_sector != 0)
+    bpb.root_dir_occupy_sector = (bpb.root_entry_count * 32 / bpb.byte_per_sector) + 1;
+  else
+    bpb.root_dir_occupy_sector = (bpb.root_entry_count * 32 / bpb.byte_per_sector);
+
+  print_bpb(&bpb);
 
   //dump_u8(buff, 48);
 #if 0
@@ -453,27 +521,19 @@ void start_c()
     }
 #endif
 
-
-  if (root_entry_count * 32 % byte_per_sector != 0)
-    root_dir_secotrs = (root_entry_count * 32 / byte_per_sector) + 1;
-  else
-    root_dir_secotrs = (root_entry_count * 32 / byte_per_sector);
-
-  // root dir occupy how many sectors
-  print("\r\nroot dir occupies sectors: ");
-  s16_print_int(root_dir_secotrs, 10);
-  //print_num(root_dir_secotrs, "root_dir_secotrs"); 
-
-  u16 root_sec_no = 19;
+  bpb.root_dir_start_sector = bpb.fat_count * bpb.fat_occupy_sector + bpb.boot_occupy_sector;
+  
+  u16 root_sec_no = bpb.root_dir_start_sector;
   u16 f_c = 0;
   u32 file_size = 0;
   print("\r\nroot dir sector starts: ");
   s16_print_int(root_sec_no, 10);
+  //while(1);
   print("\r\nread root dir sector to get file name info");
 
   //for (int i=0 ; i < 1 ; ++i, ++cur_sec_no)
   //for (int i=0 ; i <= root_dir_secotrs ; ++i, ++cur_sec_no)
-  for (int i=root_sec_no ; i <= root_dir_secotrs+root_sec_no ; ++i)
+  for (int i=root_sec_no ; i <= bpb.root_dir_occupy_sector+root_sec_no ; ++i)
   {
     print("\r\nread sector no: ");
     s16_print_int(i, 10);
@@ -571,7 +631,6 @@ void start_c()
 
   print("\r\nfirst_ramdisk_cluster: ");
   s16_print_int(first_ramdisk_cluster, 10);
-  //BOCHS_MB
 
   print("\r\nload kernel: ");
   print(kernel_name);
@@ -579,8 +638,6 @@ void start_c()
   load_file_to_ram(first_kernel_cluster, (file_size> 512) ? 1: 0);
 
   // copy kernel to proper position by elf information
-  void asm_memcpy(u8 *dest, u8 *src, int n);
-  void asm_absolute_memcpy(u8 *dest, u8 *src, int n);
 
   asm_memcpy((u8*)0x100, (u8 *)IMAGE_LMA, 512*3);
 
@@ -594,6 +651,7 @@ void start_c()
   print("\r\nelf_header->e_phnum: ");
   s16_print_int(elf_header->e_phnum, 10);
 
+  BOCHS_MB
   for (int i=0 ; i < elf_header->e_phnum; ++i)
   {
     if (CHECK_PT_TYPE_LOAD(elf_pheader))
@@ -605,6 +663,7 @@ void start_c()
     }
     ++elf_pheader;
   }
+  BOCHS_MB
 
 
   // load ramdisk
@@ -612,7 +671,6 @@ void start_c()
   print(ramdisk_name);
   load_file_to_ram(first_ramdisk_cluster, (file_size> 512) ? 1: 0);
   dump_u8((u8 *)IMAGE_LMA, 32);
-  BOCHS_MB
 
     //while(1);
     //volatile void*   e = (void*)IMAGE_ENTRY;
