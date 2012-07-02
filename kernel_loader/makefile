@@ -24,6 +24,11 @@ kernel_loader.o: kernel_loader.s
 #kernel_loader.s: kernel_loader.c elf.h
 kernel_loader.s: kernel_loader.c 
 	gcc $(CFLAGS) -o $@ -S $<
+protected_code.e: protected_code.c
+	gcc $(CFLAGS) -E -o $@ -S $<
+kernel_loader.e: kernel_loader.c 
+	gcc $(CFLAGS) -E -o $@ -S $<
+
 
 .PHONE: clean 
 
