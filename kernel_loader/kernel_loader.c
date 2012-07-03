@@ -3,7 +3,7 @@ __asm__(".code16gcc\n");
 #include "../type.h"
 #include "../elf.h"
 
-#define MORE_ERR_MSG
+//#define MORE_ERR_MSG
 
 #define NAME_VALUE(name) \
 { \
@@ -397,14 +397,21 @@ u16 get_next_cluster(u16 cur_cluster)
     offset = cur_cluster /2 *3; // if f_c : 12 -> 18
     //next_cluster = ((fat_buf[offset+1] & 0x0f) << 8)| fat_buf[offset];
   }
-  //if (offset >= 1024) // need read fat sector
-  {
-    u16 fat_sector_no = (offset / 1024) + 1;
-    //print_num(offset, "offset");
-    //print_num(fat_sector_no, "fat_sector_no");
 
-   read_fat(fat_buf, fat_sector_no); // FAT occupies 9 sections, sector no 1 ~ 10
-  }
+  u16 fat_sector_no = (offset / 512);
+
+#if 0
+  NAME_VALUE(fat_sector_no)
+  NAME_VALUE(offset)
+#endif
+
+  offset %= 1024;
+
+  //NAME_VALUE(offset)
+
+  read_fat(fat_buf, fat_sector_no); // FAT occupies 9 sections, sector no 1 ~ 10
+
+  dump_u8(fat_buf+offset, 3);
   if (is_odd(cur_cluster) == 1)
   {
     next_cluster = (((fat_buf[offset+1] >> 4) & 0x0f) | (fat_buf[offset+2] << 4));
