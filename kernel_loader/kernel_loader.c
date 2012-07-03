@@ -293,7 +293,6 @@ int __REGPARM read_sector(volatile u8 *buff, u8 sector_no, u8 track_no, u8 head_
   NAME_VALUE(num_blocks_transferred)
   NAME_VALUE(failed)
   NAME_VALUE(ret_status)
-  BOCHS_MB
   #endif
   return failed || (num_blocks_transferred != blocks);
 }
@@ -440,7 +439,6 @@ int load_file_to_ram(int begin_cluster, int fat)
 
   print_num(begin_cluster, "begin_cluster");
   print_num(r_sec, "cluster sector no");
-  BOCHS_MB
   int track_no = ((r_sec/18) >> 1);
   int head_no = ((r_sec/18) & 1);
   int sector_no = ((r_sec%18) + 1);
@@ -460,7 +458,6 @@ int load_file_to_ram(int begin_cluster, int fat)
         r_sec=next_cluster - 2 + bpb.root_dir_occupy_sector + bpb.root_dir_start_sector;
         print_num(next_cluster, "next_cluster");
         print_num(r_sec, "r_sec");
-  BOCHS_MB
 
         track_no = ((r_sec/18) >> 1);
         head_no = ((r_sec/18) & 1);
@@ -576,7 +573,6 @@ void start_c()
     //for (u16 j=0 ; j < 16 ; ++j)
     for (u16 j=0 ; j < 512/32 ; ++j)
     {
-      //BOCHS_MB
       f_c = ((buff[0x1b+j*32] << 8) | buff[0x1a+j*32]); // first cluster
       file_size = (( buff[0x1f + (j*32)] << 24) | (buff[0x1e + (j*32)] << 16) | (buff[0x1d + (j*32)] << 8) | buff[0x1c + (j*32)]);
       //u32 file_size = 0;
@@ -678,7 +674,6 @@ void start_c()
   print("\r\nelf_header->e_phnum: ");
   s16_print_int(elf_header->e_phnum, 10);
 
-  BOCHS_MB
   for (int i=0 ; i < elf_header->e_phnum; ++i)
   {
     if (CHECK_PT_TYPE_LOAD(elf_pheader))
@@ -690,7 +685,6 @@ void start_c()
     }
     ++elf_pheader;
   }
-  BOCHS_MB
 
 
   // load ramdisk
