@@ -5,6 +5,7 @@
 #include "process.h"
 #include "syscall.h"
 #include "storage.h"
+#include "romfs.h"
 
 #define INT_M_PORT 0x20
 #define INT_S_PORT 0xa0
@@ -757,11 +758,18 @@ void load_init_boot(InitFunc *init_func)
     init_func[i]();
   }
   ramdisk_driver_init();
-  u8 buf[128];
+  u8 buf[512];
   storage[RAMDISK]->dout(storage[RAMDISK], buf, 0, sizeof(buf));
+
+  RomFsHeader *rom_fs_header; 
+  rom_fs_header = (RomFsHeader*)buf;
+  u8 rom_fs_identify[9]="";
+  p_asm_memcpy(rom_fs_identify, rom_fs_header->u.id_str.str, 8);
+  s32_print(rom_fs_identify, (u8*)(0xb8000+160*2));
 
   dump_u8(buf, 32);
   BOCHS_MB
+  while(1);
 
 }
 
