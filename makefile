@@ -1,6 +1,6 @@
 #CFLAGS = -fno-stack-protector -std=c99 -march=i686 -ffreestanding -Wall -g
 #CFLAGS = -fno-stack-protector -ffreestanding -fno-builtin -g
-CFLAGS = -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -O0
+CFLAGS = -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -Iinclude
 ASFLAGS = --32
 LDFLAGS = -m elf_i386
 
@@ -51,7 +51,7 @@ kernel.o: kernel.s
 	as $(ASFLAGS) -o $@ $<
 
 
-p_kernel.elf: p_kernel.o start.o process.o clock.o asm_func.o syscall.o asm_syscall.o storage.o
+p_kernel.elf: p_kernel.o start.o process.o clock.o asm_func.o syscall.o asm_syscall.o storage.o romfs.o
 	ld $(LDFLAGS) -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
 
 p_kernel.o: p_kernel.s
@@ -84,6 +84,9 @@ asm_syscall.s: asm_syscall.S syscall.h process_const.h
 	gcc $(CFLAGS) -o $@ -E $<
 
 syscall.o: syscall.c syscall.h
+	gcc $(CFLAGS) -c $<
+
+romfs.o: romfs.c type.h include/endian.h
 	gcc $(CFLAGS) -c $<
 
 
