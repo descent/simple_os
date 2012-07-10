@@ -1,5 +1,5 @@
 #CFLAGS = -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -O0
-CFLAGS = -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g
+CFLAGS = -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -I../include
 ASFLAGS = --32 -g
 LDFLAGS = -m elf_i386
 
@@ -22,7 +22,7 @@ protected_code.s: protected_code.c
 kernel_loader.o: kernel_loader.s
 	as $(ASFLAGS) -o $@ $<
 #kernel_loader.s: kernel_loader.c elf.h
-kernel_loader.s: kernel_loader.c 
+kernel_loader.s: kernel_loader.c ../type.h ../elf.h ../include/string.h ../include/type.h
 	gcc $(CFLAGS) -o $@ -S $<
 protected_code.e: protected_code.c
 	gcc $(CFLAGS) -E -o $@ -S $<
