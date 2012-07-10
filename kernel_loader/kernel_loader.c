@@ -356,7 +356,7 @@ int read_fat(volatile u8 *fat_buf, u16 fat_sector_no)
   u8 sector_no = (fat_sector_no%18);
   u8 disk_no = 0;
 
-#if 1
+#ifdef DEBUG_INFO
   print_num(track_no, "fat track_no");
   print_num(head_no, "fat head_no");
   print_num(sector_no, "fat sector_no");
@@ -399,7 +399,7 @@ u16 get_next_cluster(u16 cur_cluster)
 
   u16 read_fat_sector_no = ((offset / 1024)+1)*2;
 
-#if 1
+#ifdef DEBUG_INFO
   NAME_VALUE(read_fat_sector_no)
   NAME_VALUE(offset)
 #endif
@@ -410,7 +410,10 @@ u16 get_next_cluster(u16 cur_cluster)
 
   read_fat(fat_buf, read_fat_sector_no); // FAT occupies 9 sections, sector no 1 ~ 10
 
+#ifdef DEBUG_INFO
   dump_u8(fat_buf+offset, 3);
+#endif
+
   if (is_odd(cur_cluster) == 1)
   {
     next_cluster = (((fat_buf[offset+1] >> 4) & 0x0f) | (fat_buf[offset+2] << 4));
@@ -452,13 +455,14 @@ int load_file_to_ram(int begin_cluster, int fat)
     //dump_u8(fat_buf, 32);
     u16 offset, next_cluster, cur_cluster=begin_cluster;
 
-#if 1
     while ((next_cluster=get_next_cluster(cur_cluster)) != 0xfff)
     {
         r_sec=next_cluster - 2 + bpb.root_dir_occupy_sector + bpb.root_dir_start_sector;
+
+#ifdef DEBUG_INFO
         print_num(next_cluster, "next_cluster");
         print_num(r_sec, "r_sec");
-  BOCHS_MB
+#endif
 
         track_no = ((r_sec/18) >> 1);
         head_no = ((r_sec/18) & 1);
@@ -471,7 +475,6 @@ int load_file_to_ram(int begin_cluster, int fat)
 	//if (i >= 2) break;
 	//++i;
     }
-#endif
 
 
     }
