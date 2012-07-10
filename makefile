@@ -4,6 +4,7 @@ CFLAGS = -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -Iinc
 ASFLAGS = --32
 LDFLAGS = -m elf_i386
 
+all: p_kernel.elf
 
 boot1.img: c_init.bin
 	dd if=$< of=$@ bs=512 count=1
@@ -57,7 +58,7 @@ p_kernel.elf: p_kernel.o start.o process.o clock.o asm_func.o syscall.o asm_sysc
 p_kernel.o: p_kernel.s
 	as --32 -o $@ $<
 
-start.o: start.c type.h protect.h process.h
+start.o: start.c io.h type.h clock.h protect.h process.h syscall.h storage.h include/romfs.h include/string.h include/type.h
 	gcc $(CFLAGS) -c $<
 
 start.s: start.c type.h protect.h process.h
