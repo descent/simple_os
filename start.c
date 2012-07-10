@@ -6,6 +6,7 @@
 #include "syscall.h"
 #include "storage.h"
 #include "romfs.h"
+#include "string.h"
 
 #define INT_M_PORT 0x20
 #define INT_S_PORT 0xa0
@@ -233,7 +234,50 @@ void s32_print(const u8 *s, u8 *vb)
     cur_vb = (u8*)0xb8000+160;
 }
 
-char* s32_itoa(int n, char* str, int radix)
+// sign version
+char* s32_itoa_s(int n, char* str, int radix)
+{
+  char digit[]="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  char* p=str;
+  char* head=str;
+  //int radix = 10;
+
+//  if(!p || radix < 2 || radix > 36)
+//    return p;
+  if (n==0)
+  {
+    *p++='0';
+    *p=0;
+    return str;
+  }
+  if (radix == 10 && n < 0)
+  {
+    *p++='-';
+    n= -n;
+  }
+  while(n)
+  {
+    *p++=digit[n%radix];
+    //s32_put_char(*(p-1), (u8*)(0xb8000+80*2));
+    n/=radix;
+  }
+  *p=0;
+  #if 1
+  for (--p; head < p ; ++head, --p)
+  {
+    char temp=*head;
+    if (*(p-1) != '-')
+    {
+      *head=*p;
+      *p=temp;
+    }
+  }
+  #endif
+  return str;
+}
+
+// no sign version
+char* s32_itoa(u32 n, char* str, int radix)
 {
   char digit[]="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   char* p=str;
@@ -760,14 +804,45 @@ void load_init_boot(InitFunc *init_func)
   ramdisk_driver_init();
   u8 buf[512];
   storage[RAMDISK]->dout(storage[RAMDISK], buf, 0, sizeof(buf));
+  dump_u8(buf, 32);
 
   RomFsHeader *rom_fs_header; 
   rom_fs_header = (RomFsHeader*)buf;
   u8 rom_fs_identify[9]="";
   p_asm_memcpy(rom_fs_identify, rom_fs_header->u.id_str.str, 8);
-  s32_print(rom_fs_identify, (u8*)(0xb8000+160*2));
 
-  dump_u8(buf, 32);
+  int line;
+  clear_line(2);
+  s32_print(rom_fs_identify, (u8*)(0xb8000+160*2));
+  line=3;
+  clear_line(line);
+  s32_print_int(rom_fs_header->size, (u8*)(0xb8000+160*line), 16);
+  line=4;
+  clear_line(line);
+
+  s32_print_int(rom_fs_header->checksum, (u8*)(0xb8000+160*line), 16);
+  u32 volume_len = s_strlen(buf+16);
+  BOCHS_MB
+  //u32 volume_len = s_strlen("abc");
+
+  line=5;
+  clear_line(line);
+  s32_print_int(volume_len, (u8*)(0xb8000+160*line), 10);
+  line=6;
+  clear_line(line);
+  s32_print(buf+16, (u8*)(0xb8000+160*line));
+  //s32_print_int(0x5678, (u8*)(0xb8000+160*line), 16);
+  //s32_print("line6", (u8*)(0xb8000+160*line));
+
+  // get volume name, 16 byte alignment
+  #if 0
+  if (len&15) 
+  {
+    memset(bigbuf+16+len, 0, 16-(len&15));
+    len += 16-(len&15);
+  }
+  #endif
+
   BOCHS_MB
   while(1);
 
