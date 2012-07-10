@@ -11,7 +11,7 @@ sudo  cp kernel_loader/kloaderp.bin  /mnt/loader.bin
 sudo  cp kernel.bin  /mnt/
 sudo  cp kernel.elf  /mnt/
 sudo  cp -v p_kernel.elf  /mnt/
-#sudo  cp rom.fs  /mnt/
+sudo  cp rom.fs  /mnt/
 sudo  cp /home/descent/git/write_os/src/chapter3/1.5/idt.com /mnt/
 sudo  cp /home/descent/git/write_os/src/chapter3/1.5/idt.com.elf /mnt/idt.elf
 #sudo  cp c_init_by_boot_loader.bin  /mnt/loader.bin
