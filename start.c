@@ -7,6 +7,7 @@
 #include "storage.h"
 #include "romfs.h"
 #include "string.h"
+#include "endian.h"
 
 #define INT_M_PORT 0x20
 #define INT_S_PORT 0xa0
@@ -809,7 +810,7 @@ void load_init_boot(InitFunc *init_func)
   RomFsHeader *rom_fs_header; 
   rom_fs_header = (RomFsHeader*)buf;
   u8 rom_fs_identify[9]="";
-  p_asm_memcpy(rom_fs_identify, rom_fs_header->u.id_str.str, 8);
+  p_asm_memcpy(rom_fs_identify, rom_fs_header->u.id_str, 8);
 
   int line;
   clear_line(2);
@@ -831,19 +832,53 @@ void load_init_boot(InitFunc *init_func)
   line=6;
   clear_line(line);
   s32_print(buf+16, (u8*)(0xb8000+160*line));
-  //s32_print_int(0x5678, (u8*)(0xb8000+160*line), 16);
-  //s32_print("line6", (u8*)(0xb8000+160*line));
 
   // get volume name, 16 byte alignment
   #if 0
+  int len = volume_len;
   if (len&15) 
   {
-    memset(bigbuf+16+len, 0, 16-(len&15));
+    //memset(bigbuf+16+len, 0, 16-(len&15));
     len += 16-(len&15);
   }
+  len+=16; // next 16 boundary
   #endif
 
+  
+
+  u32 next_offset = get_next_16_boundary(volume_len+0x10);
+  line=7;
+  clear_line(line);
+  s32_print_int(next_offset, (u8*)(0xb8000+160*line), 16);
+
+  line=8;
+  clear_line(line);
+  s32_print_int(be32tole32(rom_fs_header->size), (u8*)(0xb8000+160*line), 16);
+
+  rom_fs_header = (RomFsHeader*)(buf + next_offset);
+
+  line=9;
+  clear_line(line);
+  s32_print_int(be32tole32(rom_fs_header->u.header8.nextfh), (u8*)(0xb8000+160*line), 16);
+
+  line = 10;
+  clear_line(line);
+  s32_print_int(be32tole32(rom_fs_header->u.header8.spec), (u8*)(0xb8000+160*line), 16);
   BOCHS_MB
+
+  line = 11;
+  clear_line(line);
+  s32_print_int(be32tole32(rom_fs_header->size), (u8*)(0xb8000+160*line), 16);
+#if 1
+
+  line = 12;
+  clear_line(line);
+  s32_print_int(be32tole32(rom_fs_header->checksum), (u8*)(0xb8000+160*line), 16);
+#endif
+  //s32_print_int(0x5678, (u8*)(0xb8000+160*line), 16);
+  //s32_print("line6", (u8*)(0xb8000+160*line));
+
+
   while(1);
 
 }
