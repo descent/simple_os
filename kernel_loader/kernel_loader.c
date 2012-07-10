@@ -2,6 +2,7 @@ __asm__(".code16gcc\n");
 
 #include "../type.h"
 #include "../elf.h"
+#include "string.h" // s_strlen()
 
 //#define MORE_ERR_MSG
 
@@ -295,15 +296,6 @@ int __REGPARM read_sector(volatile u8 *buff, u8 sector_no, u8 track_no, u8 head_
   NAME_VALUE(ret_status)
   #endif
   return failed || (num_blocks_transferred != blocks);
-}
-
-u8 s_strlen(const char *s1)
-{
-  u8 len=0;
-  
-  while(*s1)
-    ++len;
-  return len;
 }
 
 // -1: not equal
