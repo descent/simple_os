@@ -27,6 +27,24 @@ typedef struct RomFsHeader_
   //u32 fn_len; // file name length, not RomFsHeader part, only for convenience.
 }RomFsHeader;
 
+
+typedef struct RomfsSuperBlock_
+{
+  u8 id_str[8];
+  u32 size;
+  u32 checksum;
+  char volume_name[0];
+}RomfsSuperBlock_;
+
+typedef struct RomfsINode_
+{
+  u32 nextfh;
+  u32 spec;
+  u32 size;
+  u32 checksum;
+  char fn_name[0];
+}RomfsINode_;
+
 static inline u32 get_next_16_boundary(int cur_offset)
 {
   u32 len = cur_offset;
