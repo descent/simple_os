@@ -1,14 +1,31 @@
 #include "type.h"
-#include "include/endian.h"
+#include "endian.h"
+#include "romfs.h"
+#include "vfs.h"
 
-//#include <stdio.h>
+INode *romfs_namei(SuperBlock *sb, char *dir);
+u32 romfs_get_daddr(INode *node);
 
-
-#if 0
-int main()
+SuperBlock romfs_sb =
 {
-  htobe32(0x12345678);
+  .namei = romfs_namei,
+  .get_daddr = romfs_get_daddr,
+  .fs_name = "romfs",
+};
 
-  return 0;
+int romfs_init(void)
+{
+  int ret;
+
+  ret = register_file_system(&romfs_sb, ROMFS);
+  romfs_sb.device = storage[RAMDISK];
+  return ret;
 }
-#endif
+
+INode *romfs_namei(SuperBlock *sb, char *dir)
+{
+}
+
+u32 romfs_get_daddr(INode *node)
+{
+}
