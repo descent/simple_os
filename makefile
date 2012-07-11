@@ -52,25 +52,27 @@ kernel.o: kernel.s
 	as $(ASFLAGS) -o $@ $<
 
 
-p_kernel.elf: p_kernel.o start.o process.o clock.o asm_func.o syscall.o asm_syscall.o storage.o romfs.o
+p_kernel.elf: p_kernel.o start.o process.o clock.o asm_func.o syscall.o asm_syscall.o storage.o 
 	ld $(LDFLAGS) -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
 
 p_kernel.o: p_kernel.s
 	as --32 -o $@ $<
 
-start.o: start.c io.h type.h clock.h protect.h process.h syscall.h storage.h include/romfs.h include/string.h include/type.h
+start.o: start.c io.h clock.h protect.h process.h syscall.h \
+ include/storage.h include/type.h include/romfs.h include/k_string.h \
+  include/endian.h
 	gcc $(CFLAGS) -c $<
 
 start.s: start.c type.h protect.h process.h
 	gcc $(CFLAGS) -o $@ -S $<
 
-process.o: process.c process.h type.h protect.h
+process.o: process.c process.h include/type.h protect.h
 	gcc $(CFLAGS) -c $<
 
-clock.o: clock.c clock.h type.h process.h protect.h
+clock.o: clock.c clock.h include/type.h process.h protect.h
 	gcc $(CFLAGS) -c $<
 
-storage.o: storage.c storage.h type.h
+storage.o: storage.c include/storage.h include/type.h
 	gcc $(CFLAGS) -c $<
 
 asm_func.o: asm_func.s
@@ -86,10 +88,6 @@ asm_syscall.s: asm_syscall.S syscall.h process_const.h
 
 syscall.o: syscall.c syscall.h
 	gcc $(CFLAGS) -c $<
-
-romfs.o: romfs.c type.h include/endian.h
-	gcc $(CFLAGS) -c $<
-
 
 .PHONE: clean distclean
 
