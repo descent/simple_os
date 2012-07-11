@@ -113,24 +113,30 @@ void h2c(u8 hex, u8 ch[2])
   }
 }
 
-void dump_u8(u8 *buff, u16 count)
+void dump_u8(u8 *buff, int len)
 {
   void h2c(u8 hex, u8 ch[2]);
 
   u8 *vb = (u8*)0xb8000;
+  int line=24;
 
-    for (int i=0 ; i < count ; ++i)
+    for (int i=0 ; i < len ; ++i)
     {
+      u8 c[4]="";
       //if (i%16==0)
       //  s32_print("\r\n", vb);
-      u8 c[4]="";
       u8 h=*(buff+i);
       c[3]=0;
-      c[2]=0x20;
+      c[2]=0x20; // space
       h2c(h, c);
       s32_print(c, vb);
       vb+=6;
     }
+    #if 0
+    clear_line(line);
+    s32_print("len:", (u8*)(0xb8000+160*line));
+    s32_print_int(len, (u8*)(0xb8000+160*line+12*2), 16);
+    #endif
 }
 
 // copy from 30days_os/projects/09_day/harib06b/bootpack.c
@@ -222,6 +228,7 @@ void s32_put_char(u8 ch, u8 *vb)
   *vb = ch;
 }
 
+// text mode screen 25 * 80
 void s32_print(const u8 *s, u8 *vb)
 {
   while(*s)
@@ -796,6 +803,73 @@ static InitFunc init[]={
                          0
                        };
 
+u32 print_romfs_entry(int begin_print_line, u32 offset, u8 *buf, u8 is_print)
+{
+  int line = begin_print_line;
+  u8 next_offset = offset;
+
+  RomFsHeader *rom_fs_header; 
+  rom_fs_header = (RomFsHeader*)(buf + next_offset);
+
+  if (is_print)
+  {
+  clear_line(line);
+  s32_print("nextfh: ", (u8*)(0xb8000+160*line));
+  s32_print_int(be32tole32(rom_fs_header->u.header8.nextfh), (u8*)(0xb8000+160*line + 10*2), 16);
+  ++line;
+
+  clear_line(line);
+  s32_print("spec: ", (u8*)(0xb8000+160*line));
+  s32_print_int(be32tole32(rom_fs_header->u.header8.spec), (u8*)(0xb8000+160*line + 10*2), 16);
+  ++line;
+
+  clear_line(line);
+  s32_print("size: ", (u8*)(0xb8000+160*line));
+  s32_print_int(be32tole32(rom_fs_header->size), (u8*)(0xb8000+160*line + 10*2), 16);
+  ++line;
+
+  clear_line(line);
+  s32_print("checksum: ", (u8*)(0xb8000+160*line));
+  s32_print_int(be32tole32(rom_fs_header->checksum), (u8*)(0xb8000+160*line + 10*2), 16);
+  ++line;
+  }
+  next_offset +=16; // file name offset, skip rom_fs_header
+  u32 fn_len = s_strlen(buf+next_offset);
+  //u32 fn_len = s_strlen(rom_fs_header->fn);
+
+  if (is_print)
+  {
+  clear_line(line);
+  s32_print("fn_len: ", (u8*)(0xb8000+160*line));
+  s32_print_int(fn_len, (u8*)(0xb8000+160*line + 10*2), 10);
+  ++line;
+
+  clear_line(line);
+  s32_print("fn: ", (u8*)(0xb8000+160*line));
+  s32_print(buf+next_offset, (u8*)(0xb8000+160*line+10*2));
+
+  switch (get_file_type(be32tole32(rom_fs_header->u.header8.nextfh)))
+  {
+    case HARD_LINK:
+      s32_print("hard link", (u8*)(0xb8000+160*line)+ 15*2);
+      break;
+    case DIRECTORY:
+      s32_print("dir", (u8*)(0xb8000+160*line)+ 15*2);
+      break;
+    case REGULAR_FILE:
+      s32_print("reg file", (u8*)(0xb8000+160*line)+ 15*2);
+      break;
+  }
+  ++line;
+  }
+
+  next_offset = get_next_16_boundary(next_offset + fn_len);
+  //clear_line(line);
+  //s32_print_int(next_offset, (u8*)(0xb8000+160*line), 16);
+  //return next_offset;
+  return (be32tole32(rom_fs_header->u.header8.nextfh) & 0xfffffff0);
+}
+
 void load_init_boot(InitFunc *init_func)
 {
   for (int i = 0 ; init_func[i] ; ++i)
@@ -823,8 +897,6 @@ void load_init_boot(InitFunc *init_func)
 
   s32_print_int(rom_fs_header->checksum, (u8*)(0xb8000+160*line), 16);
   u32 volume_len = s_strlen(buf+16);
-  BOCHS_MB
-  //u32 volume_len = s_strlen("abc");
 
   line=5;
   clear_line(line);
@@ -845,15 +917,53 @@ void load_init_boot(InitFunc *init_func)
   #endif
 
   
+  // romfs content: use get_next_16_boundary to get next 16 byte boundary.
+  u32 next_offset = get_next_16_boundary(volume_len+0x10); 
+  line = 7;
+  do
+  {
+    RomFsHeader *rom_fs_header; 
 
-  u32 next_offset = get_next_16_boundary(volume_len+0x10);
+    next_offset=print_romfs_entry(line, next_offset, buf, 0);
+    rom_fs_header = (RomFsHeader*)(buf + next_offset);
+    u32 fn_offset = next_offset +16; // file name offset, skip rom_fs_header
+    u32 fn_len = s_strlen(buf+fn_offset);
+
+    u32 fn_content_offset = 0;
+    u32 file_size = be32tole32(rom_fs_header->size);
+    if (file_size)
+      fn_content_offset = get_next_16_boundary(fn_offset+file_size);
+#if 0
+    clear_line(line);
+    s32_print("file size:", (u8*)(0xb8000+160*line));
+    s32_print_int(file_size, (u8*)(0xb8000+160*line+12*2), 16);
+    ++line;
+#endif
+    clear_line(line);
+    s32_print("next_offset:", (u8*)(0xb8000+160*line));
+    s32_print_int(next_offset, (u8*)(0xb8000+160*line+12*2), 16);
+    ++line;
+    if (next_offset!=0 && fn_content_offset != 0)
+    {
+    clear_line(line);
+    s32_print("fn_con_off:", (u8*)(0xb8000+160*line));
+    s32_print_int(fn_content_offset, (u8*)(0xb8000+160*line+12*2), 16);
+    ++line;
+    clear_line(0);
+    clear_line(1);
+    dump_u8(buf+fn_content_offset, file_size);
+  BOCHS_MB
+    //dump_u8(buf+fn_content_offset, 7);
+    }
+  }while(next_offset);
+
+  line = 25;
+  clear_line(line);
+  s32_print("scan romfs ok", (u8*)(0xb8000+160*line));
+#if 0
   line=7;
   clear_line(line);
   s32_print_int(next_offset, (u8*)(0xb8000+160*line), 16);
-
-  line=8;
-  clear_line(line);
-  s32_print_int(be32tole32(rom_fs_header->size), (u8*)(0xb8000+160*line), 16);
 
   rom_fs_header = (RomFsHeader*)(buf + next_offset);
 
@@ -875,8 +985,32 @@ void load_init_boot(InitFunc *init_func)
   clear_line(line);
   s32_print_int(be32tole32(rom_fs_header->checksum), (u8*)(0xb8000+160*line), 16);
 #endif
-  //s32_print_int(0x5678, (u8*)(0xb8000+160*line), 16);
-  //s32_print("line6", (u8*)(0xb8000+160*line));
+  next_offset +=16; // file name offset, skip rom_fs_header
+
+  u32 fn_len = s_strlen(buf+next_offset);
+  line = 13;
+  clear_line(line);
+  s32_print_int(fn_len, (u8*)(0xb8000+160*line), 10);
+
+  line = 14;
+  clear_line(line);
+  s32_print(buf+next_offset, (u8*)(0xb8000+160*line));
+
+  switch (get_file_type(be32tole32(rom_fs_header->u.header8.nextfh)))
+  {
+    case HARD_LINK:
+      break;
+    case DIRECTORY:
+      s32_print("dir", (u8*)(0xb8000+160*line)+ 5*2);
+      break;
+  }
+
+  next_offset = get_next_16_boundary(next_offset + fn_len);
+  line = 15;
+  clear_line(line);
+  s32_print_int(next_offset, (u8*)(0xb8000+160*line), 16);
+#endif
+
 
 
   while(1);
