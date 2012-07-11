@@ -31,4 +31,7 @@ typedef struct SuperBlock_
   char *fs_name;
 }SuperBlock;
 
+int register_file_system(SuperBlock *type, u32 id);
+int unregister_file_system(SuperBlock *type, u32 id);
+
 #endif
