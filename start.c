@@ -6,7 +6,7 @@
 #include "syscall.h"
 #include "storage.h"
 #include "romfs.h"
-#include "string.h"
+#include "k_string.h"
 #include "endian.h"
 
 #define INT_M_PORT 0x20
