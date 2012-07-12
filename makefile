@@ -3,8 +3,10 @@
 CFLAGS = -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -Iinclude
 ASFLAGS = --32
 LDFLAGS = -m elf_i386
+FS_SRC = fs/romfs.c fs/vfs.c
+FS_OBJS = fs/romfs.o fs/vfs.o
 
-all: p_kernel.elf
+all: p_kernel.elf 
 
 boot1.img: c_init.bin
 	dd if=$< of=$@ bs=512 count=1
@@ -52,7 +54,7 @@ kernel.o: kernel.s
 	as $(ASFLAGS) -o $@ $<
 
 
-p_kernel.elf: p_kernel.o start.o process.o clock.o asm_func.o syscall.o asm_syscall.o storage.o 
+p_kernel.elf: p_kernel.o start.o process.o clock.o asm_func.o syscall.o asm_syscall.o storage.o $(FS_OBJS)
 	ld $(LDFLAGS) -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
 
 p_kernel.o: p_kernel.s
@@ -88,6 +90,9 @@ asm_syscall.s: asm_syscall.S syscall.h process_const.h
 
 syscall.o: syscall.c syscall.h
 	gcc $(CFLAGS) -c $<
+
+$(FS_OBJS):$(FS_SRC)
+	(cd fs; make)
 
 .PHONE: clean distclean
 
