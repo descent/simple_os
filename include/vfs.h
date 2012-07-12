@@ -34,4 +34,5 @@ typedef struct SuperBlock_
 int register_file_system(SuperBlock *type, u32 id);
 int unregister_file_system(SuperBlock *type, u32 id);
 
+extern SuperBlock *fs_type[];
 #endif
