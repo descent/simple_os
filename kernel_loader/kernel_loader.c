@@ -27,6 +27,7 @@ __asm__(".code16gcc\n");
 #define BLOCK_SIZE  512
 #define READ_FAT_ADDR (0x3000) // original is 0x2000, but will overwrite bss (variable bpb), so change to 0x3000
 #define IMAGE_LMA   (0x4000)
+//#define IMAGE_LMA   (62464)
 //#define IMAGE_LMA   0x8000
 #define IMAGE_ENTRY 0x800c
 #define buf_addr_val (*(u8 volatile*(IMAGE_LMA)))
@@ -44,6 +45,7 @@ const u8 ramdisk_name[] =  "ROM     FS ";
 //u8 kernel_name[]   = "TEST    BIN";
 
 void asm_memcpy(u8 *dest, u8 *src, int n);
+void asm_seg_memcpy(u8 *dest, u8 *src, int n, u16 fs);
 void asm_absolute_memcpy(u8 *dest, u8 *src, int n);
 
 // BIOS parameter block
@@ -462,6 +464,13 @@ int load_file_to_ram(int begin_cluster, int fat)
         head_no = ((r_sec/18) & 1);
         sector_no = ((r_sec%18) + 1);
         buff += 0x200;
+        print_num((u16)buff, "buff");
+        BOCHS_MB
+        if ((u16)buff >= 0xfdff)
+        {
+          print("\r\nmore than 64Kb\r\n");
+          break;
+        }
         r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
 
         //print("\r\n");
