@@ -22,5 +22,7 @@ static inline int s_strcmp(const char *s1, const char *s2)
   return res;
 }
 
+void p_asm_memcpy(void *dest, void *src, u16 n);
+void p_asm_memset(void *dest, int c, u16 n);
 
 #endif
