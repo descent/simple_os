@@ -1,8 +1,8 @@
 __asm__(".code16gcc\n");
 
-#include "../type.h"
-#include "../elf.h"
-#include "string.h" // s_strlen()
+#include "type.h"
+#include "elf.h"
+#include "k_string.h" // s_strlen()
 
 //#define MORE_ERR_MSG
 
@@ -320,6 +320,7 @@ int s_strncmp(const char *s1, const char *s2, u8 n)
   return 0;
 }
 
+#if 0
 // -1: not equal
 // 0: equal
 int s_strcmp(const char *s1, const char *s2)
@@ -336,6 +337,7 @@ int s_strcmp(const char *s1, const char *s2)
     }
   return 0;
 }
+#endif
 
 #define OK 1
 #define FAIL -1
