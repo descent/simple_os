@@ -22,7 +22,8 @@ protected_code.s: protected_code.c
 kernel_loader.o: kernel_loader.s
 	as $(ASFLAGS) -o $@ $<
 #kernel_loader.s: kernel_loader.c elf.h
-kernel_loader.s: kernel_loader.c ../type.h ../elf.h ../include/string.h ../include/type.h
+kernel_loader.s: kernel_loader.c ../include/type.h ../include/elf.h ../include/k_string.h ../include/type.h
+
 	gcc $(CFLAGS) -o $@ -S $<
 protected_code.e: protected_code.c
 	gcc $(CFLAGS) -E -o $@ -S $<
