@@ -10,6 +10,8 @@
 #define SOCKET 6
 #define FIFO 7
 
+int romfs_init(void);
+
 typedef struct RomFsHeader_
 {
   union
