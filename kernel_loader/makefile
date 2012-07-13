@@ -19,19 +19,32 @@ protected_code.s: protected_code.c
 	gcc $(CFLAGS) -o $@ -S $<
 #kernel_loader.o: kernel_loader.c elf.h
 #	gcc -std=c99 $(CFLAGS) -c $<
-kernel_loader.o: kernel_loader.s
-	as $(ASFLAGS) -o $@ $<
+#kernel_loader.o: kernel_loader.s
+#	as $(ASFLAGS) -o $@ $<
 #kernel_loader.s: kernel_loader.c elf.h
-kernel_loader.s: kernel_loader.c ../include/type.h ../include/elf.h ../include/k_string.h ../include/type.h
-
-	gcc $(CFLAGS) -o $@ -S $<
+#kernel_loader.s: kernel_loader.c ../include/type.h ../include/elf.h ../include/k_string.h ../include/type.h
+#	gcc $(CFLAGS) -o $@ -S $<
 protected_code.e: protected_code.c
 	gcc $(CFLAGS) -E -o $@ -S $<
-kernel_loader.e: kernel_loader.c 
-	gcc $(CFLAGS) -E -o $@ -S $<
+#kernel_loader.e: kernel_loader.c 
+#	gcc $(CFLAGS) -E -o $@ -S $<
 
 
 .PHONE: clean 
 
 clean:
 	rm -rf *.o *.elf *.bin kernel_loader.s
+
+%.d: %.c
+	set -e; rm -f $@ ; gcc -MM $(CFLAGS) $< > $@.$$$$ ; sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@ ; rm -f $@.$$$$
+
+sources = kernel_loader.c  protected_code.c
+include $(sources:.c=.d)
+
+# ref: http://www.gnu.org/software/make/manual/make.html
+#%.d: %.c
+#@set -e; rm -f $@; \
+#$(CC) -M $(CPPFLAGS) $< > $@.$$$$; \
+#sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+#rm -f $@.$$$$
+
