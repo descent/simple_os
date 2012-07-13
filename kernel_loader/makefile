@@ -33,7 +33,7 @@ protected_code.e: protected_code.c
 .PHONE: clean 
 
 clean:
-	rm -rf *.o *.elf *.bin kernel_loader.s
+	rm -rf *.o *.elf *.bin kernel_loader.s *.d *.e
 
 %.d: %.c
 	set -e; rm -f $@ ; gcc -MM $(CFLAGS) $< > $@.$$$$ ; sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@ ; rm -f $@.$$$$
