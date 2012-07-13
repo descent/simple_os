@@ -8,6 +8,9 @@ FS_OBJS = fs/romfs.o fs/vfs.o
 
 all: p_kernel.elf 
 
+kloaderp.bin: 
+	(cd kernel_loader; make)
+
 boot1.img: c_init.bin
 	dd if=$< of=$@ bs=512 count=1
 	dd if=/dev/zero of=$@ skip=1 seek=1 bs=512 count=2879
@@ -94,9 +97,9 @@ syscall.o: syscall.c syscall.h
 $(FS_OBJS):$(FS_SRC)
 	(cd fs; make)
 
-.PHONE: clean distclean
+.PHONE: clean distclean kloaderp.bin
 
 clean:
-	rm -rf *.o *.elf *.bin 
+	rm -rf *.o *.elf *.bin ; (cd kernel_loader; make clean)
 distclean:
 	rm -rf *.img
