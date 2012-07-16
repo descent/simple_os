@@ -1,8 +1,8 @@
 #CFLAGS = -fno-stack-protector -std=c99 -march=i686 -ffreestanding -Wall -g
 #CFLAGS = -fno-stack-protector -ffreestanding -fno-builtin -g
-CFLAGS = -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -Iinclude
-ASFLAGS = --32
-LDFLAGS = -m elf_i386
+
+include rule.mk
+
 FS_SRC = fs/romfs.c fs/vfs.c
 FS_OBJS = fs/romfs.o fs/vfs.o
 
@@ -100,6 +100,6 @@ $(FS_OBJS):$(FS_SRC)
 .PHONE: clean distclean kloaderp.bin
 
 clean:
-	rm -rf *.o *.elf *.bin ; (cd kernel_loader; make clean)
+	rm -rf *.o *.elf *.bin ; #(cd kernel_loader; make clean)
 distclean:
 	rm -rf *.img

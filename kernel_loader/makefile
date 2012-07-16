@@ -1,7 +1,14 @@
 #CFLAGS = -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -O0
-CFLAGS = -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -I../include
-ASFLAGS = --32 -g
-LDFLAGS = -m elf_i386
+#CFLAGS = -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -I../include
+#ASFLAGS = --32 -g
+#LDFLAGS = -m elf_i386
+
+ifdef COMSPEC
+# in windows
+include ..\rule.mk
+else
+include ../rule.mk
+endif
 
 # enter protected mode kernel loader
 kloaderp.bin: kloaderp.bin.elf
