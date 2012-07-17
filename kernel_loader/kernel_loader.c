@@ -187,7 +187,8 @@ void print_num(int n, u8 *sy)
 
 
 
-void dump_u8(u8 *buff, u16 count)
+//void dump_u8(u8 *buff, u16 count)
+void dump_u8(u8 *buff, int count)
 {
   void h2c(u8 hex, u8 ch[2]);
 
