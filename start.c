@@ -798,9 +798,17 @@ static InitFunc init[]={
 			 init_idt_by_c,
 			 init_tss,
 			 init_timer,
+                         ramdisk_driver_init,
                          0
                        };
 
+
+void test_vga(void)
+{
+  void switch_vga_mode(void);
+
+  switch_vga_mode();
+}
 
 void test_romfs(void)
 {
@@ -811,6 +819,8 @@ void test_romfs(void)
   //fs_type[ROMFS]->device->dout(fs_type[ROMFS]->device, buf, fs_type[ROMFS]->get_daddr(inode), inode->dsize);
 
   romfs_init();
+  s32_print("romfs init", (u8*)(0xb8000+160*24));
+  while(1);
   inode = fs_type[ROMFS]->namei(fs_type[ROMFS], "t1"); // get super block infomation
 
   clear_line(24);
@@ -883,12 +893,12 @@ void load_init_boot(InitFunc *init_func)
   {
     init_func[i]();
   }
-  ramdisk_driver_init();
   u8 buf[512];
   storage[RAMDISK]->dout(storage[RAMDISK], buf, 0, sizeof(buf));
   dump_u8(buf, 32);
 
   test_romfs();
+  //test_vga();
 
   while(1);
 
