@@ -1,6 +1,6 @@
 write simple os.
 
-boot loader loaded the kernel loader to 0x9000:0x0100.
+boot loader loaded the kernel loader (kernel_loader/kloaderp.bin) to 0x9000:0x0100.
 
 in kernel loader, init c runtime, then use c code (16 bit) read kerenl (elf) to memory, 
 and copy the the kernel.elf follow the elf header information (Program Headers:
@@ -13,3 +13,4 @@ kernel load address depends k.ld (. = 0x5000), current is 0x5000,
 p_kernel.elf entry pointer is 0x5000.
 
 ramdisk is loaded by kloaderp.bin to 0x9000:0x4000.
+ramdisk filesystem is romfs.
