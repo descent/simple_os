@@ -1,5 +1,5 @@
 #include "draw_func.h"
-#include "../type.h"
+#include "type.h"
 
 void draw_box()
 {
