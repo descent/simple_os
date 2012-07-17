@@ -32,7 +32,18 @@ __asm__(".code16gcc\n");
 #define IMAGE_ENTRY 0x800c
 #define buf_addr_val (*(u8 volatile*(IMAGE_LMA)))
 
-#define BOCHS_MB __asm__ __volatile__("xchg %bx, %bx");
+//#define BOCHS_MB __asm__ __volatile__("xchg %bx, %bx");
+
+void dump_reg(void)
+{
+  u16 reg_v=0;
+  __asm__ __volatile__
+  (
+    "mov %%dx, %%ax\n"
+    : "=a"(reg_v)// output
+  );
+  NAME_VALUE(reg_v)
+}
 
 /* XXX these must be at top */
 
