@@ -121,9 +121,9 @@ _start:
 csinit:
   xchg %bx, %bx #bochs magic break point
 
-  call switch_vga_mode
-  jmp .
+  #call switch_vga_mode
   call plat_boot
+  jmp .
   #call asm_init_8259a
 #  call init_8259a
 #  call init_idt_by_c
