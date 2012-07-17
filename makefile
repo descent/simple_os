@@ -57,7 +57,7 @@ kernel.o: kernel.s
 	as $(ASFLAGS) -o $@ $<
 
 
-p_kernel.elf: p_kernel.o start.o process.o clock.o asm_func.o syscall.o asm_syscall.o storage.o $(FS_OBJS)
+p_kernel.elf: p_kernel.o start.o process.o clock.o asm_func.o syscall.o asm_syscall.o storage.o $(FS_OBJS) vga/set_mode_p.o vga/draw_func.o
 	ld $(LDFLAGS) -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
 
 p_kernel.o: p_kernel.s
@@ -96,6 +96,11 @@ syscall.o: syscall.c syscall.h
 
 $(FS_OBJS):$(FS_SRC)
 	(cd fs; make)
+vga/set_mode_p.o: vga/set_mode_p.S
+	(cd vga; make set_mode_p.o)
+
+vga/draw_func.o: vga/draw_func.c
+	(cd vga; make draw_func.o)
 
 .PHONE: clean distclean kloaderp.bin
 

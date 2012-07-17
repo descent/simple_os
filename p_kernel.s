@@ -119,6 +119,10 @@ _start:
 
   jmp csinit
 csinit:
+  xchg %bx, %bx #bochs magic break point
+
+  call switch_vga_mode
+  jmp .
   call plat_boot
   #call asm_init_8259a
 #  call init_8259a
