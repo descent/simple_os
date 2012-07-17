@@ -1,6 +1,13 @@
 #ifndef K_STDIO_H
 #define K_STDIO_H
 
+// for kernel_loader.c
+// prefix s16 means Simple 16 bit code
+void s16_print_int(int i, int radix);
+void print(const char   *s);
+
+// =========================
+// for p_kernel.elf
 void s32_print_int(int i, u8 *vb, int radix);
 void s32_print(const u8 *s, u8 *vb);
 void clear_line(u8 line_no);
