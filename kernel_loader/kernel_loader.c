@@ -3,6 +3,7 @@ __asm__(".code16gcc\n");
 #include "type.h"
 #include "elf.h"
 #include "k_string.h" // s_strlen()
+#include "k_stdio.h"
 
 //#define MORE_ERR_MSG
 
