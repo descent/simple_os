@@ -6,3 +6,5 @@ cb.c  - c bootloader example and test real mode c pointer.
 bh.asm - nasm bootloader code
 bh.s - gas bootloader code
 
+The directory programs are for presentation of MOSUT 
+(http://code.google.com/p/mosut/ - 作業系統之前的程式 & x86 保護模式 /).
