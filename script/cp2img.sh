@@ -2,7 +2,7 @@
 # copy needed files to floppy image.
 
 #make c_init_by_boot_loader.bin
-#make kloaderp.bin
+make kloaderp.bin
 make p_kernel.elf
 sudo  mount -o loop boot.img /mnt/
 sudo  cp kloader.bin  /mnt/loader.bin
