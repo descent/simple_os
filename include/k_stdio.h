@@ -24,6 +24,14 @@ static inline void bios_wait_key()
   __asm__ __volatile__("int $0x16\n");
 }
 
+// reset disk
+void bios_reset_disk()
+{
+  __asm__ __volatile__("mov $0, %ah\n");
+  __asm__ __volatile__("mov 0x0, %dl\n");
+  __asm__ __volatile__("int $0x13\n");
+}
+
 // bochs magic break point
 #define BOCHS_MB __asm__ __volatile__("xchg %bx, %bx");
 
