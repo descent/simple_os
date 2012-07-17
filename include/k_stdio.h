@@ -9,6 +9,14 @@ void clear();
 void dump_u8(u8 *buff, int len);
 void h2c(u8 hex, u8 ch[2]);
 
+//bios int 16-0, Wait for Keypress and Read Character
+//so all previous bios print messages may be seen
+static inline void bios_wait_key()
+{
+  __asm__ __volatile__("xor %eax,%eax\n");
+  __asm__ __volatile__("int $0x16\n");
+}
+
 // bochs magic break point
 #define BOCHS_MB __asm__ __volatile__("xchg %bx, %bx");
 
