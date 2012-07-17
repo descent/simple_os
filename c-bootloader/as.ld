@@ -1,5 +1,4 @@
-/* for cb.c */
-ENTRY(WinMain);
+ENTRY(begin);
 SECTIONS
 {
     . = 0x7C00;
@@ -19,10 +18,12 @@ SECTIONS
         *(COMMON)
         _data_end = .;
     }
+/*
     .sig : AT(0x7DFE)
     {
         SHORT(0xaa55);
     }
+*/
     /DISCARD/ :
     {
         *(.note*);

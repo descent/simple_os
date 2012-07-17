@@ -1,5 +1,4 @@
-/* for cb.c */
-ENTRY(WinMain);
+ENTRY(main);
 SECTIONS
 {
     . = 0x7C00;
