@@ -33,6 +33,8 @@ __asm__(".code16gcc\n");
 #define __PACKED    __attribute__((packed))
 #define __NORETURN  __attribute__((noreturn))
 
+#define KERNEL_ES 0x3000
+#define RAMDISK_ES 0x1000
 #define IMAGE_SIZE  8192
 #define BLOCK_SIZE  512
 #define READ_FAT_ADDR (0x3000) // original is 0x2000, but will overwrite bss (variable bpb), so change to 0x3000
@@ -456,7 +458,7 @@ u16 get_next_cluster(u16 cur_cluster)
 }
 
 // fat == 1, read fat
-int load_file_to_ram(int begin_cluster, int fat)
+int load_file_to_ram(int begin_cluster, int fat, u16 org_es, u16 es)
 {
   int r;
   int r_sec = begin_cluster - 2 + bpb.root_dir_occupy_sector + bpb.root_dir_start_sector;
@@ -471,8 +473,6 @@ int load_file_to_ram(int begin_cluster, int fat)
   int read_sector_count=1;
 
   // read the 1st sector
-  u16 org_es = asm_get_es();
-  u16 es = 0x3000;
   asm_set_es(es);
   r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
 
@@ -513,7 +513,7 @@ int load_file_to_ram(int begin_cluster, int fat)
 
   u16 buf_v = (u16)buff;
   NAME_VALUE16(buf_v);
-        bios_wait_key();
+        //bios_wait_key();
 
         //print("\r\n");
         cur_cluster = next_cluster;
@@ -526,7 +526,7 @@ int load_file_to_ram(int begin_cluster, int fat)
     //r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
   }
   NAME_VALUE16(es);
-  while(1);
+  asm_set_es(org_es);
 }
 
 
@@ -722,7 +722,19 @@ void start_c()
   print("\r\nload kernel: ");
   print(kernel_name);
   // load kernel
-  load_file_to_ram(first_kernel_cluster, (file_size> 512) ? 1: 0);
+  u16 org_es = asm_get_es();
+  u16 es = KERNEL_ES;
+  load_file_to_ram(first_kernel_cluster, (file_size> 512) ? 1: 0, org_es, es);
+
+  // load ramdisk
+  print("\r\nload ramdisk:");
+  print(ramdisk_name);
+  org_es = asm_get_es();
+  es = RAMDISK_ES;
+  load_file_to_ram(first_ramdisk_cluster, (file_size> 512) ? 1: 0, org_es, es);
+  dump_u8((u8 *)IMAGE_LMA, 32);
+
+  while(1);
 
   // copy kernel to proper position by elf information
 
@@ -751,11 +763,6 @@ void start_c()
   }
 
 
-  // load ramdisk
-  print("\r\nload ramdisk:");
-  print(ramdisk_name);
-  load_file_to_ram(first_ramdisk_cluster, (file_size> 512) ? 1: 0);
-  dump_u8((u8 *)IMAGE_LMA, 32);
 
     //while(1);
     //volatile void*   e = (void*)IMAGE_ENTRY;
