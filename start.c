@@ -648,7 +648,6 @@ void test_romfs(void)
 
   romfs_init();
   s32_print("romfs init xx", (u8*)(0xb8000+160*24));
-  while(1);
   inode = fs_type[ROMFS]->namei(fs_type[ROMFS], "t1"); // get super block infomation
 
   clear_line(24);
@@ -657,7 +656,7 @@ void test_romfs(void)
   #if 1
   clear_line(0);
   fs_type[ROMFS]->device->dout(fs_type[ROMFS]->device, buf, fs_type[ROMFS]->get_daddr(inode), inode->dsize);
-  dump_u8(buf, inode->dsize);
+  p_dump_u8(buf, inode->dsize);
   #endif
 
 
