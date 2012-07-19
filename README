@@ -2,15 +2,30 @@ write simple os.
 
 boot loader loaded the kernel loader (kernel_loader/kloaderp.bin) to 0x9000:0x0100.
 
-in kernel loader, init c runtime, then use c code (16 bit) read kerenl (elf) to memory, 
-and copy the the kernel.elf follow the elf header information (Program Headers:
-).
-enter protected mode, call c code (32 bit) jump to the kernel address (elf entry point address).
+in kernel loader, init c runtime, then use c code (16 bit) read kerenl (elf) to memory (by bios 0x13), 
+then enter protected mode.
 
-kloaderp.bin load p_kernel.elf to 0x9000:0x4000, than copy p_kernel.elf by elf 
+in protected mode, copy the the p_kernel.elf (c code, in the state, only can use stack variable)
+follow the elf header information (Program Headers:).
+then jump to the kernel address (elf entry point address).
+
+kloaderp.bin load p_kernel.elf to 
+
+#define KERNEL_ES 0x3000
+#define LOAD_KERNEL_OFFSET (0x0)
+
+0x3000:0x0 (can more than 64k)
+
+than copy p_kernel.elf by elf 
 information to absolute address 0x5000.
 kernel load address depends k.ld (. = 0x5000), current is 0x5000,
 p_kernel.elf entry pointer is 0x5000.
 
-ramdisk is loaded by kloaderp.bin to 0x9000:0x4000.
+ramdisk is loaded by kloaderp.bin to 
+
+#define RAMDISK_ES 0x1000
+#define LOAD_KERNEL_OFFSET (0x0)
+
+0x1000:0x0
+
 ramdisk filesystem is romfs.
