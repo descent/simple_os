@@ -4,8 +4,9 @@ __asm__(".code16gcc\n");
 #include "elf.h"
 #include "k_string.h" // s_strlen()
 #include "k_stdio.h"
+#include "k_stdlib.h"
 
-//#define MORE_ERR_MSG
+#define MORE_ERR_MSG
 
 #define NAME_VALUE(name) \
 { \
@@ -13,6 +14,14 @@ __asm__(".code16gcc\n");
   print(#name); \
   print(": "); \
   s16_print_int(name, 10); \
+}
+
+#define NAME_VALUE16(name) \
+{ \
+  print("\r\n"); \
+  print(#name); \
+  print(": "); \
+  s16_print_int(name, 16); \
 }
 
 // read fat floppy disk
@@ -28,7 +37,7 @@ __asm__(".code16gcc\n");
 #define BLOCK_SIZE  512
 #define READ_FAT_ADDR (0x3000) // original is 0x2000, but will overwrite bss (variable bpb), so change to 0x3000
 #define IMAGE_LMA   (0x4000)
-//#define IMAGE_LMA   (62464)
+#define LOAD_KERNEL_OFFSET (0x0)
 //#define IMAGE_LMA   0x8000
 #define IMAGE_ENTRY 0x800c
 #define buf_addr_val (*(u8 volatile*(IMAGE_LMA)))
@@ -417,7 +426,11 @@ u16 get_next_cluster(u16 cur_cluster)
 
   //NAME_VALUE(offset)
 
+  u16 org_es = asm_get_es();
+  u16 es = 0x9000;
+  asm_set_es(es);
   read_fat(fat_buf, read_fat_sector_no); // FAT occupies 9 sections, sector no 1 ~ 10
+  asm_set_es(org_es);
 
 #ifdef DEBUG_INFO
   dump_u8(fat_buf+offset, 3);
@@ -447,7 +460,7 @@ int load_file_to_ram(int begin_cluster, int fat)
 {
   int r;
   int r_sec = begin_cluster - 2 + bpb.root_dir_occupy_sector + bpb.root_dir_start_sector;
-  volatile u8 *buff = (u8*)IMAGE_LMA;
+  volatile u8 *buff = (u8*)LOAD_KERNEL_OFFSET;
 
   print_num(begin_cluster, "begin_cluster");
   print_num(r_sec, "cluster sector no");
@@ -455,8 +468,12 @@ int load_file_to_ram(int begin_cluster, int fat)
   int head_no = ((r_sec/18) & 1);
   int sector_no = ((r_sec%18) + 1);
   int disk_no = 0;
+  int read_sector_count=1;
 
   // read the 1st sector
+  u16 org_es = asm_get_es();
+  u16 es = 0x3000;
+  asm_set_es(es);
   r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
 
   if (fat) // need read FAT
@@ -468,7 +485,8 @@ int load_file_to_ram(int begin_cluster, int fat)
     {
         r_sec=next_cluster - 2 + bpb.root_dir_occupy_sector + bpb.root_dir_start_sector;
 
-#ifdef DEBUG_INFO
+//#ifdef DEBUG_INFO
+#ifdef MORE_ERR_MSG
         print_num(next_cluster, "next_cluster");
         print_num(r_sec, "r_sec");
 #endif
@@ -477,28 +495,38 @@ int load_file_to_ram(int begin_cluster, int fat)
         head_no = ((r_sec/18) & 1);
         sector_no = ((r_sec%18) + 1);
         buff += 0x200;
-        print_num((u16)buff, "buff");
-        BOCHS_MB
-        if ((u16)buff >= 0xfdff)
+        print_num((u32)buff, "buff");
+        if (read_sector_count == 65536/512)
         {
+          buff = (u8*)LOAD_KERNEL_OFFSET;
           print("\r\nmore than 64Kb\r\n");
-          break;
+          es+=0x1000;
+          asm_set_es(es);
+          read_sector_count = 0;
+        }
+        else
+        {
+          print("\r\nless than 64Kb\r\n");
         }
         r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
+        ++read_sector_count;
+
+  u16 buf_v = (u16)buff;
+  NAME_VALUE16(buf_v);
+        bios_wait_key();
 
         //print("\r\n");
         cur_cluster = next_cluster;
 	//if (i >= 2) break;
 	//++i;
     }
-
-
-    }
-    else
-    {
-      //r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
-    }
-
+  }
+  else
+  {
+    //r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
+  }
+  NAME_VALUE16(es);
+  while(1);
 }
 
 
@@ -506,14 +534,29 @@ void start_c()
 {
   int first_kernel_cluster = -1;
   int first_ramdisk_cluster = -1;
-  
+#if 0  
+  __asm__ __volatile__ ("mov $0x9000, %ax\n");
+  __asm__ __volatile__ ("mov %ax, %ds\n");
+  __asm__ __volatile__ ("mov %ax, %ss\n");
+#endif
+  //u8 str[]="stack c";
+  //print("\r\n");
+
+  static u8 str[]="begin c";
+
   print("\r\n");
-  print("start c");
-  print("\r\n");
+  print("begin c");
+#if 0
+  u16 es = asm_get_es();
+  NAME_VALUE16(es);
+  asm_set_es(0xa000);
+  es = asm_get_es();
+  NAME_VALUE16(es);
+#endif
+  //print(str);
+  //while(1);
   //const *str="zxc";
   //print_ch(*str);
-
-  //while(1);
 
 //ref: http://forum.osdev.org/viewtopic.php?f=1&t=7762
   u8 sector_no = 1; // cl, 1 - 18
@@ -549,6 +592,7 @@ void start_c()
     bpb.root_dir_occupy_sector = (bpb.root_entry_count * 32 / bpb.byte_per_sector);
 
   print_bpb(&bpb);
+  bios_wait_key();
 
   //dump_u8(buff, 48);
 #if 0
