@@ -3,6 +3,11 @@
 
 #include "type.h"
 
+// kernel loader part function
+void asm_memcpy(u8 *dest, u8 *src, int n);
+void asm_seg_memcpy(u8 *dest, u8 *src, int n, u16 fs);
+void asm_absolute_memcpy(u8 *dest, u8 *src, int n);
+
 // prefix s is simple
 static inline u32 s_strlen(const char *s)
 {
