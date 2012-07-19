@@ -722,7 +722,7 @@ void start_c()
   org_es = asm_get_es();
   es = RAMDISK_ES;
   load_file_to_ram(first_ramdisk_cluster, (file_size> 512) ? 1: 0, org_es, es);
-  dump_u8((u8 *)IMAGE_LMA, 32);
+  //dump_u8((u8 *)IMAGE_LMA, 32);
 
   void init_protected_mode();
 
