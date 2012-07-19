@@ -4,6 +4,9 @@
 
 #include "../pm.h"
 #include "../common.h"
+.equ copy_elf_code_addr, (copy_elf_code+(0x9000*16))
+.equ enter_pm_addr, (enter_pm+(0x9000*16))
+
 
 .code16
 .extern __bss_start__
@@ -12,11 +15,13 @@
 .text
 .global _start
 _start:
+  #xchg %bx, %bx
   mov %cs, %ax
+  #mov $0xa00, %ax
   mov %ax, %ds
   mov %ax, %es
   #movw $0x0, %ax
-  movw %ax, %ds
+  #movw %ax, %ds
   mov %ax, %ss
 # setup stack
   mov $0xfff0, %sp # why not setting 0xffff to %sp, in ms dos, 0xfff0 is ok, 0xffb will get core dump
@@ -233,7 +238,9 @@ init_protected_mode:
   orl $1, %eax
   movl %eax, %cr0
 
-  ljmpl $sel_flat_c, $pm_phy_addr
+  xchg %bx, %bx
+  #ljmpl $sel_flat_c, $pm_phy_addr
+  ljmpl $sel_flat_c, $enter_pm_addr
 
 #  movw     16(%ebp), %ecx   /* Counter */
 #1:
@@ -292,3 +299,13 @@ LABEL_PM_START:
 
   call test_p
 
+.code32
+enter_pm:
+  mov $0x10, %ax
+  mov %ax, %ds
+  mov %ax, %es
+  mov %ax, %fs
+  mov %ax, %ss
+  mov $top_of_stack, %esp
+
+  jmpl $sel_flat_c, $copy_elf_code_addr # call c func
