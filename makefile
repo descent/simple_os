@@ -103,7 +103,7 @@ vga/draw_func.o: vga/draw_func.c
 	(cd vga; make draw_func.o)
 
 io/k_stdio.o: io/k_stdio.c
-	(cd ../io; make)
+	(cd io; make)
 
 .PHONE: clean distclean kloaderp.bin
 
