@@ -1,4 +1,5 @@
 #include "storage.h"
+#include "kl_global.h"
 
 #define RAMDISK_SECTOR_SIZE 512
 #define RAMDISK_SECTOR_MASK (~(RAMDISK_SECTOR_SIZE-1))
@@ -16,6 +17,8 @@ int ramdisk_dout(StorageDevice *sd, void *dest, u32 addr, u32 size)
   return 0;
 }
 
+#define RAMFS_ADDR (16*RAMDISK_ES + LOAD_KERNEL_OFFSET)
+
 // c99
 StorageDevice ramdisk_sd=
 {
@@ -23,7 +26,7 @@ StorageDevice ramdisk_sd=
   .sector_size = RAMDISK_SECTOR_SIZE,
   .storage_size = 2*1024*1024,
   //.start_pos = 0x40800000,
-  .start_pos = 0x94000, // 0x9000:0x4000 loaded by kloaderp.bin
+  .start_pos = RAMFS_ADDR // loaded by kloaderp.bin
 };
 
 int ramdisk_driver_init(void)
