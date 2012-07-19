@@ -267,6 +267,39 @@ void print_bpb(BPB *bpb)
   __asm__ __volatile__("movb $0, %dl\n"); // disk no, 0 -> A disk
   #endif
 
+
+// ref: http://dc0d32.blogspot.tw/2010/06/real-mode-in-c-with-gcc-writing.html
+/* use for floppy, or as a fallback */
+typedef struct {
+        unsigned char   spt;
+        unsigned char   numh;
+}drive_params_t;
+ 
+int __REGPARM __NOINLINE get_drive_params(drive_params_t    *p, unsigned char   bios_drive){
+/*
+  ch : max track no (low 8 bit)
+  cl : max sector no (0~5), max track no (6~7)
+  dh : max head no
+  dl : disk number
+ */
+        unsigned short  failed = 0;
+        unsigned short  tmp1, tmp2;
+        __asm__ __volatile__
+            (
+             "movw  $0, %0\n"
+             "int   $0x13\n"
+             "setcb %0\n"
+             : "=m"(failed), "=c"(tmp1), "=d"(tmp2)
+             : "a"(0x0800), "d"(bios_drive), "D"(0)
+             : "cc", "bx"
+            );
+        if(failed)
+                return failed;
+        p->spt = tmp1 & 0x3F; // max track no
+        p->numh = tmp2 >> 8;
+        return failed;
+}
+
 // return 0: ok
 // not 0: fail
 // if using the function read floppy fail, suggest reset floppy disk,
@@ -533,6 +566,14 @@ void start_c()
   //print("\r\n");
 
   static u8 str[]="begin c";
+
+  drive_params_t dp;
+  get_drive_params(&dp, 0);
+  NAME_VALUE(dp.spt);
+  NAME_VALUE(dp.numh);
+  bios_wait_key();
+  
+
 
   print("\r\n");
   print("begin c");
