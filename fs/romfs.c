@@ -177,7 +177,7 @@ INode *romfs_namei(SuperBlock *sb, char *dir)
     ++line;
     clear_line(0);
     clear_line(1);
-    dump_u8(buf+fn_content_offset, file_size);
+    p_dump_u8(buf+fn_content_offset, file_size);
   BOCHS_MB
     //dump_u8(buf+fn_content_offset, 7);
     }
