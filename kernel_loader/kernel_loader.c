@@ -1,10 +1,10 @@
 __asm__(".code16gcc\n");
 
 #include "type.h"
-#include "elf.h"
 #include "k_string.h" // s_strlen()
 #include "k_stdio.h"
 #include "k_stdlib.h"
+#include "kl_global.h"
 
 #define MORE_ERR_MSG
 
@@ -33,16 +33,6 @@ __asm__(".code16gcc\n");
 #define __PACKED    __attribute__((packed))
 #define __NORETURN  __attribute__((noreturn))
 
-#define KERNEL_ES 0x3000
-#define RAMDISK_ES 0x1000
-#define IMAGE_SIZE  8192
-#define BLOCK_SIZE  512
-#define READ_FAT_ADDR (0x3000) // original is 0x2000, but will overwrite bss (variable bpb), so change to 0x3000
-#define IMAGE_LMA   (0x4000)
-#define LOAD_KERNEL_OFFSET (0x0)
-//#define IMAGE_LMA   0x8000
-#define IMAGE_ENTRY 0x800c
-#define buf_addr_val (*(u8 volatile*(IMAGE_LMA)))
 
 //#define BOCHS_MB __asm__ __volatile__("xchg %bx, %bx");
 
@@ -734,33 +724,10 @@ void start_c()
   load_file_to_ram(first_ramdisk_cluster, (file_size> 512) ? 1: 0, org_es, es);
   dump_u8((u8 *)IMAGE_LMA, 32);
 
-  while(1);
+  void init_protected_mode();
 
-  // copy kernel to proper position by elf information
+  init_protected_mode();
 
-  asm_memcpy((u8*)0x100, (u8 *)IMAGE_LMA, 512*3);
-
-  buff = (u8*)IMAGE_LMA;
-  Elf32Ehdr *elf_header = (Elf32Ehdr*)buff;
-  Elf32Phdr *elf_pheader = (Elf32Phdr*)((u8 *)buff + elf_header->e_phoff);
-
-  print("\r\nelf_header->e_entry: ");
-  s16_print_int(elf_header->e_entry, 10);
-
-  print("\r\nelf_header->e_phnum: ");
-  s16_print_int(elf_header->e_phnum, 10);
-
-  for (int i=0 ; i < elf_header->e_phnum; ++i)
-  {
-    if (CHECK_PT_TYPE_LOAD(elf_pheader))
-    {
-      print_num(elf_pheader->p_vaddr, "elf_pheader->p_vaddr");
-      print_num(elf_pheader->p_offset, "elf_pheader->p_offset");
-      print_num(elf_pheader->p_filesz, "elf_pheader->p_filesz");
-      asm_absolute_memcpy((u8*)elf_pheader->p_vaddr, buff+(elf_pheader->p_offset), elf_pheader->p_filesz);
-    }
-    ++elf_pheader;
-  }
 
 
 
@@ -768,11 +735,8 @@ void start_c()
     //volatile void*   e = (void*)IMAGE_ENTRY;
     // copy 0x7000:0x100
 
-  void init_protected_mode();
 
-  init_protected_mode();
-
-  #if 1
+  #if 0
   u8 seg=0;
   __asm__ __volatile__ ("jmp *%0\n"
                           :
