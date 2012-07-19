@@ -11,10 +11,7 @@ then jump to the kernel address (elf entry point address).
 
 kloaderp.bin load p_kernel.elf to 
 
-#define KERNEL_ES 0x3000
-#define LOAD_KERNEL_OFFSET (0x0)
-
-0x3000:0x0 (can more than 64k)
+KERNEL_ES:LOAD_KERNEL_OFFSET (can more than 64k)
 
 than copy p_kernel.elf by elf 
 information to absolute address 0x5000.
@@ -23,9 +20,11 @@ p_kernel.elf entry pointer is 0x5000.
 
 ramdisk is loaded by kloaderp.bin to 
 
-#define RAMDISK_ES 0x1000
-#define LOAD_KERNEL_OFFSET (0x0)
-
-0x1000:0x0
+RAMDISK_ES:LOAD_KERNEL_OFFSET
 
 ramdisk filesystem is romfs.
+
+note:
+KERNEL_ES:LOAD_KERNEL_OFFSET
+RAMDISK_ES:LOAD_KERNEL_OFFSET
+see include/kl_global.h
