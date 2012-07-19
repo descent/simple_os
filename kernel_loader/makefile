@@ -14,7 +14,7 @@ endif
 kloaderp.bin: kloaderp.bin.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
 
-kloaderp.bin.elf: kloader_init.o kernel_loader.o protected_code.o
+kloaderp.bin.elf: kloader_init.o kernel_loader.o protected_code.o ../io/k_stdio.o
 	ld $(LDFLAGS) -nostdlib -g -o $@ -Tklp.ld $^
 
 kloader_init.o: kloader_init.S
@@ -36,6 +36,10 @@ protected_code.e: protected_code.c
 #kernel_loader.e: kernel_loader.c 
 #	gcc $(CFLAGS) -E -o $@ -S $<
 
+../io/k_stdio.o: ../io/k_stdio.c
+	(cd ../io; make)
+
+
 
 .PHONE: clean 
 
@@ -47,6 +51,7 @@ clean:
 
 sources = kernel_loader.c  protected_code.c
 include $(sources:.c=.d)
+
 
 # ref: http://www.gnu.org/software/make/manual/make.html
 #%.d: %.c
