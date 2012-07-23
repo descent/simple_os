@@ -568,13 +568,14 @@ void start_c()
 
   static u8 str[]="begin c";
 
+  BOCHS_MB
+  u16 org_es = asm_get_es();
   drive_params_t dp;
   get_drive_params(&dp, 0);
   NAME_VALUE(dp.spt);
   NAME_VALUE(dp.numh);
+  asm_set_es(org_es);
   bios_wait_key();
-  
-
 
   print("\r\n");
   print("begin c");
@@ -754,7 +755,7 @@ void start_c()
   print("\r\nload kernel: ");
   print(kernel_name);
   // load kernel
-  u16 org_es = asm_get_es();
+  org_es = asm_get_es();
   u16 es = KERNEL_ES;
   load_file_to_ram(first_kernel_cluster, (file_size> 512) ? 1: 0, org_es, es);
 
