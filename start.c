@@ -600,7 +600,7 @@ void kernel_main(void)
   void setup_paging(void);
   //setup_paging();
  
-  while(1);
+  //while(1);
   put_irq_handler(CLOCK_IRQ, clock_handler);
   enable_irq(CLOCK_IRQ);
 
@@ -724,10 +724,8 @@ void load_init_boot(InitFunc *init_func)
   storage[RAMDISK]->dout(storage[RAMDISK], buf, 0, sizeof(buf));
   p_dump_u8(buf, 32);
 
-  test_romfs();
+  //test_romfs();
   //test_vga();
-
-  while(1);
 
 }
 

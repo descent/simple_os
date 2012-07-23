@@ -123,7 +123,7 @@ csinit:
 
   #call switch_vga_mode
   call plat_boot
-  jmp .
+#  jmp .
   #call asm_init_8259a
 #  call init_8259a
 #  call init_idt_by_c
