@@ -12,7 +12,7 @@ void loop_delay(int time);
 
 int sys_get_ticks(void)
 {
-  extern u8 ticks;
+  extern u32 ticks;
 
 #if 0
   static int p=0;

@@ -10,7 +10,7 @@ void loop_delay(int time);
 extern int k_reenter;
 extern u8 *cur_vb;
 
-u8 ticks;
+u32 ticks;
 
 void clock_handler(int irq)
 {
