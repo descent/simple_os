@@ -6,7 +6,7 @@ __asm__(".code16gcc\n");
 #include "k_stdlib.h"
 #include "kl_global.h"
 
-#define MORE_ERR_MSG
+//#define MORE_ERR_MSG
 
 #define NAME_VALUE(name) \
 { \
@@ -519,24 +519,32 @@ int load_file_to_ram(int begin_cluster, int fat, u16 org_es, u16 es)
         head_no = ((r_sec/18) & 1);
         sector_no = ((r_sec%18) + 1);
         buff += 0x200;
+#ifdef MORE_ERR_MSG
         print_num((u32)buff, "buff");
+#endif
         if (read_sector_count == 65536/512)
         {
           buff = (u8*)LOAD_KERNEL_OFFSET;
+#ifdef MORE_ERR_MSG
           print("\r\nmore than 64Kb\r\n");
+#endif
           es+=0x1000;
           asm_set_es(es);
           read_sector_count = 0;
         }
         else
         {
+#ifdef MORE_ERR_MSG
           print("\r\nless than 64Kb\r\n");
+#endif
         }
         r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
         ++read_sector_count;
 
+#ifdef MORE_ERR_MSG
   u16 buf_v = (u16)buff;
   NAME_VALUE16(buf_v);
+#endif
         //bios_wait_key();
 
         //print("\r\n");
