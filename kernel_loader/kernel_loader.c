@@ -499,6 +499,7 @@ int load_file_to_ram(int begin_cluster, int fat, u16 org_es, u16 es)
   // read the 1st sector
   asm_set_es(es);
   r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
+  print("\r\n.");
 
   if (fat) // need read FAT
   {
@@ -539,6 +540,7 @@ int load_file_to_ram(int begin_cluster, int fat, u16 org_es, u16 es)
 #endif
         }
         r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
+        print(".");
         ++read_sector_count;
 
 #ifdef MORE_ERR_MSG
@@ -576,14 +578,13 @@ void start_c()
 
   static u8 str[]="begin c";
 
-  BOCHS_MB
   u16 org_es = asm_get_es();
   drive_params_t dp;
   get_drive_params(&dp, 0);
   NAME_VALUE(dp.spt);
   NAME_VALUE(dp.numh);
   asm_set_es(org_es);
-  bios_wait_key();
+  //bios_wait_key();
 
   print("\r\n");
   print("begin c");
@@ -609,7 +610,6 @@ void start_c()
   u16 root_entry_count = 0;
   u8 *buff = (u8*)IMAGE_LMA;
 
-  //BOCHS_MB
  //__asm__ __volatile__("xchg %bx, %bx");
 
 //#ifdef DOS_COM
@@ -633,7 +633,7 @@ void start_c()
     bpb.root_dir_occupy_sector = (bpb.root_entry_count * 32 / bpb.byte_per_sector);
 
   print_bpb(&bpb);
-  bios_wait_key();
+  //bios_wait_key();
 
   //dump_u8(buff, 48);
 #if 0
@@ -766,6 +766,7 @@ void start_c()
   org_es = asm_get_es();
   u16 es = KERNEL_ES;
   load_file_to_ram(first_kernel_cluster, (file_size> 512) ? 1: 0, org_es, es);
+  print("\r\n");
 
   // load ramdisk
   print("\r\nload ramdisk:");
@@ -773,6 +774,7 @@ void start_c()
   org_es = asm_get_es();
   es = RAMDISK_ES;
   load_file_to_ram(first_ramdisk_cluster, (file_size> 512) ? 1: 0, org_es, es);
+  print("\r\n");
   //dump_u8((u8 *)IMAGE_LMA, 32);
 
   void init_protected_mode();
