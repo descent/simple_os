@@ -281,6 +281,7 @@ int __REGPARM __NOINLINE get_drive_params(drive_params_t    *p, unsigned char   
   cl : max sector no (0~5), max track no (6~7)
   dh : max head no
   dl : disk number
+  es:di  : point to params list
  */
         unsigned short  failed = 0;
         unsigned short  tmp1, tmp2;
