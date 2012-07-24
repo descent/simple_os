@@ -21,9 +21,7 @@
 #define INT_M_CTLMASK 0x21
 #define INT_S_CTLMASK 0xa1
 
-#define NR_IRQ 16
 
-#define CLOCK_IRQ 0
 
 #define TIMER_MODE 0x43
 #define RATE_GENERATOR 0x34 // 00110100

@@ -1,6 +1,11 @@
 #ifndef IRQ_H
 #define IRQ_H
 
+#define CLOCK_IRQ 0
+#define KEYBOARD_IRQ 1
+
+#define NR_IRQ 16
+
 typedef void (*IntHandler)();
 typedef void (*IrqHandler)();
 
