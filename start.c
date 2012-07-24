@@ -601,10 +601,10 @@ void kernel_main(void)
   void setup_paging(void);
   //setup_paging();
  
-  //while(1);
+#if 0
   put_irq_handler(CLOCK_IRQ, clock_handler);
   enable_irq(CLOCK_IRQ);
-
+#endif
   ready_process = proc_table;
 
 
