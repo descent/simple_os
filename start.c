@@ -7,10 +7,12 @@
 #include "storage.h"
 #include "romfs.h"
 #include "k_string.h"
+#include "k_stdlib.h"
 #include "k_stdio.h"
 #include "endian.h"
 #include "vfs.h"
 #include "keyboard.h"
+#include "irq.h"
 
 #define INT_M_PORT 0x20
 #define INT_S_PORT 0xa0
@@ -19,9 +21,7 @@
 #define INT_M_CTLMASK 0x21
 #define INT_S_CTLMASK 0xa1
 
-#define NR_IRQ 16
 
-#define CLOCK_IRQ 0
 
 #define TIMER_MODE 0x43
 #define RATE_GENERATOR 0x34 // 00110100
@@ -32,8 +32,6 @@
 int get_ticks(void);
 void s32_print(const u8 *s, u8 *vb);
 
-int disable_irq(int irq_no);
-int enable_irq(int irq_no);
 
 //void __attribute__((aligned(16))) function() { }
 
@@ -507,11 +505,6 @@ void init_8259a()
 
 }
 
-void put_irq_handler(int irq, IrqHandler handler)
-{
-  disable_irq(irq);
-  irq_table[irq] = handler;
-}
 
 
 void init_tss(void)
