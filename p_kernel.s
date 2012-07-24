@@ -520,7 +520,9 @@ save:
 
 .align 16
 hwint01:
-  HW_INT_MASTER $1
+  #HW_INT_MASTER $1
+  xchg %bx, %bx #bochs magic break point
+  HWINT_MASTER 1
 .align 16
 hwint02:
   HW_INT_MASTER $2
