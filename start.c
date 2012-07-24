@@ -10,6 +10,7 @@
 #include "k_stdio.h"
 #include "endian.h"
 #include "vfs.h"
+#include "keyboard.h"
 
 #define INT_M_PORT 0x20
 #define INT_S_PORT 0xa0
@@ -613,13 +614,17 @@ void kernel_main(void)
   cur_vb = (u8*)0xb8000+160;
 
   void restart(void);
-  restart();
+  restart(); // need run restart(), because restart() iret will enable interrupt
+#if 0
   s32_print("xxxxxxxxxxx", (u8*)(0xb8000+160*15));
+#endif
   while(1);
 
 }
 
 typedef void (*InitFunc)(void);
+
+
 
 static InitFunc init[]={
                          init_8259a,
@@ -627,6 +632,7 @@ static InitFunc init[]={
 			 init_tss,
 			 init_timer,
                          ramdisk_driver_init,
+                         init_keyboard,
                          0
                        };
 
