@@ -57,28 +57,28 @@ kernel.o: kernel.s
 	as $(ASFLAGS) -o $@ $<
 
 
-p_kernel.elf: p_kernel.o io/k_stdio.o start.o process.o clock.o asm_func.o syscall.o asm_syscall.o storage.o $(FS_OBJS) vga/set_mode_p.o vga/draw_func.o
+p_kernel.elf: p_kernel.o io/k_stdio.o asm_func.o asm_syscall.o $(FS_OBJS) vga/set_mode_p.o vga/draw_func.o tty/keyboard.o clock.o start.o process.o storage.o syscall.o
 	ld $(LDFLAGS) -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
 
 p_kernel.o: p_kernel.s
 	as --32 -o $@ $<
 
-start.o: start.c io.h clock.h protect.h process.h syscall.h \
- include/storage.h include/type.h include/romfs.h include/k_string.h \
-  include/endian.h
-	gcc $(CFLAGS) -c $<
+#start.o: start.c io.h clock.h protect.h process.h syscall.h \
+# include/storage.h include/type.h include/romfs.h include/k_string.h \
+#  include/endian.h
+#	gcc $(CFLAGS) -c $<
 
 start.s: start.c type.h protect.h process.h
 	gcc $(CFLAGS) -o $@ -S $<
 
-process.o: process.c process.h include/type.h protect.h
-	gcc $(CFLAGS) -c $<
-
-clock.o: clock.c clock.h include/type.h process.h protect.h
-	gcc $(CFLAGS) -c $<
-
-storage.o: storage.c include/storage.h include/type.h
-	gcc $(CFLAGS) -c $<
+#process.o: process.c process.h include/type.h protect.h
+#	gcc $(CFLAGS) -c $<
+#
+#clock.o: clock.c clock.h include/type.h process.h protect.h
+#	gcc $(CFLAGS) -c $<
+#
+#storage.o: storage.c include/storage.h include/type.h
+#	gcc $(CFLAGS) -c $<
 
 asm_func.o: asm_func.s
 	as --32 -o $@ $<
@@ -91,8 +91,8 @@ asm_syscall.o: asm_syscall.s
 asm_syscall.s: asm_syscall.S syscall.h process_const.h
 	gcc $(CFLAGS) -o $@ -E $<
 
-syscall.o: syscall.c syscall.h
-	gcc $(CFLAGS) -c $<
+#syscall.o: syscall.c syscall.h
+#	gcc $(CFLAGS) -c $<
 
 $(FS_OBJS):$(FS_SRC)
 	(cd fs; make)
@@ -104,6 +104,16 @@ vga/draw_func.o: vga/draw_func.c
 
 io/k_stdio.o: io/k_stdio.c
 	(cd io; make)
+
+sources = clock.c start.c process.c storage.c syscall.c
+include $(sources:.c=.d)
+#C_OBJS = $(sources:.c=.o)
+C_OBJS = clock.o start.o process.o storage.o syscall.o
+
+#o:
+#	echo $(C_OBJS)
+
+
 
 .PHONE: clean distclean kloaderp.bin
 
