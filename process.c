@@ -32,7 +32,7 @@ u8 get_privilege(void)
 
 void proc_a(void)
 {
-#if 0
+#if 1
   u16 l=10;
   u8 stack_str[10]="y";
   u8 *sp = stack_str;
@@ -57,7 +57,7 @@ void proc_a(void)
     l = ((l%10) + 10);
     loop_delay(10);
   }
-#endif
+#else
 
   int i = 0;
   
@@ -75,6 +75,7 @@ void proc_a(void)
     //loop_delay(100);
     milli_delay(1000);
   }
+#endif
 
 }
 
