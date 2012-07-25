@@ -14,6 +14,15 @@ extern IrqHandler irq_table[];
 int disable_irq(int irq_no);
 int enable_irq(int irq_no);
 
+static inline void disable_int(void)
+{
+  __asm__ __volatile__("cli\t\n");
+}
+
+static inline void enable_int(void)
+{
+  __asm__ __volatile__("sti\t\n");
+}
 
 static inline void put_irq_handler(int irq, IrqHandler handler)
 {
