@@ -57,7 +57,7 @@ kernel.o: kernel.s
 	as $(ASFLAGS) -o $@ $<
 
 
-p_kernel.elf: p_kernel.o io/k_stdio.o asm_func.o asm_syscall.o $(FS_OBJS) vga/set_mode_p.o vga/draw_func.o tty/keyboard.o clock.o start.o process.o storage.o syscall.o
+p_kernel.elf: p_kernel.o io/k_stdio.o asm_func.o asm_syscall.o $(FS_OBJS) vga/set_mode_p.o vga/draw_func.o tty/keyboard.o tty/console.o clock.o start.o process.o storage.o syscall.o
 	ld $(LDFLAGS) -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
 
 p_kernel.o: p_kernel.s
@@ -104,7 +104,10 @@ vga/draw_func.o: vga/draw_func.c
 
 io/k_stdio.o: io/k_stdio.c
 	(cd io; make)
-
+tty/keyboard.o: tty/keyboard.c
+	(cd tty; make keyboard.o)
+tty/console.o: tty/console.c
+	(cd tty; make console.o)
 sources = clock.c start.c process.c storage.c syscall.c
 include $(sources:.c=.d)
 #C_OBJS = $(sources:.c=.o)
