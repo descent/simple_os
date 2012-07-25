@@ -538,9 +538,23 @@ void spurious_irq(int irq)
 // when HZ is 100 (10 ms), milli_sec needs more than 10
 void milli_delay(int milli_sec)
 {
-  int t = get_ticks();
+  u32 t = get_ticks();
+  u32 t2;
 
+#if 0
   while(((get_ticks() - t ) * 1000 / HZ) < milli_sec);
+#else
+  BOCHS_MB
+  while(1)
+  {
+  BOCHS_MB
+    t2 = get_ticks();
+    s32_print_int(t2, (u8*)(0xb8000+160*20), 10);
+    if (((t2 - t) * 1000/HZ ) >= milli_sec)
+      break;
+
+  }
+#endif
 }
 
 void loop_delay(int time)
