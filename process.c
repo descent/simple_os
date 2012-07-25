@@ -1,4 +1,5 @@
 #include "process.h"
+#include "keyboard.h"
 
 Process proc_table[NR_TASKS];
 u8 task_stack[STACK_SIZE_TOTAL];
@@ -40,6 +41,7 @@ void proc_a(void)
 
   while(1)
   {
+    u8 key = get_byte_from_kb_buf();
 #if 0
     __asm__ volatile ("mov $0xc,%ah\t\n");
     __asm__ volatile ("mov $'A',%al\t\n");
@@ -52,7 +54,8 @@ void proc_a(void)
     s32_print(sp, (u8*)(0xb8000+160*l));
     s32_print(proc_a_str, (u8*)(0xb8000+160*l+4*2));
     sp = s32_itoa(privilege, stack_str, 10);
-    s32_print(sp, (u8*)(0xb8000+160*l + 22*2));
+    //s32_print(sp, (u8*)(0xb8000+160*l + 22*2));
+    s32_print_int(key, (u8*)(0xb8000+160*l + 22*2+20), 16);
     ++l;
     l = ((l%10) + 10);
     loop_delay(10);
