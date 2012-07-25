@@ -1,6 +1,6 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
-void init_keyboard(void);
+int init_keyboard(void);
 
 #endif

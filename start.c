@@ -234,9 +234,9 @@ void init_protected_mode_by_c()
 #define PAGE_FAULT_NO           0xE
 #define COPROC_ERR_NO           0x10
 
-void init_idt_by_c()
+int init_idt_by_c()
 {
-  void init_8259a();
+  int init_8259a();
 
   //s32_print("init_8259a", (u8*)(0xb8000+160*5));
   //init_8259a();
@@ -338,6 +338,7 @@ void init_idt_by_c()
 
   __asm__ volatile ("lidt idt_ptr");
 
+  return 0;
 }
 
 void init_idt_desc_by_c(u8 vector_no, u8 desc_type, IntHandler handler, u8 privilege)
@@ -463,7 +464,7 @@ void startc()
 
 
 
-void init_8259a()
+int init_8259a()
 {
   void spurious_irq(int irq);
 
@@ -503,12 +504,12 @@ void init_8259a()
   {
     irq_table[i] = spurious_irq;
   }
-
+  return 0;
 }
 
 
 
-void init_tss(void)
+int init_tss(void)
 {
   p_asm_memset(&tss, 0, sizeof(tss));
   tss.ss0 = SELECTOR_KERNEL_DS;
@@ -520,7 +521,7 @@ void init_tss(void)
     init_descriptor(&gdt[INDEX_LDT_FIRST+i], linear2phy(seg2base(SELECTOR_KERNEL_DS), (u32)proc_table[i].ldt), LDT_SIZE * sizeof(Descriptor) - 1, DA_LDT);
   }
 
-  
+  return 0;  
 }
 
 void spurious_irq(int irq)
@@ -561,11 +562,12 @@ u32 memsize;
 
 
 // 8254
-void init_timer(void)
+int init_timer(void)
 {
   io_out8(TIMER_MODE, RATE_GENERATOR);
   io_out8(TIMER0, (u8)(TIMER_FREQ/HZ) );
   io_out8(TIMER0, (u8)(TIMER_FREQ/HZ) >> 8 );
+  return 0;
 }
 
 void kernel_main(void)
@@ -619,7 +621,7 @@ void kernel_main(void)
 
 }
 
-typedef void (*InitFunc)(void);
+typedef int (*InitFunc)(void);
 
 
 
