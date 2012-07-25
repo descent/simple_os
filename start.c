@@ -13,6 +13,7 @@
 #include "vfs.h"
 #include "keyboard.h"
 #include "irq.h"
+#include "console.h"
 
 #define INT_M_PORT 0x20
 #define INT_S_PORT 0xa0
@@ -603,11 +604,14 @@ void kernel_main(void)
 
 
   init_proc();
+  set_cursor(0);
+  set_video_start_addr(80);
 
   cur_vb = (u8*)0xb8000+160;
 
   void restart(void);
   restart(); // need run restart(), because restart() iret will enable interrupt
+
 #if 0
   s32_print("xxxxxxxxxxx", (u8*)(0xb8000+160*15));
 #endif
