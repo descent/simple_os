@@ -621,7 +621,7 @@ void kernel_main(void)
 
   init_proc();
   set_cursor(0);
-  set_video_start_addr(80);
+  //set_video_start_addr(80);
 
   cur_vb = (u8*)0xb8000+160;
 
