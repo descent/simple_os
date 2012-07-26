@@ -39,9 +39,12 @@ void proc_a(void)
   u8 *sp = stack_str;
   u8 privilege = get_privilege();
 
+  static int ll=0;
   while(1)
   {
-    u8 key = get_byte_from_kb_buf();
+    //u8 key = get_byte_from_kb_buf();
+    KeyStatus key_status;
+    int r=parse_scan_code(&key_status);
 #if 0
     __asm__ volatile ("mov $0xc,%ah\t\n");
     __asm__ volatile ("mov $'A',%al\t\n");
@@ -55,7 +58,35 @@ void proc_a(void)
     s32_print(proc_a_str, (u8*)(0xb8000+160*l+4*2));
     sp = s32_itoa(privilege, stack_str, 10);
     //s32_print(sp, (u8*)(0xb8000+160*l + 22*2));
-    s32_print_int(key, (u8*)(0xb8000+160*l + 22*2+20), 16);
+    if (r==0)
+    {
+      clear_line(1);
+      if (key_status.press == PRESS)
+      {
+        //s32_print_int(key_status.key, (u8*)(0xb8000+160*1 + 22*2+20), 16);
+        if (key_status.key == KEY_UP)
+        {
+          --ll;
+          if (ll <= 0 ) 
+            ll = 0 ;
+          set_video_start_addr(80*ll);
+        }
+        if (key_status.key == KEY_DOWN)
+        {
+          ++ll;
+          set_video_start_addr(80*ll);
+        }
+        s32_print("key code press: ", (u8*)(0xb8000+160*1));
+      }
+      else
+      {
+        s32_print("key code release: ", (u8*)(0xb8000+160*1));
+        //s32_print_int(key_status.key, (u8*)(0xb8000+160*2 + 22*2+20), 16);
+
+      }
+      s32_put_char(key_status.key, (u8*)(0xb8000+160*1 + 22*2+20), 16);
+      //s32_print(proc_a_str, (u8*)(0xb8000+160*l+4*2));
+    }
     ++l;
     l = ((l%10) + 10);
     loop_delay(10);
@@ -69,12 +100,13 @@ void proc_a(void)
 
   while(1)
   {
+    u8 key = get_byte_from_kb_buf();
     //int r = sys_get_ticks();
     int r = get_ticks();
     s32_print("A", cur_vb);
     //s32_print_int(i++, cur_vb, 10);
     s32_print(".", cur_vb);
-    s32_print_int(r, cur_vb, 10);
+    s32_print_int(key, cur_vb, 10);
     //loop_delay(100);
     milli_delay(1000);
   }
