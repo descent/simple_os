@@ -44,7 +44,7 @@ void proc_a(void)
   {
     //u8 key = get_byte_from_kb_buf();
     KeyStatus key_status;
-    int r=parse_scan_code(&key_status);
+    int r=parse_scan_code(&key_status, SCANCODE_MODE);
 #if 0
     __asm__ volatile ("mov $0xc,%ah\t\n");
     __asm__ volatile ("mov $'A',%al\t\n");
