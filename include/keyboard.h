@@ -16,29 +16,29 @@
 #define KEY_BACKSPACE       0x01000003       
 #define KEY_Return  0x01000004       
 #define KEY_ENTER   0x01000005      //Typically located on the keypad.
-#define KEY_Insert  0x01000006       
-#define KEY_Delete  0x01000007       
+#define KEY_INSERT  0x01000006       
+#define KEY_DELETE  0x01000007       
 #define KEY_Pause   0x01000008      //The Pause/Break key (Note: Not anything to do with pausing media)
 #define KEY_Print   0x01000009       
 #define KEY_SysReq  0x0100000a       
 #define KEY_Clear   0x0100000b       
-#define KEY_Home    0x01000010       
-#define KEY_End     0x01000011       
-#define KEY_Left    0x01000012       
+#define KEY_HOME    0x01000010       
+#define KEY_END     0x01000011       
+#define KEY_LEFT    0x01000012       
 #define KEY_UP      0x01000013       
-#define KEY_Right   0x01000014       
+#define KEY_RIGHT   0x01000014       
 #define KEY_DOWN    0x01000015       
-#define KEY_PageUp  0x01000016       
-#define KEY_PageDown        0x01000017       
+#define KEY_PAGE_UP  0x01000016       
+#define KEY_PAGE_DOWN        0x01000017       
 #define KEY_SHIFT_L   0x01000020       
 #define KEY_SHIFT_R   0x01000220       
 #define KEY_CTRL_L 0x01000021      //On Mac OS X, this corresponds to the Command keys.
 #define KEY_Meta    0x01000022      //On Mac OS X, this corresponds to the Control keys. On Windows keyboards, this key is mapped to the Windows key.
-#define KEY_Alt     0x01000023       
+#define KEY_ALT     0x01000023       
 #define KEY_AltGr   0x01001103      //On Windows, when the KeyDown event for this key is sent, the Ctrl+Alt modifiers are also set.
 #define KEY_CAPSLOCK        0x01000024       
 #define KEY_NUMLOCK 0x01000025       
-#define KEY_ScrollLock      0x01000026       
+#define KEY_SCROLL_LOCK      0x01000026       
 #define KEY_F1      0x01000030       
 #define KEY_F2      0x01000031       
 #define KEY_F3      0x01000032       
@@ -82,7 +82,14 @@
 #define Key_Help    0x01000058       
 #define Key_Direction_L     0x01000059       
 #define Key_Direction_R     0x01000060
+#define KEY_MINUS     0x01000160
+#define KEY_MID     0x01000161
+#define KEY_PLUS     0x01000162
+#define KEY_DOT     0x01000163
 
+#define SCANCODE_MODE 0
+#define KEYCODE_MODE 1
+#define ASCII_MODE 2
 
 typedef struct KeyboardBuf_
 {
@@ -103,5 +110,6 @@ typedef struct KeyStatus_
 
 int init_keyboard(void);
 u8 get_byte_from_kb_buf(void);
-int parse_scan_code(KeyStatus *key_status);
+int parse_scan_code(KeyStatus *key_status, int keyborad_mode);
+
 #endif
