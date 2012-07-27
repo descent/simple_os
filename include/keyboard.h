@@ -5,6 +5,7 @@
 
 #define KB_NUM 32
 #define NR_SCAN_CODES 0x80
+#define KEYMAP_COLS 2
 
 #define PRESS 0
 #define RELEASE 1
@@ -98,8 +99,6 @@ typedef struct KeyboardBuf_
   u32 count; // buf count, less than KB_NUM
   u8 buf[KB_NUM];
 }KeyboardBuf;
-
-extern KeyboardBuf kb_buf;
 
 typedef struct KeyStatus_
 {
