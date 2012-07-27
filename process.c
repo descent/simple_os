@@ -1,5 +1,7 @@
 #include "process.h"
 #include "keyboard.h"
+#include "console.h"
+#include "k_stdio.h"
 
 Process proc_table[NR_TASKS];
 u8 task_stack[STACK_SIZE_TOTAL];
@@ -52,40 +54,50 @@ void proc_a(void)
     __asm__ volatile ("mov %ax,%gs:((80*0+39)*2)\t\n");
 #endif
 
+#if 0
     const char* proc_a_str="proc A privilege: ";
     sp = s32_itoa(l, stack_str, 10);
     clear_line(l-1);
     s32_print(sp, (u8*)(0xb8000+160*l));
     s32_print(proc_a_str, (u8*)(0xb8000+160*l+4*2));
     sp = s32_itoa(privilege, stack_str, 10);
+#endif
     //s32_print(sp, (u8*)(0xb8000+160*l + 22*2));
     if (r==0)
     {
-      clear_line(1);
+      //clear_line(1);
       if (key_status.press == PRESS)
       {
         //s32_print_int(key_status.key, (u8*)(0xb8000+160*1 + 22*2+20), 16);
-        if (key_status.key == KEY_UP)
+        switch (key_status.key)
         {
-          --ll;
-          if (ll <= 0 ) 
-            ll = 0 ;
-          set_video_start_addr(80*ll);
+          case KEY_UP:
+            --ll;
+            if (ll <= 0 ) 
+              ll = 0 ;
+            set_video_start_addr(80*ll);
+            break;
+          case KEY_DOWN:
+            ++ll;
+            set_video_start_addr(80*ll);
+            break;
+          case KEY_ENTER:
+            s32_print_char('\r');
+            s32_print_char('\n');
+            break;
+          default:
+            s32_print_char(key_status.key);
+            break;
         }
-        if (key_status.key == KEY_DOWN)
-        {
-          ++ll;
-          set_video_start_addr(80*ll);
-        }
-        s32_print("key code press: ", (u8*)(0xb8000+160*1));
+        //s32_print("key code press: ", (u8*)(0xb8000+160*1));
       }
       else
       {
-        s32_print("key code release: ", (u8*)(0xb8000+160*1));
+        //s32_print("key code release: ", (u8*)(0xb8000+160*1));
         //s32_print_int(key_status.key, (u8*)(0xb8000+160*2 + 22*2+20), 16);
 
       }
-      s32_put_char(key_status.key, (u8*)(0xb8000+160*1 + 22*2+20), 16);
+      //s32_put_char(key_status.key, (u8*)(0xb8000+160*1 + 22*2+20), 16);
       //s32_print(proc_a_str, (u8*)(0xb8000+160*l+4*2));
     }
     ++l;
