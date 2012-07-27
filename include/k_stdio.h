@@ -51,6 +51,8 @@ static inline void bios_reset_disk()
   __asm__ __volatile__("int $0x13\n");
 }
 
+void s32_print_char(u8 ch);
+
 
 // bochs magic break point
 #define BOCHS_MB __asm__ __volatile__("xchg %bx, %bx");
