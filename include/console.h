@@ -15,6 +15,8 @@
 // char bg attribute 
 
 void s32_print_char(u8 ch);
+void s32_print_str(const u8* str);
+
 void s32_set_text_color(u8 fg, u8 bg);
 
 void set_cursor(u16 pos);
