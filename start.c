@@ -743,6 +743,7 @@ void load_init_boot(InitFunc *init_func)
   storage[RAMDISK]->dout(storage[RAMDISK], buf, 0, sizeof(buf));
   p_dump_u8(buf, 32);
 
+  romfs_init();
   //test_romfs();
   //test_vga();
 
