@@ -61,6 +61,12 @@ void s32_print_char(u8 ch)
   s32_print_int(cur_pos, (u8*)(0xb8000+160*1 + 18*2+60), 16);
 }
 
+void s32_print_str(const u8* str)
+{
+  while(*str)
+    s32_print_char(*str++);
+}
+
 void s32_set_text_color(u8 fg, u8 bg)
 {
   text_fg=fg;
