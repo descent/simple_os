@@ -65,12 +65,17 @@ void proc_a(void)
     //s32_print(sp, (u8*)(0xb8000+160*l + 22*2));
     if (r==0)
     {
+      s32_set_text_color(HRED, HRED);
+
       //clear_line(1);
       if (key_status.press == PRESS)
       {
         //s32_print_int(key_status.key, (u8*)(0xb8000+160*1 + 22*2+20), 16);
         switch (key_status.key)
         {
+          case 0x20 ... 0x7e: // ascii printable char. gnu extension: I don't want use gnu extension, but it is very convenience.
+            s32_print_char(key_status.key);
+            break;
           case KEY_UP:
             --ll;
             if (ll <= 0 ) 
@@ -86,7 +91,6 @@ void proc_a(void)
             s32_print_char('\n');
             break;
           default:
-            s32_print_char(key_status.key);
             break;
         }
         //s32_print("key code press: ", (u8*)(0xb8000+160*1));
