@@ -60,7 +60,7 @@ xchg %bx, %bx #bochs magic break point
 # from 0xa0000 address
 mov $0x10, %ax
 mov %ax, %ds
-#call draw_box
+call draw_box
 push $3
 push $0
 push $40
