@@ -2,6 +2,7 @@
 #include "keyboard.h"
 #include "console.h"
 #include "k_stdio.h"
+#include "romfs.h"
 
 Process proc_table[NR_TASKS];
 u8 task_stack[STACK_SIZE_TOTAL];
@@ -41,7 +42,11 @@ void proc_a(void)
   u8 *sp = stack_str;
   u8 privilege = get_privilege();
 
+  s32_set_text_color(HRED, HRED);
+  s32_print_str("press any key\r\n");
+
   static int ll=0;
+  static u8 readdir = 0;
   while(1)
   {
     //u8 key = get_byte_from_kb_buf();
@@ -65,7 +70,7 @@ void proc_a(void)
     //s32_print(sp, (u8*)(0xb8000+160*l + 22*2));
     if (r==0)
     {
-      s32_set_text_color(HRED, HRED);
+      s32_set_text_color(WHITE, WHITE);
 
       //clear_line(1);
       if (key_status.press == PRESS)
@@ -74,6 +79,10 @@ void proc_a(void)
         switch (key_status.key)
         {
           case 0x20 ... 0x7e: // ascii printable char. gnu extension: I don't want use gnu extension, but it is very convenience.
+            if (key_status.key == 'l')
+              readdir = 1;
+            else
+              readdir = 0;
             s32_print_char(key_status.key);
             break;
           case KEY_UP:
@@ -87,10 +96,13 @@ void proc_a(void)
             set_video_start_addr(80*ll);
             break;
           case KEY_ENTER:
+            if (readdir == 1) readdir = 2;
+            else readdir = 0;
             s32_print_char('\r');
             s32_print_char('\n');
             break;
           default:
+            readdir = 0;
             break;
         }
         //s32_print("key code press: ", (u8*)(0xb8000+160*1));
@@ -103,6 +115,11 @@ void proc_a(void)
       }
       //s32_put_char(key_status.key, (u8*)(0xb8000+160*1 + 22*2+20), 16);
       //s32_print(proc_a_str, (u8*)(0xb8000+160*l+4*2));
+    }
+    if (readdir == 2)
+    {
+      k_readdir("/");
+      readdir=0;
     }
     ++l;
     l = ((l%10) + 10);
