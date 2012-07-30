@@ -1,6 +1,9 @@
 #ifndef K_STDLIB_H
 #define K_STDLIB_H
 
+// bochs magic break point
+#define BOCHS_MB __asm__ __volatile__("xchg %bx, %bx");
+
 // sign version
 char* s32_itoa_s(int n, char* str, int radix);
 
