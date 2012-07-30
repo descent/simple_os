@@ -33,6 +33,8 @@ void set_video_start_addr(u16 addr)
 }
 
 // prefix s32 means simple, 32bit code (in x86 protected mode)
+// this version don't specify video address
+// for console io
 void s32_print_char(u8 ch)
 {
   if (ch=='\r')
@@ -53,6 +55,7 @@ void s32_print_char(u8 ch)
     return;
   }
   *text_vb = ch;
+  *(text_vb+1) = (text_fg|text_bg);
   text_vb+=2;
   set_cursor(++cur_pos);
   s32_print_int(cur_pos, (u8*)(0xb8000+160*1 + 18*2+60), 16);
