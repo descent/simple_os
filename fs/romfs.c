@@ -4,6 +4,7 @@
 #include "vfs.h"
 #include "k_string.h"
 #include "k_stdio.h"
+#include "k_stdlib.h"
 
 INode *romfs_namei(SuperBlock *sb, char *dir);
 u32 romfs_get_daddr(INode *node);
@@ -197,4 +198,92 @@ u32 romfs_get_daddr(INode *inode)
   if (file_size)
     fn_content_offset = get_next_16_boundary(inode->daddr + fn_len);
   return (fn_content_offset+16);
+}
+
+char * k_readdir(const char *dirname)
+{
+  SuperBlock *sb = fs_type[ROMFS];
+  static u8 buf[512];
+
+  if (sb->device->dout(sb->device, buf, 0, sb->device->sector_size) != 0)
+  {
+    return 0; // error
+  }
+
+  RomFsHeader *rom_fs_header;
+  rom_fs_header = (RomFsHeader*)buf;
+  u8 rom_fs_identify[9]="";
+  p_asm_memcpy(rom_fs_identify, rom_fs_header->u.id_str, 8);
+
+  int line;
+#if 0
+  clear_line(2);
+  s32_print(rom_fs_identify, (u8*)(0xb8000+160*2));
+  line=3;
+  clear_line(line);
+  s32_print_int(rom_fs_header->size, (u8*)(0xb8000+160*line), 16);
+  line=4;
+  clear_line(line);
+
+  s32_print_int(rom_fs_header->checksum, (u8*)(0xb8000+160*line), 16);
+#endif
+  u32 volume_len = s_strlen(buf+16);
+#if 0
+
+  line=5;
+  clear_line(line);
+  s32_print_int(volume_len, (u8*)(0xb8000+160*line), 10);
+  line=6;
+  clear_line(line);
+  s32_print(buf+16, (u8*)(0xb8000+160*line));
+#endif
+
+  // get volume name, 16 byte alignment
+  // romfs content: use get_next_16_boundary to get next 16 byte boundary.
+  u32 next_offset = get_next_16_boundary(volume_len+0x10); 
+  line = 7;
+  do
+  {
+    RomFsHeader *rom_fs_header; 
+
+    rom_fs_header = print_romfs_entry(line, &next_offset, buf, 0);
+    rom_fs_header = (RomFsHeader*)(buf+next_offset);
+    u32 fn_offset = next_offset +16; // file name offset, skip rom_fs_header
+    u32 fn_len = s_strlen(buf+fn_offset);
+
+    s32_print_str(buf+fn_offset);
+    s32_print_str("\r\n");
+
+    u32 fn_content_offset = 0;
+    u32 file_size = be32tole32(rom_fs_header->size);
+    if (file_size)
+      fn_content_offset = get_next_16_boundary(fn_offset+file_size);
+#if 0
+    clear_line(line);
+    s32_print("file size:", (u8*)(0xb8000+160*line));
+    s32_print_int(file_size, (u8*)(0xb8000+160*line+12*2), 16);
+    ++line;
+    clear_line(line);
+    s32_print("next_offset:", (u8*)(0xb8000+160*line));
+    s32_print_int(next_offset, (u8*)(0xb8000+160*line+12*2), 16);
+    ++line;
+    if (next_offset!=0 && fn_content_offset != 0)
+    {
+    clear_line(line);
+    s32_print("fn_con_off:", (u8*)(0xb8000+160*line));
+    s32_print_int(fn_content_offset, (u8*)(0xb8000+160*line+12*2), 16);
+    ++line;
+    clear_line(0);
+    clear_line(1);
+    p_dump_u8(buf+fn_content_offset, file_size);
+    //dump_u8(buf+fn_content_offset, 7);
+    }
+#endif
+  }while(next_offset);
+
+#if 0
+  line = 25;
+  clear_line(line);
+  s32_print("scan romfs ok", (u8*)(0xb8000+160*line));
+#endif
 }
