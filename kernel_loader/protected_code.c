@@ -3,6 +3,7 @@
 #include "kl_global.h"
 #include "elf.h"
 #include "k_stdio.h"
+#include "k_stdlib.h"
 #include "k_string.h"
 
 int AA;
