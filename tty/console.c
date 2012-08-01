@@ -12,6 +12,7 @@ u16 cur_pos=0;
 u32 cur_x;
 u32 cur_y;
 
+Console console_table[TTY_NUM];
 
 void set_cursor(u16 pos)
 {
