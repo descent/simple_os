@@ -2,6 +2,7 @@
 #define KEYBOARD_H
 
 #include "type.h"
+#include "tty.h"
 
 #define KB_NUM 32
 #define NR_SCAN_CODES 0x80
@@ -35,8 +36,8 @@
 #define KEY_SHIFT_R   0x01000220       
 #define KEY_CTRL_L 0x01000021      //On Mac OS X, this corresponds to the Command keys.
 #define KEY_Meta    0x01000022      //On Mac OS X, this corresponds to the Control keys. On Windows keyboards, this key is mapped to the Windows key.
-#define KEY_ALT     0x01000023       
-#define KEY_AltGr   0x01001103      //On Windows, when the KeyDown event for this key is sent, the Ctrl+Alt modifiers are also set.
+#define KEY_ALT_L     0x01000023       
+#define KEY_Alt_R   0x01001103      //On Windows, when the KeyDown event for this key is sent, the Ctrl+Alt modifiers are also set.
 #define KEY_CAPSLOCK        0x01000024       
 #define KEY_NUMLOCK 0x01000025       
 #define KEY_SCROLL_LOCK      0x01000026       
