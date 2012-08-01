@@ -679,58 +679,6 @@ void test_romfs(void)
   #endif
 
 
-#if 0
-#if 0
-  line=7;
-  clear_line(line);
-  s32_print_int(next_offset, (u8*)(0xb8000+160*line), 16);
-
-  rom_fs_header = (RomFsHeader*)(buf + next_offset);
-
-  line=9;
-  clear_line(line);
-  s32_print_int(be32tole32(rom_fs_header->u.header8.nextfh), (u8*)(0xb8000+160*line), 16);
-
-  line = 10;
-  clear_line(line);
-  s32_print_int(be32tole32(rom_fs_header->u.header8.spec), (u8*)(0xb8000+160*line), 16);
-  BOCHS_MB
-
-  line = 11;
-  clear_line(line);
-  s32_print_int(be32tole32(rom_fs_header->size), (u8*)(0xb8000+160*line), 16);
-#if 1
-
-  line = 12;
-  clear_line(line);
-  s32_print_int(be32tole32(rom_fs_header->checksum), (u8*)(0xb8000+160*line), 16);
-#endif
-  next_offset +=16; // file name offset, skip rom_fs_header
-
-  u32 fn_len = s_strlen(buf+next_offset);
-  line = 13;
-  clear_line(line);
-  s32_print_int(fn_len, (u8*)(0xb8000+160*line), 10);
-
-  line = 14;
-  clear_line(line);
-  s32_print(buf+next_offset, (u8*)(0xb8000+160*line));
-
-  switch (get_file_type(be32tole32(rom_fs_header->u.header8.nextfh)))
-  {
-    case HARD_LINK:
-      break;
-    case DIRECTORY:
-      s32_print("dir", (u8*)(0xb8000+160*line)+ 5*2);
-      break;
-  }
-
-  next_offset = get_next_16_boundary(next_offset + fn_len);
-  line = 15;
-  clear_line(line);
-  s32_print_int(next_offset, (u8*)(0xb8000+160*line), 16);
-#endif
-#endif
 }
 
 void load_init_boot(InitFunc *init_func)
