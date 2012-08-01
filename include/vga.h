@@ -14,6 +14,8 @@
 #define CURSOR_H        0xE     /* reg index of cursor position (MSB) */
 #define CURSOR_L        0xF     /* reg index of cursor position (LSB) */
 
-void switch_vga_mode(void);
+void draw_box();
+void draw_box_1(int draw_x, int draw_y, int c);
+void draw_str();
 
 #endif
