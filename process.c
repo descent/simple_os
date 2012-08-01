@@ -2,6 +2,7 @@
 #include "keyboard.h"
 #include "console.h"
 #include "k_stdio.h"
+#include "tty.h"
 #include "romfs.h"
 
 Process proc_table[NR_TASKS];
@@ -43,10 +44,12 @@ void proc_a(void)
   u8 privilege = get_privilege();
 
   s32_set_text_color(HRED, HRED);
-  s32_print_str("press any key\r\n");
+  //s32_print_str("press any key\r\n");
+  s32_print("tty 1", (u8*)(0xb8000));
 
   static int ll=0;
   static u8 readdir = 0;
+  static u8 alt_l=0;
   while(1)
   {
     //u8 key = get_byte_from_kb_buf();
@@ -76,6 +79,7 @@ void proc_a(void)
       if (key_status.press == PRESS)
       {
         //s32_print_int(key_status.key, (u8*)(0xb8000+160*1 + 22*2+20), 16);
+
         switch (key_status.key)
         {
           case 0x20 ... 0x7e: // ascii printable char. gnu extension: I don't want use gnu extension, but it is very convenience.
@@ -95,6 +99,21 @@ void proc_a(void)
             ++ll;
             set_video_start_addr(80*ll);
             break;
+          case KEY_F1:
+            if (alt_l == 1)
+              s32_print("tty 1", (u8*)(0xb8000));
+            break;
+          case KEY_F2:
+            if (alt_l == 1)
+              s32_print("tty 2", (u8*)(0xb8000));
+            break;
+          case KEY_F3:
+            if (alt_l == 1)
+              s32_print("tty 3", (u8*)(0xb8000));
+            break;
+          case KEY_ALT_L:
+            alt_l = 1;
+            break;
           case KEY_ENTER:
             if (readdir == 1) readdir = 2;
             else readdir = 0;
@@ -107,8 +126,9 @@ void proc_a(void)
         }
         //s32_print("key code press: ", (u8*)(0xb8000+160*1));
       }
-      else
+      else // key release
       {
+        alt_l = 0;
         //s32_print("key code release: ", (u8*)(0xb8000+160*1));
         //s32_print_int(key_status.key, (u8*)(0xb8000+160*2 + 22*2+20), 16);
 
@@ -150,7 +170,7 @@ void proc_a(void)
 
 void proc_b(void)
 {
-#if 0
+#if 1
   //#define VB_OFFSET (35*2)
   const u16 VB_OFFSET = (30*2);
   u16 l=12;
@@ -171,7 +191,7 @@ void proc_b(void)
     loop_delay(10);
 
   }
-#endif
+#else
   int i = 0;
   
   while(1)
@@ -184,11 +204,12 @@ void proc_b(void)
     //loop_delay(100);
     milli_delay(1000);
   }
+#endif
 }
 
 void proc_c(void)
 {
-#if 0
+#if 1
   const u16 VB_OFFSET = (50*2);
   u16 l=14;
   u8 stack_str[10]="y";
@@ -204,7 +225,7 @@ void proc_c(void)
     l = ((l%10) + 10);
     loop_delay(10);
   }
-#endif
+#else
   int i = 0;
   
   while(1)
@@ -217,12 +238,16 @@ void proc_c(void)
     //loop_delay(100);
     milli_delay(1000);
   }
+#endif
 }
 
+// how to add a task/process:
+// add function to tasks and add 1 to NR_TASKS
 Task tasks[NR_TASKS] = {
                          {proc_a, TASK_STACK, "proc a"},
                          {proc_b, TASK_STACK, "proc b"},
                          {proc_c, TASK_STACK, "proc c"},
+                         {task_tty, TASK_STACK, "tty"},
                        };
 
 void init_proc(void)
