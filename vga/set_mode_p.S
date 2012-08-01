@@ -55,6 +55,7 @@ CALL SETMODE
 xchg %bx, %bx #bochs magic break point
 call SET_OUT
 xchg %bx, %bx #bochs magic break point
+  ret
 
 # draw screen 0x13 mode
 # from 0xa0000 address
