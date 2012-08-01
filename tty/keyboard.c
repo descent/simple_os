@@ -3,7 +3,6 @@
 #include "k_stdio.h"
 #include "k_ctype.h"
 #include "keyboard.h"
-#include "vga.h"
 
 static KeyboardBuf kb_buf;
 static u8 capslock=0;
@@ -44,8 +43,8 @@ void keyboard_handler(int irq)
   }
   s32_print_int(scan_code, (u8*)(0xb8000+160*22 + cur_pos*2), 16);
   cur_pos+=3;
-  if (lookup_key(scan_code & 0x7f, 0) == 'g')
-    switch_vga_mode();
+  //if (lookup_key(scan_code & 0x7f, 0) == 'g')
+    //switch_vga_mode();
 }
 
 u8 get_byte_from_kb_buf(void)
