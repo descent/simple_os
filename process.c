@@ -5,6 +5,7 @@
 #include "tty.h"
 #include "romfs.h"
 #include "syscall.h"
+#include "vga.h"
 
 Process proc_table[NR_TASKS];
 u8 task_stack[STACK_SIZE_TOTAL];
@@ -131,7 +132,6 @@ void proc_a(void)
       }
       else // key release
       {
-        alt_l = 0;
         switch (key_status.key)
         {
           case KEY_F12:
@@ -144,8 +144,13 @@ void proc_a(void)
             draw_box_1(100, 100, 10);
             draw_str();
             break;
+          case KEY_F1:
+          case KEY_F2:
+          case KEY_F3:
+            break;
           default:
             readdir = 0;
+            alt_l = 0;
             break;
         }
         //s32_print("key code release: ", (u8*)(0xb8000+160*1));
