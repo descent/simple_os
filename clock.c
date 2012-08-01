@@ -17,13 +17,13 @@ void clock_handler(int irq)
   ++ticks;
   static u16 p = 4;
   //s32_print("@", (u8*)(0xb8000+p*2));
-  s32_print("@", cur_vb);
+  //s32_print("@", cur_vb);
 
   ++p;
   if (k_reenter != 0)
   {
     //s32_print("!", (u8*)(0xb8000+p*2));
-    s32_print("!", cur_vb);
+    //s32_print("!", cur_vb);
     return;
   }
 
