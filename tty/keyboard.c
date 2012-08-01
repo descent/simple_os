@@ -9,6 +9,8 @@ static KeyboardBuf kb_buf;
 static u8 capslock=0;
 static u8 shift_r=0;
 static u8 shift_l=0;
+static u8 alt_r=0;
+static u8 alt_l=0;
 
 int lookup_key(u8 scan_code, u8 col);
 
@@ -122,7 +124,7 @@ KEY_SHIFT_L, KEY_SHIFT_L,
 '/', '?',
 KEY_SHIFT_R, KEY_SHIFT_R,
 '*', '*',
-KEY_ALT, KEY_ALT,
+KEY_ALT_L, KEY_ALT_L,
 ' ', ' ',
 KEY_CAPSLOCK, KEY_CAPSLOCK,
 KEY_F1, KEY_F1,
@@ -339,3 +341,8 @@ int parse_scan_code(KeyStatus *key_status, int keyborad_mode)
 
   return ret;
 }
+
+void keyboard_read(Tty* tty)
+{
+}
+
