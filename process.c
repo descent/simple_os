@@ -4,6 +4,7 @@
 #include "k_stdio.h"
 #include "tty.h"
 #include "romfs.h"
+#include "syscall.h"
 
 Process proc_table[NR_TASKS];
 u8 task_stack[STACK_SIZE_TOTAL];
@@ -34,6 +35,8 @@ u8 get_privilege(void)
                        ); 
   return (cs_reg & 0x03);
 }
+
+int set_vga_mode(void);
 
 void proc_a(void)
 {
@@ -129,6 +132,22 @@ void proc_a(void)
       else // key release
       {
         alt_l = 0;
+        switch (key_status.key)
+        {
+          case KEY_F12:
+            //switch_vga_mode();
+            set_vga_mode();  // system call
+            draw_box();
+            draw_box_1(40, 0, 3);
+            draw_box_1(40, 0, 3);
+            draw_box_1(40, 50, 5);
+            draw_box_1(100, 100, 10);
+            draw_str();
+            break;
+          default:
+            readdir = 0;
+            break;
+        }
         //s32_print("key code release: ", (u8*)(0xb8000+160*1));
         //s32_print_int(key_status.key, (u8*)(0xb8000+160*2 + 22*2+20), 16);
 
