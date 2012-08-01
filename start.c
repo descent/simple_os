@@ -611,7 +611,7 @@ void kernel_main(void)
   void setup_paging(void);
   //setup_paging();
  
-#if 0
+#if 1
   put_irq_handler(CLOCK_IRQ, clock_handler);
   enable_irq(CLOCK_IRQ);
 #endif
