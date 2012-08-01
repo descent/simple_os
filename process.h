@@ -5,7 +5,7 @@
 #include "protect.h"
 
 #define LDT_SIZE 2
-#define NR_TASKS 3
+#define NR_TASKS 4
 
 #define STACK_SIZE_TESTA 0x8000
 #define TASK_STACK 0x8000
