@@ -1,5 +1,6 @@
 #include "syscall.h"
 #include "type.h"
+#include "vga.h"
 
 typedef void* SystemCall;
 
@@ -23,5 +24,11 @@ int sys_get_ticks(void)
   return ticks;
 }
 
-SystemCall sys_call_table[NR_SYS_CALL] = {sys_get_ticks};
+int sys_set_vga_mode(void)
+{
+  switch_vga_mode();
+  return 0;
+}
+
+SystemCall sys_call_table[NR_SYS_CALL] = {sys_get_ticks, sys_set_vga_mode};
 

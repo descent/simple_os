@@ -3,7 +3,11 @@
 
 #define INT_VECTOR_SYS_CALL 0x90
 #define _NR_GET_TICKS 0
+#define _NR_SET_VGA_MODE 1
 
-#define NR_SYS_CALL 1
+#define NR_SYS_CALL 2
+
+//int get_ticks(void);
+//int set_vga_mode(void);
 
 #endif

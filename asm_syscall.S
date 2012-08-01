@@ -11,6 +11,12 @@ get_ticks:
   int $INT_VECTOR_SYS_CALL
   ret
 
+.global set_vga_mode
+set_vga_mode:
+  mov $_NR_SET_VGA_MODE, %eax
+  int $INT_VECTOR_SYS_CALL
+  ret
+
 .global sys_call
 sys_call:
   call save
