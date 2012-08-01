@@ -18,7 +18,7 @@ endif
 %.d: %.c
 	set -e; rm -f $@ ; gcc -MM $(CFLAGS) $< > $@.$$$$ ; sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@ ; rm -f $@.$$$$
 
-sources = keyboard.c console.c
+sources = keyboard.c console.c tty.c
 include $(sources:.c=.d)
 
 
