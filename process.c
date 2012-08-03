@@ -105,15 +105,18 @@ void proc_a(void)
             break;
           case KEY_F1:
             if (alt_l == 1)
-              s32_print("tty 1", (u8*)(0xb8000));
+              //s32_print("tty 1", (u8*)(0xb8000));
+              select_tty(0);
             break;
           case KEY_F2:
             if (alt_l == 1)
-              s32_print("tty 2", (u8*)(0xb8000));
+              //s32_print("tty 2", (u8*)(0xb8000));
+              select_tty(1);
             break;
           case KEY_F3:
             if (alt_l == 1)
-              s32_print("tty 3", (u8*)(0xb8000));
+              //s32_print("tty 3", (u8*)(0xb8000));
+              select_tty(2);
             break;
           case KEY_ALT_L:
             alt_l = 1;
