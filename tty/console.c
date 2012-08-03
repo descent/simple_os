@@ -5,6 +5,8 @@
 #include "console.h"
 #include "k_stdio.h"
 
+static int cur_console_index=0;
+
 u8 *text_vb = (u8*)0xb8000;
 u8 text_fg;
 u8 text_bg;
@@ -12,7 +14,31 @@ u16 cur_pos=0;
 u32 cur_x;
 u32 cur_y;
 
-Console console_table[TTY_NUM];
+Console console_table[CONSOLE_NUM];
+
+int init_console()
+{
+  Console *console;
+
+  for (int i=0 ; i < CONSOLE_NUM ; ++i)
+  {
+    console = &console_table[i];
+    console->cur_vm = console->vm_start = 0xb8000 + i*VIDEO_RAM_SIZE;
+    console->cur_x = console->cur_y = 0;
+  }
+  return 0;
+}
+
+int select_console(int console_index)
+{
+  int ret =0;
+
+  if ( 0 <= console_index && console_index < TTY_NUM)
+    cur_console_index = console_index;
+  else
+    ret = -1;
+  return ret;
+}
 
 void set_cursor(u16 pos)
 {
@@ -85,4 +111,32 @@ void s32_set_text_color(u8 fg, u8 bg)
 {
   text_fg=fg;
   text_bg=bg;
+}
+
+void s32_console_print_char(Console *console, u8 ch)
+{
+  u8 *console_vb = (u8*)console->cur_vm;
+
+  switch (ch)
+  {
+    case '\r':
+      console->cur_x = 0;
+      console_vb = (u8*)((u32)text_vb - (((u32)console_vb - console->vm_start) % 160));
+      break;
+    case '\n':
+      console_vb+=160;
+      ++console->cur_y;
+      break;
+    case 0x20 ... 0x7e: // ascii printable char. gnu extension: I don't want use gnu extension, but it is very convenience.
+      *console_vb = ch;
+      *(console_vb+1) = (text_fg|text_bg);
+      console_vb+=2;
+      ++console->cur_x;
+      break;
+    default:
+      break;
+  }
+
+  if (console->cur_y >= 25 )
+    set_video_start_addr(80*(console->cur_y - 24));
 }
