@@ -104,11 +104,11 @@ vga/draw_func.o: vga/draw_func.c
 
 io/k_stdio.o: io/k_stdio.c
 	(cd io; make)
-tty/keyboard.o: tty/keyboard.c
+tty/keyboard.o: tty
 	(cd tty; make keyboard.o)
-tty/console.o: tty/console.c
+tty/console.o: tty
 	(cd tty; make console.o)
-tty/tty.o: tty/tty.c
+tty/tty.o: tty
 	(cd tty; make tty.o)
 sources = clock.c start.c process.c storage.c syscall.c
 include $(sources:.c=.d)
