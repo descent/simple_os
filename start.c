@@ -13,7 +13,7 @@
 #include "vfs.h"
 #include "keyboard.h"
 #include "irq.h"
-#include "console.h"
+#include "tty.h"
 
 #define INT_M_PORT 0x20
 #define INT_S_PORT 0xa0
@@ -646,6 +646,7 @@ static InitFunc init[]={
 			 init_timer,
                          ramdisk_driver_init,
                          init_keyboard,
+                         init_tty,
                          0
                        };
 
