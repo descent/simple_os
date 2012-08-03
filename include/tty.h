@@ -16,8 +16,7 @@ typedef struct Tty_
   struct Console_ *console;
 }Tty;
 
-extern Tty tty_table[];
-
 void task_tty(void);
+int init_tty(Tty *tty);
 
 #endif
