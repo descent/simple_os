@@ -116,6 +116,8 @@ void s32_set_text_color(u8 fg, u8 bg)
 void s32_console_print_char(Console *console, u8 ch)
 {
   u8 *console_vb = (u8*)console->cur_vm;
+  //u8 *console_vb = (u8*)(0xb8000);
+  //s32_put_char(ch, (u8*)(0xb8000+160*19));
 
   switch (ch)
   {
@@ -129,7 +131,7 @@ void s32_console_print_char(Console *console, u8 ch)
       break;
     case 0x20 ... 0x7e: // ascii printable char. gnu extension: I don't want use gnu extension, but it is very convenience.
       *console_vb = ch;
-      *(console_vb+1) = (text_fg|text_bg);
+      //*(console_vb+1) = (text_fg|text_bg);
       console_vb+=2;
       ++console->cur_x;
       break;
@@ -139,4 +141,6 @@ void s32_console_print_char(Console *console, u8 ch)
 
   if (console->cur_y >= 25 )
     set_video_start_addr(80*(console->cur_y - 24));
+  set_cursor(console->cur_x + console->cur_y * 80);
+  console->cur_vm = console_vb;
 }
