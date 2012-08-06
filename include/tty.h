@@ -18,5 +18,7 @@ typedef struct Tty_
 
 void task_tty(void);
 int init_tty(Tty *tty);
+int put_key(Tty *tty, u32 key);
+int select_tty(int tty_index);
 
 #endif

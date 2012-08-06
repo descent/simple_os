@@ -111,5 +111,7 @@ typedef struct KeyStatus_
 int init_keyboard(void);
 u8 get_byte_from_kb_buf(void);
 int parse_scan_code(KeyStatus *key_status, int keyborad_mode);
+int keyboard_read(Tty *tty);
+int lookup_key(u8 scan_code, u8 col);
 
 #endif
