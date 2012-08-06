@@ -11,7 +11,6 @@ static u8 shift_l=0;
 static u8 alt_r=0;
 static u8 alt_l=0;
 
-int lookup_key(u8 scan_code, u8 col);
 
 int init_keyboard(void)
 {
@@ -341,7 +340,50 @@ int parse_scan_code(KeyStatus *key_status, int keyborad_mode)
   return ret;
 }
 
-void keyboard_read(Tty* tty)
+int keyboard_read(Tty *tty)
 {
-}
+  u8 make;
+  int ret=0;
+  static u8 keymap_col=0;
+  static alt_l=0;
 
+  KeyStatus key_status;
+  if(kb_buf.count > 0)
+  {
+    u8 scan_code = get_byte_from_kb_buf();
+    //put_key(tty, get_byte_from_kb_buf() );
+    key_status.key = lookup_key(scan_code & 0x7f, keymap_col);
+    key_status.press = ((scan_code & 0x80) ? RELEASE: PRESS);
+    // alt+F1, alt+F2, alt+F3 switch tty
+    // else pass to tty inbuf
+    switch (key_status.key)
+    {
+      case KEY_F1:
+      case KEY_F2:
+      case KEY_F3:
+        if (alt_l == 1)
+          select_tty(key_status.key - KEY_F1);
+        alt_l = 0;
+        break;
+      case KEY_ALT_L:
+        alt_l = 1;
+        break;
+      case 0x20 ... 0x7e: // ascii printable char. gnu extension: I don't want use gnu extension, but it is very convenience.
+        if (key_status.key == '1')
+          select_tty(0);
+        if (key_status.key == '2')
+          select_tty(1);
+        if (key_status.key == '3')
+          select_tty(2);
+        if (key_status.press == PRESS)
+          put_key(tty, key_status.key);
+        alt_l = 0;
+        break;
+      default:
+        alt_l = 0;
+        break;
+
+    }
+  }
+
+}
