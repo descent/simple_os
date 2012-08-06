@@ -41,6 +41,8 @@ int set_vga_mode(void);
 
 void proc_a(void)
 {
+  while(1);
+#if 0
 #if 1
   u16 l=10;
   u8 stack_str[10]="y";
@@ -58,7 +60,7 @@ void proc_a(void)
   {
     //u8 key = get_byte_from_kb_buf();
     KeyStatus key_status;
-    //int r=parse_scan_code(&key_status, SCANCODE_MODE);
+    //int r=parse_//scan_code(&key_status, SCANCODE_MODE);
     int r=parse_scan_code(&key_status, ASCII_MODE);
 #if 0
     __asm__ volatile ("mov $0xc,%ah\t\n");
@@ -192,7 +194,7 @@ void proc_a(void)
     milli_delay(1000);
   }
 #endif
-
+#endif
 }
 
 void proc_b(void)
