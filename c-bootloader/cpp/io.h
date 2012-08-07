@@ -9,6 +9,7 @@ class Io
     ~Io();
     void print(const char   *s);
   private:
+    const char *str_;
 };
 
 
