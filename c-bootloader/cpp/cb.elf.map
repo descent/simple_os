@@ -1,0 +1,120 @@
+
+Discarded input sections
+
+ .comment       0x0000000000000000       0x26 cppb.o
+ .comment       0x0000000000000000       0x26 io.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+                0x0000000000007c00                . = 0x7c00
+
+.text           0x0000000000007c00      0x134
+ *(.text)
+ .text          0x0000000000007c00       0x4e cppb.o
+                0x0000000000007c00                WinMain
+ *fill*         0x0000000000007c4e        0x2 00
+ .text          0x0000000000007c50       0xe4 io.o
+                0x0000000000007c50                Io::Io()
+                0x0000000000007c78                Io::Io()
+                0x0000000000007ca0                Io::~Io()
+                0x0000000000007cc8                Io::~Io()
+                0x0000000000007cf0                Io::print(char const*)
+ *(.gnu.linkonce.t*)
+
+.iplt           0x0000000000007d34        0x0
+ .iplt          0x0000000000000000        0x0 cppb.o
+
+.rodata         0x0000000000007d34       0x20
+                0x0000000000007d34                start_ctors = .
+ *(SORT(.ctors.*))
+                0x0000000000007d34                end_ctors = .
+                0x0000000000007d34                start_dtors = .
+ *(SORT(.dtors.*))
+                0x0000000000007d34                end_dtors = .
+ *(.rodata*)
+ .rodata        0x0000000000007d34       0x12 cppb.o
+ .rodata        0x0000000000007d46        0xe io.o
+ *(.gnu.linkonce.r*)
+
+.rel.dyn        0x0000000000007d54        0x0
+ .rel.iplt      0x0000000000000000        0x0 cppb.o
+ .rel.text      0x0000000000000000        0x0 cppb.o
+
+.data           0x0000000000007d54        0x0
+ *(.data)
+ .data          0x0000000000007d54        0x0 cppb.o
+ .data          0x0000000000007d54        0x0 io.o
+ *(.gnu.linkonce.d*)
+
+.igot.plt       0x0000000000007d54        0x0
+ .igot.plt      0x0000000000000000        0x0 cppb.o
+
+.bss            0x0000000000007d54        0x4
+                0x0000000000007d54                sbss = .
+ *(COMMON)
+ *(.bss)
+ .bss           0x0000000000007d54        0x4 cppb.o
+                0x0000000000007d54                bbb
+ .bss           0x0000000000007d58        0x0 io.o
+ *(.gnu.linkonce.b*)
+                0x0000000000007d58                ebss = .
+
+.sig            0x0000000000007d58        0x2 load address 0x0000000000007dfe
+                0x0000000000007d58        0x2 SHORT 0xaa55
+
+/DISCARD/
+ *(.comment)
+ *(.eh_frame)
+LOAD cppb.o
+LOAD io.o
+OUTPUT(cppb.elf elf32-i386)
+
+.debug_abbrev   0x0000000000000000      0x195
+ .debug_abbrev  0x0000000000000000       0xba cppb.o
+ .debug_abbrev  0x00000000000000ba       0xdb io.o
+
+.debug_info     0x0000000000000000      0x257
+ .debug_info    0x0000000000000000       0xd9 cppb.o
+ .debug_info    0x00000000000000d9      0x17e io.o
+
+.debug_line     0x0000000000000000       0x9e
+ .debug_line    0x0000000000000000       0x4b cppb.o
+ .debug_line    0x000000000000004b       0x53 io.o
+
+.debug_loc      0x0000000000000000      0x108
+ .debug_loc     0x0000000000000000       0x2c cppb.o
+ .debug_loc     0x000000000000002c       0xdc io.o
+
+.debug_pubnames
+                0x0000000000000000       0x74
+ .debug_pubnames
+                0x0000000000000000       0x26 cppb.o
+ .debug_pubnames
+                0x0000000000000026       0x4e io.o
+
+.debug_aranges  0x0000000000000000       0x40
+ .debug_aranges
+                0x0000000000000000       0x20 cppb.o
+ .debug_aranges
+                0x0000000000000020       0x20 io.o
+
+.debug_str      0x0000000000000000       0x84
+ .debug_str     0x0000000000000000       0x6e cppb.o
+ .debug_str     0x000000000000006e       0x16 io.o
+                                         0x73 (size before relaxing)
+
+.note.GNU-stack
+                0x0000000000000000        0x0
+ .note.GNU-stack
+                0x0000000000000000        0x0 cppb.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 io.o
+
+.debug_frame    0x0000000000000000       0xbc
+ .debug_frame   0x0000000000000000       0x2c cppb.o
+ .debug_frame   0x000000000000002c       0x90 io.o
