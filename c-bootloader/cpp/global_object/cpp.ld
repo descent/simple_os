@@ -9,16 +9,24 @@ SECTIONS
         *(.text)
         *(.gnu.linkonce.t*)
     }
+    .ctors :
+    {
+      start_ctors = .; _start_ctors = .; __start_ctors = .;
+      *(.ctor*)
+      end_ctors = .; _end_ctors = .; __end_ctors = .;
+      . = ALIGN(0x1000);
+     }
+    .dtors :
+    {
+      start_dtors = .; _start_dtors = .; __start_dtors = .;
+      *(.dtor*)
+      end_dtors = .; _end_dtors = .; __end_dtors = .;
+      . = ALIGN(0x1000);
+     }
 
     .rodata :
     {
-        start_ctors = .;
-        *(SORT(.ctors.*))  /* Note the "SORT" */
-        end_ctors = .;
 
-        start_dtors = .;
-        *(SORT(.dtors.*))
-        end_dtors = .;
 
         *(.rodata*)
         *(.gnu.linkonce.r*)
