@@ -123,24 +123,22 @@ void s32_console_print_char(Console *console, u8 ch)
   {
     case '\r':
       console->cur_x = 0;
-      console_vb = (u8*)((u32)text_vb - (((u32)console_vb - console->vm_start) % 160));
       break;
     case '\n':
-      console_vb+=160;
       ++console->cur_y;
       break;
     case 0x20 ... 0x7e: // ascii printable char. gnu extension: I don't want use gnu extension, but it is very convenience.
       *console_vb = ch;
       //*(console_vb+1) = (text_fg|text_bg);
-      console_vb+=2;
       ++console->cur_x;
       break;
     default:
       break;
   }
+  console_vb = (console->cur_x + console->cur_y*80)*2 + console->vm_start;
 
   if (console->cur_y >= 25 )
     set_video_start_addr(80*(console->cur_y - 24));
-  set_cursor(console->cur_x + console->cur_y * 80);
-  console->cur_vm = console_vb;
+  set_cursor((console->vm_start - 0xb8000)/2 + console->cur_x + console->cur_y * 80);
+  console->cur_vm = (u32)console_vb;
 }
