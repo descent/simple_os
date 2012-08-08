@@ -369,17 +369,13 @@ int keyboard_read(Tty *tty)
         alt_l = 1;
         break;
       case 0x20 ... 0x7e: // ascii printable char. gnu extension: I don't want use gnu extension, but it is very convenience.
-        if (key_status.key == '1')
-          select_tty(0);
-        if (key_status.key == '2')
-          select_tty(1);
-        if (key_status.key == '3')
-          select_tty(2);
         if (key_status.press == PRESS)
           put_key(tty, key_status.key);
         alt_l = 0;
         break;
       default:
+        if (key_status.press == PRESS)
+          put_key(tty, key_status.key);
         alt_l = 0;
         break;
 
