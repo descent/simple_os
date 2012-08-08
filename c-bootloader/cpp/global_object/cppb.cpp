@@ -13,6 +13,9 @@ __asm__(".code16gcc\n");
 
   Io io;
 
+extern int _start_ctors;
+extern int _end_ctors;
+
 extern "C" void WinMain(void)
 {
   BOCHS_MB  
@@ -20,6 +23,18 @@ extern "C" void WinMain(void)
   __asm__ ("mov  %cs, %ax\n");
   __asm__ ("mov  %ax, %ds\n");
   __asm__ ("mov  %ax, %ss\n");
+
+  int ctor_addr_start = _start_ctors;
+  int ctor_addr_end = _end_ctors;
+    typedef void (*FuncPtr)();
+    FuncPtr fp = (FuncPtr)(ctor_addr_start);
+    fp();
+    #if 0
+  for (int i = ctor_addr_start; i < ctor_addr_end ; ++i)
+  {
+  }
+
+#endif
   //__asm__ ("mov  $0xfff0, %sp\n");
   {
   io.print("hello cpp class\r\n");
@@ -47,6 +62,11 @@ extern "C"
 {
 int __cxa_atexit(void (*destructor) (void *), void *arg, void *__dso_handle)
 {
+  io.print("hello cc\r\n");
   return 0;
+}
+void __cxa_finalize(void *d)
+{
+  io.print("hello dtor\r\n");
 }
 }
