@@ -6,6 +6,9 @@ CFLAGS = -fno-stack-protector -std=c99 -Os -march=i686 -ffreestanding -Wall
 CB_CFLAGS = -fno-stack-protector -std=c99 -m32 -ffreestanding -Wall -g
 CB_LDFLAGS = -m elf_i386
 
+CPPFLAGS = -m32  -g -Wall -Wextra -Werror -nostdlib -fno-builtin -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -fno-stack-protector
+
+
 all: bh.asm.bin bh.s.bin  cb.bin bhp.bin vbr.bin
 
 vbr.bin: vbr.elf
@@ -76,6 +79,14 @@ bhp.elf: bhp.o
 	ld -Tas.ld -o bhp.elf bhp.o
 bhp.bin: bhp.elf
 	objcopy -O binary $< $@
+
+cppb.bin: cppb.elf
+	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
+cppb.elf: cppb.o l.ld
+	ld $(CB_LDFLAGS) -static -Tl.ld -nostdlib -M -o $@ $< > cb.elf.map
+cppb.o: cppb.cpp
+	g++ $(CPPFLAGS) -c $<
+
 
 clean:
 	rm -rf *.o
