@@ -18,17 +18,23 @@ extern int _end_ctors;
 
 extern "C" void WinMain(void)
 {
+
   BOCHS_MB  
   #if 1
-  __asm__ ("mov  %cs, %ax\n");
-  __asm__ ("mov  %ax, %ds\n");
-  __asm__ ("mov  %ax, %ss\n");
+  //__asm__ ("mov  %cs, %ax\n");
+  //__asm__ ("mov  %ax, %ds\n");
+  //__asm__ ("mov  %ax, %ss\n");
 
+#if 0
   int ctor_addr_start = _start_ctors;
   int ctor_addr_end = _end_ctors;
     typedef void (*FuncPtr)();
     FuncPtr fp = (FuncPtr)(ctor_addr_start);
     fp();
+#endif
+
+  extern void _GLOBAL__sub_I_io();
+  _GLOBAL__sub_I_io();
     #if 0
   for (int i = ctor_addr_start; i < ctor_addr_end ; ++i)
   {
@@ -62,7 +68,7 @@ extern "C"
 {
 int __cxa_atexit(void (*destructor) (void *), void *arg, void *__dso_handle)
 {
-  io.print("hello cc\r\n");
+  io.print("__cxa_atexit\r\n");
   return 0;
 }
 void __cxa_finalize(void *d)
