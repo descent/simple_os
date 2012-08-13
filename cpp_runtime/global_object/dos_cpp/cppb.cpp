@@ -11,7 +11,8 @@ __asm__(".code16gcc\n");
 #define BOCHS_MB __asm__ __volatile__("xchg %bx, %bx");
 
 
-  Io io;
+Io io;
+Ab ab(7);
 
 extern int _start_ctors;
 extern int _end_ctors;

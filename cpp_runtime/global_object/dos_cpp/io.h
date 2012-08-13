@@ -12,5 +12,15 @@ class Io
     const char *str_;
 };
 
+class Ab
+{
+  public:
+    Ab(int i);
+    ~Ab();
+    void print(const char   *s);
+  private:
+    const char *str_;
+    int i_;
+};
 
 #endif
