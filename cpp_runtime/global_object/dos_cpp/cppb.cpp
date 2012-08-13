@@ -33,8 +33,21 @@ extern "C" void WinMain(void)
     fp();
 #endif
 
+/* Test for GCC > 3.2.0 
+ * ref: http://gcc.gnu.org/onlinedocs/gcc-3.4.6/cpp/Common-Predefined-Macros.html
+  #if __GNUC__ > 3 || \
+  (__GNUC__ == 3 && (__GNUC_MINOR__ > 2 || \
+  (__GNUC_MINOR__ == 2 && \
+  __GNUC_PATCHLEVEL__ > 0))
+*/
+
+  #if __GNUC__ >= 4 && __GNUC_MINOR__ <= 4
+  extern void _GLOBAL__I_io();
+  _GLOBAL__I_io();
+  #else // for 4.7
   extern void _GLOBAL__sub_I_io();
   _GLOBAL__sub_I_io();
+  #endif
     #if 0
   for (int i = ctor_addr_start; i < ctor_addr_end ; ++i)
   {
@@ -43,7 +56,11 @@ extern "C" void WinMain(void)
 #endif
   //__asm__ ("mov  $0xfff0, %sp\n");
   {
+  const char *ver=__VERSION__;
   io.print("hello cpp class\r\n");
+  io.print("g++ version: ");
+  io.print(ver);
+  io.print("\r\n");
   }
   #if 0
   unsigned char *vb = (unsigned char *)0xb8000;
