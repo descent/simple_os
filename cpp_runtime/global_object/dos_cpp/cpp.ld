@@ -14,7 +14,7 @@ SECTIONS
       start_ctors = .; _start_ctors = .; __start_ctors = .;
       *(.ctor*)
       end_ctors = .; _end_ctors = .; __end_ctors = .;
-      . = ALIGN(0x1000);
+/*      . = ALIGN(0x1000); */
      }
     .dtors :
     {
