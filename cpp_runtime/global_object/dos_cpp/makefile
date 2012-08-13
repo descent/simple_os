@@ -1,6 +1,6 @@
 #CPPFLAGS = -m32  -g -Wall -Wextra -Werror -nostdlib -fno-builtin -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -fno-stack-protector
-CPPFLAGS = -m32  -g -Wall -Wextra -nostdlib -fno-builtin -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -fno-stack-protector
-LDFLAGS = -m elf_i386
+CPPFLAGS = -static -m32  -g -Wall -Wextra -nostdlib -fno-builtin -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -fno-stack-protector
+LDFLAGS = -m elf_i386 -static
 
 cppb.bin: cppb.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
@@ -14,6 +14,6 @@ include $(sources:.cpp=.dpp)
 CXX=g++
 
 cppb.elf: cppb.o io.o
-	ld $(LDFLAGS) -static -Tcpp.ld -nostdlib -M -o $@ $^ > cb.elf.map
+	ld $(LDFLAGS) -Tcpp.ld -nostdlib -M -o $@ $^ > $@.map
 clean:
 	rm -rf *.o *.bin *.elf
