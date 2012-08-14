@@ -1,5 +1,7 @@
 # init c++ runtime
 
+#define DOS
+
 .code16
 .extern __bss_start__
 .extern __bss_end__
@@ -11,19 +13,28 @@
 .global _start
 _start:
   xchg %bx, %bx
-#  mov %cs, %ax
-#  mov %ax, %ds
-#  mov %ax, %es
+#ifndef DOS
+  mov %cs, %ax
+  mov %ax, %ds
+  mov %ax, %es
+#endif
 
 # setup stack
 #  mov %ax, %ss
 #  mov $0xffff, %sp
 
 #  call disp_str
-#  call init_bss_asm # in dos need not init bss by myself
-  mov $__start_ctors, %bx # call _GLOBAL__I_XX invoke global object ctor, in dos environment use 16 bit address
-  calll *(%bx)
+
+#ifndef DOS
+  call init_bss_asm # in dos need not init bss by myself
+#endif
+
+  # call _GLOBAL__I_XX invoke global object ctor, 
+  # in dos environment use 16 or 32 bit address? look like 32 bit
+  mov $__start_ctors, %ebx 
+  calll *(%ebx)
   calll cpp_main
+  calll g_dtors
 #  call disp_str2
   mov     $0x4c00, %ax
   int     $0x21   # 回到 DOS
