@@ -4,7 +4,7 @@ LDFLAGS = -m elf_i386 -static
 
 cppb.bin: cppb.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
-cppb.elf: cpp_init.o cppb.o io.o 
+cppb.elf: cpp_init.o cppb.o io.o cpp_abi.o
 	ld $(LDFLAGS) -Tcpp.ld -nostdlib -M -o $@ $^ > $@.map
 cpp_init.o: cpp_init.S
 	$(CXX) $(CPPFLAGS) -c $<
@@ -13,7 +13,7 @@ cpp_init.o: cpp_init.S
 %.dpp: %.cpp
 	set -e; rm -f $@ ; g++ -MM $(CFLAGS) $< > $@.$$$$ ; sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@ ; rm -f $@.$$$$
 
-sources = cppb.cpp  io.cpp
+sources = cppb.cpp  io.cpp cpp_abi.cpp
 include $(sources:.cpp=.dpp)
 
 CXX=g++
