@@ -9,18 +9,23 @@ void print_str(const char   *s);
 
 extern "C"
 {
+
   int __cxa_atexit(void (*destructor) (void *), void *arg, void *__dso_handle)
   {
+  __asm__ __volatile__("xchg %bx, %bx");
 
+#if 0
     dobjs[0].dtor_ = destructor;
     dobjs[0].arg_ = arg;
     dobjs[0].dso_handle_ = __dso_handle;
-#if 0
+#else
     //if (obj_count >= DOBJS_SIZE)
       //return -1;
+     #if 1
     dobjs[obj_count].dtor_ = destructor;
     dobjs[obj_count].arg_ = arg;
     dobjs[obj_count].dso_handle_ = __dso_handle;
+    #endif
     ++obj_count;
     //print_str("__cxa_atexit: register dtor here\r\n");
 #endif
@@ -29,7 +34,7 @@ extern "C"
   void g_dtors(void)
   {
     //print_str("g_dtors\r\n");
-    for (int i=0 ; i < 1 ; ++i)
+    for (int i=obj_count-1 ; i >= 0 ; --i)
     {
       //print_str("xx g_dtors\r\n");
       //dobjs[i].dtor_(dobjs[i].arg_);
