@@ -6,7 +6,7 @@ Io::Io():str_("data member\r\n")
 }
 Io::~Io()
 {
-  print("dtor\r\n");
+  print("io dtor\r\n");
 }
 
 void Io::print(const char   *s)
@@ -26,7 +26,7 @@ Ab::Ab(int i)
 
 Ab::~Ab()
 {
-  print("dtor\r\n");
+  print("ab dtor\r\n");
 }
 
 void Ab::print(const char   *s)
