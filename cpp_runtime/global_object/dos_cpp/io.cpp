@@ -1,7 +1,7 @@
 #include "io.h"
 Io::Io():str_("data member\r\n")
 {
-  print("ctor\r\n");
+  print("Io ctor\r\n");
   print(str_);
 }
 Io::~Io()
