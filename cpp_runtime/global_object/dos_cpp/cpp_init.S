@@ -25,9 +25,7 @@ _start:
 
 #  call disp_str
 
-#ifndef DOS
   call init_bss_asm # in dos need not init bss by myself
-#endif
 
   # call _GLOBAL__I_XX invoke global object ctor, 
   # in dos environment use 16 or 32 bit address? look like 32 bit
@@ -66,12 +64,12 @@ _start:
 init_bss_asm:
   movw $__bss_end__, %di    /* Destination */
   movw $__bss_start__, %si   /* Source */
-  movw $0x0, %ax
+  movw %ds, %ax
   movw %ax, %gs
   jmp 2f
 1:
   movw %si, %ax
-  movb $0x1, %gs:(%eax)
+  movb $0x0, %gs:(%eax)
   add $1, %si
   
 2:
