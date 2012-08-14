@@ -16,6 +16,7 @@ SECTIONS
       end_ctors = .; _end_ctors = .; __end_ctors = .;
 /*      . = ALIGN(0x1000); */
      }
+     /*
     .dtors :
     {
       start_dtors = .; _start_dtors = .; __start_dtors = .;
@@ -23,11 +24,10 @@ SECTIONS
       end_dtors = .; _end_dtors = .; __end_dtors = .;
       . = ALIGN(0x1000);
      }
+     */
 
     .rodata :
     {
-
-
         *(.rodata*)
         *(.gnu.linkonce.r*)
     }
