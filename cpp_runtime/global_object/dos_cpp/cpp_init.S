@@ -8,8 +8,11 @@
 .extern __start_ctors
 .extern __end_ctors
 .extern cpp_main
+.extern obj_count;
+
 
 .text
+  jmp _start
 .global _start
 _start:
   xchg %bx, %bx
@@ -18,6 +21,7 @@ _start:
   mov %ax, %ds
   mov %ax, %es
 #endif
+  movl $0, obj_count
 
 # setup stack
 #  mov %ax, %ss
