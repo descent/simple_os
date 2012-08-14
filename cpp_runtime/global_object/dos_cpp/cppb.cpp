@@ -20,23 +20,19 @@ extern int _end_ctors;
 extern "C" int cpp_main(void)
 {
   //BOCHS_MB  
-
-  {
   const char *ver=__VERSION__;
-  io.print("hello cpp class\r\n");
-  io.print("g++ version: ");
+  io.print("io hello cpp class\r\n");
+  io.print("io g++ version: ");
   io.print(ver);
   io.print("\r\n");
-  }
   return 0;
 }
 
-void *__dso_handle;
-extern "C"
+void print_str(const char   *s)
 {
-int __cxa_atexit(void (*destructor) (void *), void *arg, void *__dso_handle)
-{
-  io.print("__cxa_atexit: register dtor here\r\n");
-  return 0;
-}
+  while(*s)
+  {
+    __asm__ __volatile__ ("int  $0x10" : : "a"(0x0E00 | *s), "b"(7));
+    s++;
+  }
 }
