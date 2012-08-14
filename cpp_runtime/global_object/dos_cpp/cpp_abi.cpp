@@ -3,16 +3,19 @@
 void *__dso_handle;
 
 static DObjs dobjs[DOBJS_SIZE];
-static int obj_count=0;
+int obj_count=0;
 
 void print_str(const char   *s);
+void s16_print_int(int i, int radix);
 
 extern "C"
 {
 
   int __cxa_atexit(void (*destructor) (void *), void *arg, void *__dso_handle)
   {
-  __asm__ __volatile__("xchg %bx, %bx");
+    __asm__ __volatile__("xchg %bx, %bx");
+    s16_print_int(obj_count, 10);
+    print_str("\r\n");
 
 #if 0
     dobjs[0].dtor_ = destructor;
