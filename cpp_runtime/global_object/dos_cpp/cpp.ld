@@ -1,10 +1,10 @@
 /* for cb.c */
-ENTRY(WinMain);
+ENTRY(_start);
 SECTIONS
 {
 
     . = 0x100;
-    .text : AT(0x7C00)
+    .text :
     {
         *(.text)
         *(.gnu.linkonce.t*)
@@ -40,11 +40,11 @@ SECTIONS
 
     .bss :
     {
-        sbss = .;
+        sbss = .; __bss_start__ = .;
         *(COMMON)
         *(.bss)
         *(.gnu.linkonce.b*)
-        ebss = .;
+        ebss = .; __bss_end__ = .;
     }
 
     /DISCARD/ :
