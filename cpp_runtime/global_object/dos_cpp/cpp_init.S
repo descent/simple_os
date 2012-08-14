@@ -11,19 +11,19 @@
 .global _start
 _start:
   xchg %bx, %bx
-  mov %cs, %ax
-  mov %ax, %ds
-  mov %ax, %es
+#  mov %cs, %ax
+#  mov %ax, %ds
+#  mov %ax, %es
 
 # setup stack
 #  mov %ax, %ss
 #  mov $0xffff, %sp
 
 #  call disp_str
-  call init_bss_asm
+#  call init_bss_asm # in dos need not init bss by myself
   mov $__start_ctors, %bx # call _GLOBAL__I_XX invoke global object ctor, in dos environment use 16 bit address
-  call *(%bx)
-  call cpp_main
+  calll *(%bx)
+  calll cpp_main
 #  call disp_str2
   mov     $0x4c00, %ax
   int     $0x21   # 回到 DOS
