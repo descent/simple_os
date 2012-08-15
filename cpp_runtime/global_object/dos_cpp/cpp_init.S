@@ -2,13 +2,27 @@
 
 #define DOS
 
+# How to make G++ preprocessor output a newline in a macro?
+# ref: http://stackoverflow.com/questions/2271078/how-to-make-g-preprocessor-output-a-newline-in-a-macro
+#define PRINT_REG(REG)  /*
+*/  pushl $REG /*
+*/  calll _Z9print_strPKc /*
+*/  addl $4, %esp /*
+*/  pushl $16 /*
+*/  pushl %REG /*
+*/  calll _Z13s16_print_intii /*
+*/  addl $8, %esp /*
+*/  pushl $CRLF /*
+*/  calll _Z9print_strPKc /*
+*/  addl $4, %esp
+
 .code16
 .extern __bss_start__
 .extern __bss_end__
 .extern __start_ctors
 .extern __end_ctors
 .extern cpp_main
-.extern obj_count;
+.extern obj_count
 
 
 .text
@@ -20,8 +34,11 @@ _start:
   mov %cs, %ax
   mov %ax, %ds
   mov %ax, %es
+
 #endif
-  movl $0, obj_count
+#  movl $0, obj_count
+
+  #calll _Z9print_strPKc
 
 # setup stack
 #  mov %ax, %ss
@@ -29,7 +46,23 @@ _start:
 
 #  call disp_str
 
-  call init_bss_asm # in dos need not init bss by myself
+  pushl $cs
+  calll _Z9print_strPKc
+  addl $4, %esp
+
+  pushl $16
+  pushl %cs
+  calll _Z13s16_print_intii
+  addl $8, %esp
+
+  pushl $CRLF
+  calll _Z9print_strPKc
+  addl $4, %esp
+
+  PRINT_REG(ds)
+  PRINT_REG(ss)
+
+ call init_bss_asm # in dos need not init bss by myself
 
   # call _GLOBAL__I_XX invoke global object ctor, 
   # in dos environment use 16 or 32 bit address? look like 32 bit
@@ -107,6 +140,10 @@ init_bss_asm:
 #_bss_end_:.word   __bss_end__
 
 .data
+CRLF: .asciz "\r\n"
+cs: .asciz "%CS: "
+ds: .asciz "%DS: "
+ss: .asciz "%SS: "
 #LABEL_STACK:
 #.space  512, 0
 
