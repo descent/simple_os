@@ -41,10 +41,10 @@
 .global _start
 _start:
   xchg %bx, %bx
-#ifndef DOS
+#if 1
   mov %cs, %ax
   mov %ax, %ds
-  mov %ax, %es
+  mov %ax, %ss
 
 #endif
 #  movl $0, obj_count
@@ -56,24 +56,26 @@ _start:
 #  mov $0xffff, %sp
 
 #  call disp_str
+  mov $0xb800, %ax
+  mov %ax, %gs
 
-  pushl $cs
-  calll _Z9print_strPKc
-  addl $4, %esp
+  mov $0xef, %al
+  calll disp_al
 
-  pushl $16
-  pushl %cs
-  calll _Z13s16_print_intii
-  addl $8, %esp
+  mov $0x12, %al
+  calll disp_al
 
-  pushl $CRLF
-  calll _Z9print_strPKc
-  addl $4, %esp
+  mov obj_count, %bx
+  calll disp_bx
 
-  PRINT_REG(ds)
-  PRINT_REG(ss)
+  mov $0xaa, %al
+  calll disp_al
 
- call init_bss_asm # in dos need not init bss by myself
+  call init_bss_asm # in dos need not init bss by myself
+
+
+  mov obj_count, %bx
+  calll disp_bx
 
   # call _GLOBAL__I_XX invoke global object ctor, 
   # in dos environment use 16 or 32 bit address? look like 32 bit
@@ -118,17 +120,25 @@ _start:
 init_bss_asm:
   movw $__bss_end__, %di    /* Destination */
   movw $__bss_start__, %si   /* Source */
-  movw %ds, %ax
-  movw %ax, %gs
+  movw %ds, %bx
+  movw %bx, %es
   jmp 2f
 1:
+  mov $0, %eax
   movw %si, %ax
-  movb $0x0, %gs:(%eax)
+  movb $0x0, %es:(%eax)
   add $1, %si
+
+
+  # wait key
+#  xor %eax,%eax
+#  int $0x16
+
   
 2:
   cmpw %di, %si
   jne 1b
+
   ret
 
 #  movw     16(%ebp), %ecx   /* Counter */
@@ -156,11 +166,68 @@ init_bss_asm:
 #_bss_start_:.word   __bss_start__
 #_bss_end_:.word   __bss_end__
 
+disp_al:
+        pushl   %ebx
+        pushl   %ecx
+        pushl   %edx
+
+        movl (cur_pos), %ebx
+        movb    $0x0c, %ah # 0000: 黑底    1100: 紅字
+        movb    %al, %dl
+        shr     $4, %al
+        movl    $2, %ecx
+.begin_1:
+        andb    $0x0f, %al
+        cmp     $9, %al
+        ja      .31          # cf=0, zf=0, above 9 (>9)
+        #addb   $'0', %al
+        addb    $0x30, %al
+        jmp     .41
+.31:
+        sub     $0x0A, %al
+        #add    $'A', %al
+        add     $0x41, %al
+.41:
+        #mov    [gs:edi], ax
+        #mov    %ax, %gs:(%edi)
+#if 0
+        movw (cur_pos), %ax
+        call    DispReturn
+        call    DispAX
+#endif
+        movw    %ax, %gs:(%ebx)
+        #mov    %ax, %gs:(0)
+        add     $2, %ebx
+
+        mov %ebx, cur_pos
+
+        mov     %dl, %al
+        loop    .begin_1
+        addl    $2, %ebx
+
+        popl    %edx
+        popl    %ecx
+        popl    %ebx
+
+        ret
+
+disp_bx:
+  pushl %eax
+  mov %bx, %ax
+  shr $8, %ax
+  call disp_al
+  mov %bl, %al
+  call disp_al
+  popl %eax
+  ret
+
 .data
 CRLF: .asciz "\r\n"
 cs: .asciz "%CS: "
 ds: .asciz "%DS: "
 ss: .asciz "%SS: "
+var: .asciz "var: "
+cur_pos: .int 0
 #LABEL_STACK:
 #.space  512, 0
 
