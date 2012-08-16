@@ -9,6 +9,12 @@ SECTIONS
         *(.text)
         *(.gnu.linkonce.t*)
     }
+    /* for g++ 4.7 */
+    .init_array :
+    {
+      __start_global_ctor__ = .;
+      __end_globa_ctor__ = .;
+    }
     .ctors :
     {
       start_ctors = .; _start_ctors = .; __start_ctors = .;
