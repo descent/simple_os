@@ -1,4 +1,7 @@
 #include "io.h"
+
+void print_str(const char   *s);
+
 Io::Io():str_("data member\r\n")
 {
   print("Io ctor: ");
@@ -11,11 +14,7 @@ Io::~Io()
 
 void Io::print(const char   *s)
 {
-  while(*s)
-  {
-    __asm__ __volatile__ ("int  $0x10" : : "a"(0x0E00 | *s), "b"(7));
-    s++;
-  }
+  print_str(s);
 }
 
 Ab::Ab(int i)
@@ -31,9 +30,5 @@ Ab::~Ab()
 
 void Ab::print(const char   *s)
 {
-  while(*s)
-  {
-    __asm__ __volatile__ ("int  $0x10" : : "a"(0x0E00 | *s), "b"(7));
-    s++;
-  }
+  print_str(s);
 }
