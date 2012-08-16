@@ -16,6 +16,17 @@
 */  calll _Z9print_strPKc /*
 */  addl $4, %esp
 
+#define PRINT_VAR(VAR)  /*
+*/  pushl $var /*
+*/  calll _Z9print_strPKc /*
+*/  addl $4, %esp /*
+*/  pushl $16 /*
+*/  pushl VAR /*
+*/  calll _Z13s16_print_intii /*
+*/  addl $8, %esp /*
+*/  pushl $CRLF /*
+*/  calll _Z9print_strPKc /*
+*/  addl $4, %esp
 .code16
 .extern __bss_start__
 .extern __bss_end__
