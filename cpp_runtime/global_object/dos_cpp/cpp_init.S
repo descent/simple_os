@@ -77,8 +77,14 @@ _start:
 
   # call _GLOBAL__I_XX invoke global object ctor, 
   # in dos environment use 16 or 32 bit address? look like 32 bit
+
+#if __GNUC__ >= 4 && __GNUC_MINOR__ >= 7
+  mov $__start_global_ctor__, %ebx 
+#else
   mov $__start_ctors, %ebx 
+#endif
   calll *(%ebx)
+
   calll cpp_main
   calll g_dtors
 #  call disp_str2
