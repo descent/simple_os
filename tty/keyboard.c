@@ -365,6 +365,19 @@ int keyboard_read(Tty *tty)
           select_tty(key_status.key - KEY_F1);
         alt_l = 0;
         break;
+      case KEY_F7:
+        if (alt_l == 1)
+        {
+          set_vga_mode();  // system call
+          draw_box();
+          draw_box_1(40, 0, 3);
+          draw_box_1(40, 0, 3);
+          draw_box_1(40, 50, 5);
+          draw_box_1(100, 100, 10);
+          draw_str();
+        }
+        alt_l = 0;
+        break;
       case KEY_ALT_L:
         alt_l = 1;
         break;
