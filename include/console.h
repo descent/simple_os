@@ -38,9 +38,14 @@ void s32_print_str(const u8* str);
 
 void s32_set_text_color(u8 fg, u8 bg);
 
+int init_console();
 void set_cursor(u16 pos);
 void set_video_start_addr(u16 addr);
 void s32_console_print_char(Console *console, u8 ch);
-int init_console();
+void s32_console_print_str(Console *console, const u8 *str);
+void s32_console_print_char_xy(Console *console, u8 ch, int x, int y);
+void s32_console_print_str_xy(Console *console, const u8 *str, int x, int y);
+void set_xy(Console *console, int x, int y);
+void get_xy(Console *console, int *x, int *y);
 
 #endif

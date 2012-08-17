@@ -24,7 +24,8 @@ int init_console()
   {
     console = &console_table[i];
     console->cur_vm = console->vm_start = 0xb8000 + i*VIDEO_RAM_SIZE;
-    console->cur_x = console->cur_y = 0;
+    console->cur_x = 0;
+    console->cur_y = 2;
   }
   return 0;
 }
@@ -113,9 +114,37 @@ void s32_set_text_color(u8 fg, u8 bg)
   text_bg=bg;
 }
 
+void s32_console_print_char_xy(Console *console, u8 ch, int x, int y)
+{
+  console->cur_x = x;
+  console->cur_y = y;
+  s32_console_print_char(console, ch);
+}
+
+void s32_console_print_str_xy(Console *console, const u8 *str, int x, int y)
+{
+  for (int i=0 ; str[i] != 0 ; ++i)
+  {
+    s32_console_print_char_xy(console, str[i], x++, y);
+  }
+}
+
+void set_xy(Console *console, int x, int y)
+{
+  console->cur_x = x;
+  console->cur_y = y;
+}
+
+void get_xy(Console *console, int *x, int *y)
+{
+  *x = console->cur_x;
+  *y = console->cur_y;
+}
+
 void s32_console_print_char(Console *console, u8 ch)
 {
   u8 *console_vb = (u8*)console->cur_vm;
+  u32 vm = console->vm_start;
   //u8 *console_vb = (u8*)(0xb8000);
   //s32_put_char(ch, (u8*)(0xb8000+160*19));
 
@@ -128,8 +157,9 @@ void s32_console_print_char(Console *console, u8 ch)
       ++console->cur_y;
       break;
     case 0x20 ... 0x7e: // ascii printable char. gnu extension: I don't want use gnu extension, but it is very convenience.
-      *console_vb = ch;
+      //*console_vb = ch;
       //*(console_vb+1) = (text_fg|text_bg);
+      *((u8 *)(vm + (console->cur_x + console->cur_y * 80)*2)) = ch;
       ++console->cur_x;
       break;
     default:
@@ -141,4 +171,12 @@ void s32_console_print_char(Console *console, u8 ch)
     set_video_start_addr(80*(console->cur_y - 24));
   set_cursor((console->vm_start - 0xb8000)/2 + console->cur_x + console->cur_y * 80);
   console->cur_vm = (u32)console_vb;
+}
+
+void s32_console_print_str(Console *console, const u8 *str)
+{
+  for (int i=0 ; str[i] != 0 ; ++i)
+  {
+    s32_console_print_char(console, str[i]);
+  }
 }
