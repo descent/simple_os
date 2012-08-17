@@ -1,5 +1,6 @@
 #include "io.h"
 #include "irq.h"
+#include "vga.h"
 #include "k_stdio.h"
 #include "k_ctype.h"
 #include "keyboard.h"
@@ -10,7 +11,6 @@ static u8 shift_r=0;
 static u8 shift_l=0;
 static u8 alt_r=0;
 static u8 alt_l=0;
-
 
 int init_keyboard(void)
 {
@@ -345,7 +345,7 @@ int keyboard_read(Tty *tty)
   u8 make;
   int ret=0;
   static u8 keymap_col=0;
-  static alt_l=0;
+  static u8 alt_l=0;
 
   KeyStatus key_status;
   if(kb_buf.count > 0)
@@ -361,13 +361,15 @@ int keyboard_read(Tty *tty)
       case KEY_F1:
       case KEY_F2:
       case KEY_F3:
-        if (alt_l == 1)
+        if (alt_l == 1 && key_status.press == PRESS)
           select_tty(key_status.key - KEY_F1);
         alt_l = 0;
         break;
       case KEY_F7:
-        if (alt_l == 1)
+        if (alt_l == 1 && key_status.press == PRESS)
         {
+          int set_vga_mode(void);
+
           set_vga_mode();  // system call
           draw_box();
           draw_box_1(40, 0, 3);
