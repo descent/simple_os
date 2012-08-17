@@ -18,26 +18,37 @@ int select_tty(int tty_index)
     cur_tty_index = tty_index;
   else
     ret = -1;
-  u16 cur_console_vm_start = (tty_table[cur_tty_index].console->vm_start-0xb8000)/2;
-  set_video_start_addr(cur_console_vm_start);
-  set_cursor(cur_console_vm_start + tty_table[cur_tty_index].console->cur_x + tty_table[cur_tty_index].console->cur_y*80);
-  //s32_print_int(tty_table[cur_tty_index].console->vm_start, (u8*)(0xb8000+160*1), 16);
+
+  s32_print_int(tty_table[cur_tty_index].console->vm_start, (u8*)(0xb8000+160*1), 16);
+
+  int org_x, org_y;
+  get_xy(tty_table[cur_tty_index].console, &org_x, &org_y);
+
+  set_xy(tty_table[cur_tty_index].console, 0, 0);
+  s32_console_print_str(tty_table[cur_tty_index].console, "simple tty ");
 
   switch (cur_tty_index)
   {
     case 0:
-      //s32_console_print_char(tty_table[cur_tty_index].console, '0');
+      s32_console_print_char(tty_table[cur_tty_index].console, '1');
       break;
     case 1:
-      //s32_console_print_char(tty_table[cur_tty_index].console, '1');
+      s32_console_print_char(tty_table[cur_tty_index].console, '2');
       break;
     case 2:
-      //s32_console_print_char(tty_table[cur_tty_index].console, '2');
+      s32_console_print_char(tty_table[cur_tty_index].console, '3');
       break;
     default:
       break;
-
   }
+  s32_console_print_str(tty_table[cur_tty_index].console, "\r\n\r\n");
+  set_xy(tty_table[cur_tty_index].console, org_x, org_y);
+  u16 cur_console_vm_start = (tty_table[cur_tty_index].console->vm_start-0xb8000)/2;
+  set_video_start_addr(cur_console_vm_start);
+
+
+  //set_cursor(cur_console_vm_start + tty_table[cur_tty_index].console->cur_x + tty_table[cur_tty_index].console->cur_y*80);
+  set_cursor(cur_console_vm_start + org_x + org_y*80);
   return ret;
 }
 
@@ -49,6 +60,7 @@ int init_tty(Tty *tty)
   u8 tty_index = tty - tty_table;
   tty->console = console_table + tty_index;
 
+  select_tty(0);
   return 0;
 }
 
