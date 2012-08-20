@@ -516,7 +516,7 @@ int init_tss(void)
   init_descriptor(&gdt[INDEX_TSS], linear2phy(seg2base(SELECTOR_KERNEL_DS), (u32)&tss), sizeof(tss)-1, DA_386TSS);
   tss.iobase = sizeof(tss); // ???
 
-  for (int i = 0 ; i < NR_TASKS ; ++i)
+  for (int i = 0 ; i < NR_TASKS + NR_PROCS ; ++i)
   {
     init_descriptor(&gdt[INDEX_LDT_FIRST+i], linear2phy(seg2base(SELECTOR_KERNEL_DS), (u32)proc_table[i].ldt), LDT_SIZE * sizeof(Descriptor) - 1, DA_LDT);
   }

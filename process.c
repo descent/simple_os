@@ -7,14 +7,13 @@
 #include "syscall.h"
 #include "vga.h"
 
-Process proc_table[NR_TASKS];
+Process proc_table[NR_TASKS + NR_PROCS];
 u8 task_stack[STACK_SIZE_TOTAL];
 //u8 task_stack[0x9000];
 Process *ready_process;
 Tss tss;
 
 extern u8 *cur_vb;
-
 
 //int k_reenter = -1;
 int k_reenter = 0;
@@ -272,12 +271,16 @@ void proc_c(void)
 
 // how to add a task/process:
 // add function to tasks and add 1 to NR_TASKS
-Task tasks[NR_TASKS] = {
-                         {proc_a, TASK_STACK, "proc a"},
-                         {proc_b, TASK_STACK, "proc b"},
-                         {proc_c, TASK_STACK, "proc c"},
+Task task_table[NR_TASKS] = {
                          {task_tty, TASK_STACK, "tty"},
                        };
+
+Task user_proc_table[NR_PROCS] = 
+{
+  {proc_a, TASK_STACK, "proc a"},
+  {proc_b, TASK_STACK, "proc b"},
+  {proc_c, TASK_STACK, "proc c"},
+};
 
 void init_proc(void)
 {
@@ -287,33 +290,57 @@ void init_proc(void)
 
   u32 task_stack_top = 0;
   u16 selector_ldt = SELECTOR_LDT_FIRST;
+  u8 privilege;
+  u8 rpl;
+  u32 eflags;
 
-  for (int i = 0 ; i < NR_TASKS; ++i)
+  Task *task;
+  Process *proc = proc_table;
+
+  for (int i = 0 ; i < NR_TASKS + NR_PROCS; ++i)
   {
-    Process *proc = &proc_table[i];
+    if (i < NR_TASKS)
+    {
+      task = task_table + i;
+      privilege = PRIVILEGE_TASK;
+      rpl = RPL_TASK;
+      eflags = 0x1202;
+    }
+    else
+    {
+      task = user_proc_table + (i - NR_TASKS);
+      privilege = PRIVILEGE_USER;
+      rpl = RPL_USER;
+      eflags = 0x202;
+    }
+
     proc->ldt_sel = selector_ldt;
 
     p_asm_memcpy(&proc->ldt[0], &gdt[SELECTOR_KERNEL_CS >> 3], sizeof(Descriptor));
-    proc->ldt[0].attr1 = (DA_C | (PRIVILEGE_TASK << 5) );
+    proc->ldt[0].attr1 = (DA_C | (privilege << 5) );
     p_asm_memcpy(&proc->ldt[1], &gdt[SELECTOR_KERNEL_DS >> 3], sizeof(Descriptor));
-    proc->ldt[1].attr1 = (DA_DRW | (PRIVILEGE_TASK << 5) );
+    proc->ldt[1].attr1 = (DA_DRW | (privilege << 5) );
 
-    proc->regs.cs = (0 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
-    proc->regs.ds = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
-    proc->regs.es = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
-    proc->regs.fs = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
-    proc->regs.ss = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
+    proc->regs.cs = (0 & 0xfff8) | SEL_USE_LDT | rpl; // a ldt selector
+    proc->regs.ds = (8 & 0xfff8) | SEL_USE_LDT | rpl; // a ldt selector
+    proc->regs.es = (8 & 0xfff8) | SEL_USE_LDT | rpl; // a ldt selector
+    proc->regs.fs = (8 & 0xfff8) | SEL_USE_LDT | rpl; // a ldt selector
+    proc->regs.ss = (8 & 0xfff8) | SEL_USE_LDT | rpl; // a ldt selector
     //proc->regs.gs = (SELECTOR_KERNEL_GS & 0xfff8) | SEL_USE_LDT | RPL_TASK;
-    proc->regs.gs = (SELECTOR_KERNEL_GS & 0xfff8) | RPL_TASK;
-    proc->regs.eip = (u32)tasks[i].init_eip;
+    proc->regs.gs = (SELECTOR_KERNEL_GS & 0xfff8) | rpl;
+    proc->regs.eip = (u32)(task->init_eip);
 
-    task_stack_top += (u32)task_stack+tasks[i].stack_size;
+    task_stack_top += (u32)task_stack+task->stack_size;
     proc->regs.esp = task_stack_top;
 
-    proc->regs.eflags = 0x1202;
+    proc->regs.eflags = eflags;
 
-    proc->p_name = tasks[i].name;
+    proc->p_name = task->name;
+    proc->pid = i;
+
     selector_ldt += (1 << 3); // +8
+    ++task;
+    ++proc;
   }
 
 

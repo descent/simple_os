@@ -29,6 +29,6 @@ void clock_handler(int irq)
 
 
   ++ready_process;
-  if (ready_process >= &proc_table[NR_TASKS])
+  if (ready_process >= &proc_table[NR_TASKS + NR_PROCS])
       ready_process = proc_table;
 }
