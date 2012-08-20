@@ -646,7 +646,7 @@ static InitFunc init[]={
 			 init_timer,
                          ramdisk_driver_init,
                          init_keyboard,
-                         init_tty,
+                         //init_tty,
                          0
                        };
 
