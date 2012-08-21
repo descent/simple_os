@@ -7,6 +7,7 @@
 #define TTY_IN_BYTES_NUM 256
 #define TTY_NUM 3
 
+
 typedef struct Tty_
 {
   u32 inbuf[TTY_IN_BYTES_NUM];
@@ -21,4 +22,7 @@ int init_tty(Tty *tty);
 int put_key(Tty *tty, u32 key);
 int select_tty(int tty_index);
 
+void tty_write(Tty *tty, char *buf, int len);
+
+extern Tty tty_table[];
 #endif
