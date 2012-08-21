@@ -167,3 +167,45 @@ void p_dump_u8(u8 *buff, int len)
     s32_print_int(len, (u8*)(0xb8000+160*line+12*2), 16);
     #endif
 }
+
+int s32_printf(const char *fmt, ...)
+{
+  char buf[256];
+  int i=1;
+  char *p;
+
+  for (p = buf; *fmt ; ++fmt, ++i)
+  {
+    if (*fmt != '%')
+    {
+      *p++ = *fmt;
+      continue;
+    }
+    ++fmt;
+    u8 *arg = (u8 *)(&fmt + i); // nst argument address
+    u32 arg_content = *((u32*)arg);
+
+    switch (*fmt)
+    {
+      case 'x':
+        break;
+      case 's':
+      {
+        char *str_ptr = (char *)arg_content;
+        while(*str_ptr)
+          *p++ = *str_ptr++;
+        break;
+      }
+      default:
+        break;
+    }
+ 
+  } // end for (char *p = buf; *fmt ; ++fmt, ++i)
+  int len = p-buf;
+  //buf[len]='\0';
+
+  int write(char *buf, int len);
+  write(buf, len);
+
+  return 0;
+}

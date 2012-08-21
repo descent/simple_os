@@ -52,6 +52,7 @@ static inline void bios_reset_disk()
 }
 
 
+int s32_printf(const char *fmt, ...);
 
 
 #endif
