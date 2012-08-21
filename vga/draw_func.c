@@ -1,6 +1,7 @@
 #include "draw_func.h"
 #include "type.h"
 #include "font_rawdata.h"
+#include "k_stdlib.h"
 
 void draw_box()
 {
@@ -59,4 +60,42 @@ void draw_str()
     ++line;
   }
 
+}
+
+void draw_char(int dx, int dy, char ch)
+{
+  BOCHS_MB
+  u8 line=1;
+
+  const u8* image_addr = ch_data;
+  int org_x=dx;
+  int org_y=dy;
+  int cur_x=org_x;
+  int cur_y=org_y;
+  u8 *org_vb = (u8*)(0xa0000 + cur_x + cur_y*320);// + dx + dy*320;
+  u8 *vb = org_vb;
+
+  for (int y = 0 ; y < ch_hb ; ++y)
+  {    
+    for (int x = 0 ; x < ch_wb ; ++x)
+    { 
+      u8 c = *image_addr;
+          
+
+      for (int i=7 ; i>=0 ; --i)
+      {
+        if (((c >> i) & 0x1) == 1)
+          *vb = 7;
+        else
+          ;//printf("|");
+        //++cur_x;
+        ++vb;
+      }
+
+      ++image_addr;
+    }
+    ++cur_y;
+    vb = (u8*)((0xa0000+(320*cur_y)) + org_x);
+    ++line;
+  }
 }
