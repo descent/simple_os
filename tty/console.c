@@ -147,6 +147,9 @@ void s32_console_print_char(Console *console, u8 ch)
   u32 vm = console->vm_start;
   //u8 *console_vb = (u8*)(0xb8000);
   //s32_put_char(ch, (u8*)(0xb8000+160*19));
+  //if (console->cur_y >= ((VIDEO_RAM_SIZE/4000) * 25) )
+  if (console->cur_y >= 50)
+    return;
 
   switch (ch)
   {
