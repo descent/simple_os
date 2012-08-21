@@ -47,6 +47,7 @@ typedef struct Process_
   Descriptor ldt[LDT_SIZE];
   u32 pid;
   const char *p_name;
+  int tty_index; // use which tty
 }Process;
 
 typedef void (*TaskAddr)(void);
