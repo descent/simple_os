@@ -6,7 +6,7 @@
 #define TRUE 1
 #define FALSE (!TRUE)
 
-static Tty tty_table[TTY_NUM];
+Tty tty_table[TTY_NUM];
 
 static int cur_tty_index = 0;
 
@@ -181,4 +181,11 @@ int put_key(Tty *tty, u32 key)
       tty->inbuf_head = tty->inbuf;
     ++tty->inbuf_count;
   }
+}
+
+void tty_write(Tty *tty, char *buf, int len)
+{
+  for (int i=0 ; i < len ; ++i)
+    s32_console_print_char(tty->console, buf[i]);
+
 }
