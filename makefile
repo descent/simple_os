@@ -123,6 +123,6 @@ C_OBJS = clock.o start.o process.o storage.o syscall.o
 .PHONE: clean distclean kloaderp.bin
 
 clean:
-	rm -rf *.o *.elf *.bin ; #(cd kernel_loader; make clean)
+	rm -rf *.o *.elf *.bin asm_syscall.s ; #(cd kernel_loader; make clean)
 distclean:
 	rm -rf *.img
