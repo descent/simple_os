@@ -38,9 +38,17 @@ u8 get_privilege(void)
 
 int set_vga_mode(void);
 
+int write(char *buf, int len);
+
 void proc_a(void)
 {
-  while(1);
+  //char buf[1] = {'1'};
+  char buf[] = "ws";
+  while(1)
+  {
+    //write(buf, 1);
+    s32_printf("%s", buf);
+  }
 #if 0
 #if 1
   u16 l=10;
@@ -198,6 +206,12 @@ void proc_a(void)
 
 void proc_b(void)
 {
+  char buf[1] = {'2'};
+  while(1)
+  {
+    write(buf, 1);
+  }
+#if 0
 #if 1
   //#define VB_OFFSET (35*2)
   const u16 VB_OFFSET = (30*2);
@@ -233,10 +247,18 @@ void proc_b(void)
     milli_delay(1000);
   }
 #endif
+#endif
 }
 
 void proc_c(void)
 {
+  char buf[] = "third tty";
+  while(1)
+  {
+    //write(buf, 1);
+    s32_printf("%s", buf);
+  }
+#if 0
 #if 1
   const u16 VB_OFFSET = (50*2);
   u16 l=14;
@@ -266,6 +288,7 @@ void proc_c(void)
     //loop_delay(100);
     milli_delay(1000);
   }
+#endif
 #endif
 }
 
@@ -337,11 +360,15 @@ void init_proc(void)
 
     proc->p_name = task->name;
     proc->pid = i;
+    proc->tty_index = 0;
 
     selector_ldt += (1 << 3); // +8
     ++task;
     ++proc;
   }
+  proc_table[1].tty_index = 0;
+  proc_table[2].tty_index = 1;
+  proc_table[3].tty_index = 2;
 
 
 
