@@ -5,7 +5,7 @@
 #include "console.h"
 
 #define TTY_IN_BYTES_NUM 256
-#define TTY_NUM 3
+#define TTY_NUM 4
 
 
 typedef struct Tty_

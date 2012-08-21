@@ -4,6 +4,7 @@
 #include "io.h"
 #include "console.h"
 #include "k_stdio.h"
+#include "k_stdlib.h"
 
 static int cur_console_index=0;
 
@@ -20,13 +21,18 @@ int init_console()
 {
   Console *console;
 
-  for (int i=0 ; i < CONSOLE_NUM ; ++i)
+  for (int i=0 ; i < CONSOLE_NUM - 1; ++i)
   {
     console = &console_table[i];
     console->cur_vm = console->vm_start = 0xb8000 + i*VIDEO_RAM_SIZE;
     console->cur_x = 0;
     console->cur_y = 2;
+    console->type = TEXT_CONSOLE;
   }
+
+  Console *g_console = &console_table[CONSOLE_NUM-1];
+  g_console->type = GRAPHIC_CONSOLE;
+  g_console->cur_vm = g_console->vm_start = 0xa0000;
   return 0;
 }
 
@@ -143,6 +149,15 @@ void get_xy(Console *console, int *x, int *y)
 
 void s32_console_print_char(Console *console, u8 ch)
 {
+
+  if (console->type == GRAPHIC_CONSOLE)
+  {
+    BOCHS_MB
+    draw_char(console->cur_x, console->cur_y, ch);
+    console->cur_x += 32;
+    return;
+  }
+
   u8 *console_vb = (u8*)console->cur_vm;
   u32 vm = console->vm_start;
   //u8 *console_vb = (u8*)(0xb8000);

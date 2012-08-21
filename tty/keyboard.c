@@ -369,6 +369,7 @@ int keyboard_read(Tty *tty)
         if (alt_l == 1 && key_status.press == PRESS)
         {
           int set_vga_mode(void);
+          select_tty(3);
 
           set_vga_mode();  // system call
           draw_box();

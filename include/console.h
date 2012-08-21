@@ -20,16 +20,20 @@
 // video ram is from 0xb8000 ~ 0xc0000
 // need 4000 byte for 80X25 console
 
+#define TEXT_CONSOLE 0
+#define GRAPHIC_CONSOLE 1
+
 typedef struct Console_
 {
   u32 vm_start; // video memory start
   u32 vm_end; // video memroy end
   u32 cur_vm;
   u32 cur_x, cur_y;
+  u8 type; // TEXT_CONSOLE means text console, GRAPHIC_CONSOLE means graphic console
 }Console;
 
-#define CONSOLE_NUM 3
-#define VIDEO_RAM_SIZE ((0xc0000-0xb8000) / CONSOLE_NUM)
+#define CONSOLE_NUM 4
+#define VIDEO_RAM_SIZE ((0xc0000-0xb8000) / (CONSOLE_NUM-1) ) // last console is graphic console
 
 extern Console console_table[];
 

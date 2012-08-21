@@ -152,6 +152,7 @@ void task_tty(void)
   Tty *tty;
 
   init_console();
+
   for (tty = tty_table ; tty < tty_table + TTY_NUM ; ++tty)
   {
     init_tty(tty);
