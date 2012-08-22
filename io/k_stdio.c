@@ -172,9 +172,9 @@ int s32_printf(const char *fmt, ...)
 {
   char buf[256];
   int i=1;
-  char *p;
+  char *p = buf;
 
-  for (p = buf; *fmt ; ++fmt, ++i)
+  for (; *fmt ; ++fmt)
   {
     if (*fmt != '%')
     {
@@ -187,8 +187,26 @@ int s32_printf(const char *fmt, ...)
 
     switch (*fmt)
     {
-      case 'x':
+      case 'd':
+      {
+        u8 str[12]="";
+        s32_itoa(arg_content, str, 10);
+
+        char *str_ptr = str;
+        while(*str_ptr)
+          *p++ = *str_ptr++;
         break;
+      }
+      case 'x':
+      {
+        u8 str[12]="";
+        s32_itoa(arg_content, str, 16);
+
+        char *str_ptr = str;
+        while(*str_ptr)
+          *p++ = *str_ptr++;
+        break;
+      }
       case 's':
       {
         char *str_ptr = (char *)arg_content;
@@ -199,6 +217,7 @@ int s32_printf(const char *fmt, ...)
       default:
         break;
     }
+    ++i; // point to next argument
  
   } // end for (char *p = buf; *fmt ; ++fmt, ++i)
   int len = p-buf;
