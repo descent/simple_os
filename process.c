@@ -253,10 +253,13 @@ void proc_b(void)
 void proc_c(void)
 {
   char buf[] = "third tty";
+  int hex=0x3f;
+  int dec=98;
   while(1)
   {
     //write(buf, 1);
-    s32_printf("%s", buf);
+    s32_printf("test printf %d %x %s", dec, hex, buf);
+    //s32_printf("q %s", buf);
   }
 #if 0
 #if 1
