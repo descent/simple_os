@@ -96,13 +96,13 @@ asm_syscall.s: asm_syscall.S syscall.h process_const.h
 
 $(FS_OBJS):$(FS_SRC)
 	(cd fs; make)
-vga/set_mode_p.o: vga/set_mode_p.S
+vga/set_mode_p.o: vga
 	(cd vga; make set_mode_p.o)
 
-vga/draw_func.o: vga/draw_func.c
+vga/draw_func.o: vga
 	(cd vga; make draw_func.o)
 
-io/k_stdio.o: io/k_stdio.c
+io/k_stdio.o: io
 	(cd io; make)
 tty/keyboard.o: tty
 	(cd tty; make keyboard.o)
