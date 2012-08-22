@@ -25,7 +25,7 @@ int select_tty(int tty_index)
   get_xy(tty_table[cur_tty_index].console, &org_x, &org_y);
 
   set_xy(tty_table[cur_tty_index].console, 0, 0);
-  s32_console_print_str(tty_table[cur_tty_index].console, "simple tty ");
+  s32_console_print_str(tty_table[cur_tty_index].console, "simple os tty ");
 
   switch (cur_tty_index)
   {
