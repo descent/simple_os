@@ -5,7 +5,8 @@
 #include "protect.h"
 
 #define LDT_SIZE 2
-#define NR_TASKS 3
+#define NR_TASKS 1
+#define NR_PROCS 3
 
 #define STACK_SIZE_TESTA 0x8000
 #define TASK_STACK 0x8000
@@ -15,7 +16,7 @@
 #define PRIVILEGE_TASK 1
 
 #define RPL_TASK 1
-
+#define RPL_USER 3
 
 typedef struct StackFrame_
 {
@@ -46,6 +47,7 @@ typedef struct Process_
   Descriptor ldt[LDT_SIZE];
   u32 pid;
   const char *p_name;
+  int tty_index; // use which tty
 }Process;
 
 typedef void (*TaskAddr)(void);

@@ -9,10 +9,15 @@ else
 include ../rule.mk
 endif
 
+sources = draw_func.c
+include $(sources:.c=.d)
+
+
 set_mode_p.o: set_mode_p.S
 	gcc $(CFLAGS) -o $@ -c $<
-draw_func.o: draw_func.c draw_func.h ../include/type.h
-	gcc $(CFLAGS) -o $@ -c $<
+
+#draw_func.o: draw_func.c draw_func.h ../include/type.h
+#	gcc $(CFLAGS) -o $@ -c $<
 
 
 set_mode.bin: set_mode.elf

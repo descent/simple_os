@@ -64,5 +64,6 @@ static inline u8 get_file_type(u8 t)
   return (t & 7);
 }
 
+char * k_readdir(const char *dirname);
 
 #endif

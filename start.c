@@ -7,9 +7,13 @@
 #include "storage.h"
 #include "romfs.h"
 #include "k_string.h"
+#include "k_stdlib.h"
 #include "k_stdio.h"
 #include "endian.h"
 #include "vfs.h"
+#include "keyboard.h"
+#include "irq.h"
+#include "tty.h"
 
 #define INT_M_PORT 0x20
 #define INT_S_PORT 0xa0
@@ -18,9 +22,7 @@
 #define INT_M_CTLMASK 0x21
 #define INT_S_CTLMASK 0xa1
 
-#define NR_IRQ 16
 
-#define CLOCK_IRQ 0
 
 #define TIMER_MODE 0x43
 #define RATE_GENERATOR 0x34 // 00110100
@@ -31,8 +33,6 @@
 int get_ticks(void);
 void s32_print(const u8 *s, u8 *vb);
 
-int disable_irq(int irq_no);
-int enable_irq(int irq_no);
 
 //void __attribute__((aligned(16))) function() { }
 
@@ -234,9 +234,9 @@ void init_protected_mode_by_c()
 #define PAGE_FAULT_NO           0xE
 #define COPROC_ERR_NO           0x10
 
-void init_idt_by_c()
+int init_idt_by_c()
 {
-  void init_8259a();
+  int init_8259a();
 
   //s32_print("init_8259a", (u8*)(0xb8000+160*5));
   //init_8259a();
@@ -338,6 +338,7 @@ void init_idt_by_c()
 
   __asm__ volatile ("lidt idt_ptr");
 
+  return 0;
 }
 
 void init_idt_desc_by_c(u8 vector_no, u8 desc_type, IntHandler handler, u8 privilege)
@@ -463,7 +464,7 @@ void startc()
 
 
 
-void init_8259a()
+int init_8259a()
 {
   void spurious_irq(int irq);
 
@@ -503,29 +504,24 @@ void init_8259a()
   {
     irq_table[i] = spurious_irq;
   }
-
-}
-
-void put_irq_handler(int irq, IrqHandler handler)
-{
-  disable_irq(irq);
-  irq_table[irq] = handler;
+  return 0;
 }
 
 
-void init_tss(void)
+
+int init_tss(void)
 {
   p_asm_memset(&tss, 0, sizeof(tss));
   tss.ss0 = SELECTOR_KERNEL_DS;
   init_descriptor(&gdt[INDEX_TSS], linear2phy(seg2base(SELECTOR_KERNEL_DS), (u32)&tss), sizeof(tss)-1, DA_386TSS);
   tss.iobase = sizeof(tss); // ???
 
-  for (int i = 0 ; i < NR_TASKS ; ++i)
+  for (int i = 0 ; i < NR_TASKS + NR_PROCS ; ++i)
   {
     init_descriptor(&gdt[INDEX_LDT_FIRST+i], linear2phy(seg2base(SELECTOR_KERNEL_DS), (u32)proc_table[i].ldt), LDT_SIZE * sizeof(Descriptor) - 1, DA_LDT);
   }
 
-  
+  return 0;  
 }
 
 void spurious_irq(int irq)
@@ -542,9 +538,23 @@ void spurious_irq(int irq)
 // when HZ is 100 (10 ms), milli_sec needs more than 10
 void milli_delay(int milli_sec)
 {
-  int t = get_ticks();
+  u32 t = get_ticks();
+  u32 t2;
 
+#if 0
   while(((get_ticks() - t ) * 1000 / HZ) < milli_sec);
+#else
+  BOCHS_MB
+  while(1)
+  {
+  BOCHS_MB
+    t2 = get_ticks();
+    s32_print_int(t2, (u8*)(0xb8000+160*20), 10);
+    if (((t2 - t) * 1000/HZ ) >= milli_sec)
+      break;
+
+  }
+#endif
 }
 
 void loop_delay(int time)
@@ -566,11 +576,12 @@ u32 memsize;
 
 
 // 8254
-void init_timer(void)
+int init_timer(void)
 {
   io_out8(TIMER_MODE, RATE_GENERATOR);
   io_out8(TIMER0, (u8)(TIMER_FREQ/HZ) );
   io_out8(TIMER0, (u8)(TIMER_FREQ/HZ) >> 8 );
+  return 0;
 }
 
 void kernel_main(void)
@@ -600,26 +611,33 @@ void kernel_main(void)
   void setup_paging(void);
   //setup_paging();
  
-  //while(1);
+#if 1
   put_irq_handler(CLOCK_IRQ, clock_handler);
   enable_irq(CLOCK_IRQ);
-
+#endif
   ready_process = proc_table;
 
 
 
   init_proc();
+  set_cursor(0);
+  //set_video_start_addr(80);
 
   cur_vb = (u8*)0xb8000+160;
 
   void restart(void);
-  restart();
+  restart(); // need run restart(), because restart() iret will enable interrupt
+
+#if 0
   s32_print("xxxxxxxxxxx", (u8*)(0xb8000+160*15));
+#endif
   while(1);
 
 }
 
-typedef void (*InitFunc)(void);
+typedef int (*InitFunc)(void);
+
+
 
 static InitFunc init[]={
                          init_8259a,
@@ -627,6 +645,8 @@ static InitFunc init[]={
 			 init_tss,
 			 init_timer,
                          ramdisk_driver_init,
+                         init_keyboard,
+                         //init_tty,
                          0
                        };
 
@@ -660,58 +680,6 @@ void test_romfs(void)
   #endif
 
 
-#if 0
-#if 0
-  line=7;
-  clear_line(line);
-  s32_print_int(next_offset, (u8*)(0xb8000+160*line), 16);
-
-  rom_fs_header = (RomFsHeader*)(buf + next_offset);
-
-  line=9;
-  clear_line(line);
-  s32_print_int(be32tole32(rom_fs_header->u.header8.nextfh), (u8*)(0xb8000+160*line), 16);
-
-  line = 10;
-  clear_line(line);
-  s32_print_int(be32tole32(rom_fs_header->u.header8.spec), (u8*)(0xb8000+160*line), 16);
-  BOCHS_MB
-
-  line = 11;
-  clear_line(line);
-  s32_print_int(be32tole32(rom_fs_header->size), (u8*)(0xb8000+160*line), 16);
-#if 1
-
-  line = 12;
-  clear_line(line);
-  s32_print_int(be32tole32(rom_fs_header->checksum), (u8*)(0xb8000+160*line), 16);
-#endif
-  next_offset +=16; // file name offset, skip rom_fs_header
-
-  u32 fn_len = s_strlen(buf+next_offset);
-  line = 13;
-  clear_line(line);
-  s32_print_int(fn_len, (u8*)(0xb8000+160*line), 10);
-
-  line = 14;
-  clear_line(line);
-  s32_print(buf+next_offset, (u8*)(0xb8000+160*line));
-
-  switch (get_file_type(be32tole32(rom_fs_header->u.header8.nextfh)))
-  {
-    case HARD_LINK:
-      break;
-    case DIRECTORY:
-      s32_print("dir", (u8*)(0xb8000+160*line)+ 5*2);
-      break;
-  }
-
-  next_offset = get_next_16_boundary(next_offset + fn_len);
-  line = 15;
-  clear_line(line);
-  s32_print_int(next_offset, (u8*)(0xb8000+160*line), 16);
-#endif
-#endif
 }
 
 void load_init_boot(InitFunc *init_func)
@@ -724,6 +692,7 @@ void load_init_boot(InitFunc *init_func)
   storage[RAMDISK]->dout(storage[RAMDISK], buf, 0, sizeof(buf));
   p_dump_u8(buf, 32);
 
+  romfs_init();
   //test_romfs();
   //test_vga();
 

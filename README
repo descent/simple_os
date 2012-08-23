@@ -28,3 +28,9 @@ note:
 KERNEL_ES:LOAD_KERNEL_OFFSET
 RAMDISK_ES:LOAD_KERNEL_OFFSET
 see include/kl_global.h
+
+tty design:
+0, 1, 2 text mode alt+f1, alt+f2, alt+f3
+3 graphic mode alt+f7
+now if switch to graphic mode tty, cannot to switch text mode tty.
+

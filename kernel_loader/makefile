@@ -46,9 +46,6 @@ protected_code.e: protected_code.c
 clean:
 	rm -rf *.o *.elf *.bin kernel_loader.s *.d *.e
 
-%.d: %.c
-	set -e; rm -f $@ ; gcc -MM $(CFLAGS) $< > $@.$$$$ ; sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@ ; rm -f $@.$$$$
-
 sources = kernel_loader.c  protected_code.c
 include $(sources:.c=.d)
 

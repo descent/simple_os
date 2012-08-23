@@ -52,7 +52,7 @@ static inline void bios_reset_disk()
 }
 
 
-// bochs magic break point
-#define BOCHS_MB __asm__ __volatile__("xchg %bx, %bx");
+int s32_printf(const char *fmt, ...);
+
 
 #endif

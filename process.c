@@ -1,13 +1,19 @@
 #include "process.h"
+#include "keyboard.h"
+#include "console.h"
+#include "k_stdio.h"
+#include "tty.h"
+#include "romfs.h"
+#include "syscall.h"
+#include "vga.h"
 
-Process proc_table[NR_TASKS];
+Process proc_table[NR_TASKS + NR_PROCS];
 u8 task_stack[STACK_SIZE_TOTAL];
 //u8 task_stack[0x9000];
 Process *ready_process;
 Tss tss;
 
 extern u8 *cur_vb;
-
 
 //int k_reenter = -1;
 int k_reenter = 0;
@@ -30,34 +36,152 @@ u8 get_privilege(void)
   return (cs_reg & 0x03);
 }
 
+int set_vga_mode(void);
+
+int write(char *buf, int len);
+
 void proc_a(void)
 {
+  //char buf[1] = {'1'};
+  char buf[] = "ws";
+  while(1)
+  {
+    //write(buf, 1);
+    s32_printf("%s", buf);
+  }
 #if 0
+#if 1
   u16 l=10;
   u8 stack_str[10]="y";
   u8 *sp = stack_str;
   u8 privilege = get_privilege();
 
+  s32_set_text_color(HRED, HRED);
+  //s32_print_str("press any key\r\n");
+  s32_print("tty 1", (u8*)(0xb8000));
+
+  static int ll=0;
+  static u8 readdir = 0;
+  static u8 alt_l=0;
   while(1)
   {
+    //u8 key = get_byte_from_kb_buf();
+    KeyStatus key_status;
+    //int r=parse_//scan_code(&key_status, SCANCODE_MODE);
+    int r=parse_scan_code(&key_status, ASCII_MODE);
 #if 0
     __asm__ volatile ("mov $0xc,%ah\t\n");
     __asm__ volatile ("mov $'A',%al\t\n");
     __asm__ volatile ("mov %ax,%gs:((80*0+39)*2)\t\n");
 #endif
 
+#if 0
     const char* proc_a_str="proc A privilege: ";
     sp = s32_itoa(l, stack_str, 10);
     clear_line(l-1);
     s32_print(sp, (u8*)(0xb8000+160*l));
     s32_print(proc_a_str, (u8*)(0xb8000+160*l+4*2));
     sp = s32_itoa(privilege, stack_str, 10);
-    s32_print(sp, (u8*)(0xb8000+160*l + 22*2));
+#endif
+    //s32_print(sp, (u8*)(0xb8000+160*l + 22*2));
+    if (r==0)
+    {
+      s32_set_text_color(WHITE, WHITE);
+
+      //clear_line(1);
+      if (key_status.press == PRESS)
+      {
+        //s32_print_int(key_status.key, (u8*)(0xb8000+160*1 + 22*2+20), 16);
+
+        switch (key_status.key)
+        {
+          case 0x20 ... 0x7e: // ascii printable char. gnu extension: I don't want use gnu extension, but it is very convenience.
+            if (key_status.key == 'l')
+              readdir = 1;
+            else
+              readdir = 0;
+            s32_print_char(key_status.key);
+            break;
+          case KEY_UP:
+            --ll;
+            if (ll <= 0 ) 
+              ll = 0 ;
+            set_video_start_addr(80*ll);
+            break;
+          case KEY_DOWN:
+            ++ll;
+            set_video_start_addr(80*ll);
+            break;
+          case KEY_F1:
+            if (alt_l == 1)
+              //s32_print("tty 1", (u8*)(0xb8000));
+              select_tty(0);
+            break;
+          case KEY_F2:
+            if (alt_l == 1)
+              //s32_print("tty 2", (u8*)(0xb8000));
+              select_tty(1);
+            break;
+          case KEY_F3:
+            if (alt_l == 1)
+              //s32_print("tty 3", (u8*)(0xb8000));
+              select_tty(2);
+            break;
+          case KEY_ALT_L:
+            alt_l = 1;
+            break;
+          case KEY_ENTER:
+            if (readdir == 1) readdir = 2;
+            else readdir = 0;
+            s32_print_char('\r');
+            s32_print_char('\n');
+            break;
+          default:
+            readdir = 0;
+            break;
+        }
+        //s32_print("key code press: ", (u8*)(0xb8000+160*1));
+      }
+      else // key release
+      {
+        switch (key_status.key)
+        {
+          case KEY_F12:
+            //switch_vga_mode();
+            set_vga_mode();  // system call
+            draw_box();
+            draw_box_1(40, 0, 3);
+            draw_box_1(40, 0, 3);
+            draw_box_1(40, 50, 5);
+            draw_box_1(100, 100, 10);
+            draw_str();
+            break;
+          case KEY_F1:
+          case KEY_F2:
+          case KEY_F3:
+            break;
+          default:
+            readdir = 0;
+            alt_l = 0;
+            break;
+        }
+        //s32_print("key code release: ", (u8*)(0xb8000+160*1));
+        //s32_print_int(key_status.key, (u8*)(0xb8000+160*2 + 22*2+20), 16);
+
+      }
+      //s32_put_char(key_status.key, (u8*)(0xb8000+160*1 + 22*2+20), 16);
+      //s32_print(proc_a_str, (u8*)(0xb8000+160*l+4*2));
+    }
+    if (readdir == 2)
+    {
+      k_readdir("/");
+      readdir=0;
+    }
     ++l;
     l = ((l%10) + 10);
     loop_delay(10);
   }
-#endif
+#else
 
   int i = 0;
   
@@ -66,21 +190,29 @@ void proc_a(void)
 
   while(1)
   {
+    u8 key = get_byte_from_kb_buf();
     //int r = sys_get_ticks();
     int r = get_ticks();
     s32_print("A", cur_vb);
     //s32_print_int(i++, cur_vb, 10);
     s32_print(".", cur_vb);
-    s32_print_int(r, cur_vb, 10);
+    s32_print_int(key, cur_vb, 10);
     //loop_delay(100);
     milli_delay(1000);
   }
-
+#endif
+#endif
 }
 
 void proc_b(void)
 {
+  char buf[1] = {'2'};
+  while(1)
+  {
+    write(buf, 1);
+  }
 #if 0
+#if 1
   //#define VB_OFFSET (35*2)
   const u16 VB_OFFSET = (30*2);
   u16 l=12;
@@ -101,7 +233,7 @@ void proc_b(void)
     loop_delay(10);
 
   }
-#endif
+#else
   int i = 0;
   
   while(1)
@@ -114,11 +246,23 @@ void proc_b(void)
     //loop_delay(100);
     milli_delay(1000);
   }
+#endif
+#endif
 }
 
 void proc_c(void)
 {
+  char buf[] = "third tty";
+  int hex=0x3f;
+  int dec=98;
+  while(1)
+  {
+    //write(buf, 1);
+    s32_printf("test printf %d %x %s", dec, hex, buf);
+    //s32_printf("q %s", buf);
+  }
 #if 0
+#if 1
   const u16 VB_OFFSET = (50*2);
   u16 l=14;
   u8 stack_str[10]="y";
@@ -134,7 +278,7 @@ void proc_c(void)
     l = ((l%10) + 10);
     loop_delay(10);
   }
-#endif
+#else
   int i = 0;
   
   while(1)
@@ -147,13 +291,22 @@ void proc_c(void)
     //loop_delay(100);
     milli_delay(1000);
   }
+#endif
+#endif
 }
 
-Task tasks[NR_TASKS] = {
-                         {proc_a, TASK_STACK, "proc a"},
-                         {proc_b, TASK_STACK, "proc b"},
-                         {proc_c, TASK_STACK, "proc c"},
+// how to add a task/process:
+// add function to tasks and add 1 to NR_TASKS
+Task task_table[NR_TASKS] = {
+                         {task_tty, TASK_STACK, "tty"},
                        };
+
+Task user_proc_table[NR_PROCS] = 
+{
+  {proc_a, TASK_STACK, "proc a"},
+  {proc_b, TASK_STACK, "proc b"},
+  {proc_c, TASK_STACK, "proc c"},
+};
 
 void init_proc(void)
 {
@@ -163,34 +316,62 @@ void init_proc(void)
 
   u32 task_stack_top = 0;
   u16 selector_ldt = SELECTOR_LDT_FIRST;
+  u8 privilege;
+  u8 rpl;
+  u32 eflags;
 
-  for (int i = 0 ; i < NR_TASKS; ++i)
+  Task *task;
+  Process *proc = proc_table;
+
+  for (int i = 0 ; i < NR_TASKS + NR_PROCS; ++i)
   {
-    Process *proc = &proc_table[i];
+    if (i < NR_TASKS)
+    {
+      task = task_table + i;
+      privilege = PRIVILEGE_TASK;
+      rpl = RPL_TASK;
+      eflags = 0x1202;
+    }
+    else
+    {
+      task = user_proc_table + (i - NR_TASKS);
+      privilege = PRIVILEGE_USER;
+      rpl = RPL_USER;
+      eflags = 0x202;
+    }
+
     proc->ldt_sel = selector_ldt;
 
     p_asm_memcpy(&proc->ldt[0], &gdt[SELECTOR_KERNEL_CS >> 3], sizeof(Descriptor));
-    proc->ldt[0].attr1 = (DA_C | (PRIVILEGE_TASK << 5) );
+    proc->ldt[0].attr1 = (DA_C | (privilege << 5) );
     p_asm_memcpy(&proc->ldt[1], &gdt[SELECTOR_KERNEL_DS >> 3], sizeof(Descriptor));
-    proc->ldt[1].attr1 = (DA_DRW | (PRIVILEGE_TASK << 5) );
+    proc->ldt[1].attr1 = (DA_DRW | (privilege << 5) );
 
-    proc->regs.cs = (0 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
-    proc->regs.ds = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
-    proc->regs.es = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
-    proc->regs.fs = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
-    proc->regs.ss = (8 & 0xfff8) | SEL_USE_LDT | RPL_TASK; // a ldt selector
+    proc->regs.cs = (0 & 0xfff8) | SEL_USE_LDT | rpl; // a ldt selector
+    proc->regs.ds = (8 & 0xfff8) | SEL_USE_LDT | rpl; // a ldt selector
+    proc->regs.es = (8 & 0xfff8) | SEL_USE_LDT | rpl; // a ldt selector
+    proc->regs.fs = (8 & 0xfff8) | SEL_USE_LDT | rpl; // a ldt selector
+    proc->regs.ss = (8 & 0xfff8) | SEL_USE_LDT | rpl; // a ldt selector
     //proc->regs.gs = (SELECTOR_KERNEL_GS & 0xfff8) | SEL_USE_LDT | RPL_TASK;
-    proc->regs.gs = (SELECTOR_KERNEL_GS & 0xfff8) | RPL_TASK;
-    proc->regs.eip = (u32)tasks[i].init_eip;
+    proc->regs.gs = (SELECTOR_KERNEL_GS & 0xfff8) | rpl;
+    proc->regs.eip = (u32)(task->init_eip);
 
-    task_stack_top += (u32)task_stack+tasks[i].stack_size;
+    task_stack_top += (u32)task_stack+task->stack_size;
     proc->regs.esp = task_stack_top;
 
-    proc->regs.eflags = 0x1202;
+    proc->regs.eflags = eflags;
 
-    proc->p_name = tasks[i].name;
+    proc->p_name = task->name;
+    proc->pid = i;
+    proc->tty_index = 0;
+
     selector_ldt += (1 << 3); // +8
+    ++task;
+    ++proc;
   }
+  proc_table[1].tty_index = 0;
+  proc_table[2].tty_index = 1;
+  proc_table[3].tty_index = 2;
 
 
 

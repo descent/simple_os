@@ -1,8 +1,9 @@
-#include "k_stdio.h"
 #include "type.h"
-
+#include "k_stdio.h"
+#include "console.h"
 
 u8 *cur_vb = (u8*)0xb8000+160;
+
 
 // prefix s32 means simple, 32bit code (in x86 protected mode)
 void s32_put_char(u8 ch, u8 *vb)
@@ -165,4 +166,65 @@ void p_dump_u8(u8 *buff, int len)
     s32_print("len:", (u8*)(0xb8000+160*line));
     s32_print_int(len, (u8*)(0xb8000+160*line+12*2), 16);
     #endif
+}
+
+int s32_printf(const char *fmt, ...)
+{
+  char buf[256];
+  int i=1;
+  char *p = buf;
+
+  for (; *fmt ; ++fmt)
+  {
+    if (*fmt != '%')
+    {
+      *p++ = *fmt;
+      continue;
+    }
+    ++fmt;
+    u8 *arg = (u8 *)(&fmt + i); // nst argument address
+    u32 arg_content = *((u32*)arg);
+
+    switch (*fmt)
+    {
+      case 'd':
+      {
+        u8 str[12]="";
+        s32_itoa(arg_content, str, 10);
+
+        char *str_ptr = str;
+        while(*str_ptr)
+          *p++ = *str_ptr++;
+        break;
+      }
+      case 'x':
+      {
+        u8 str[12]="";
+        s32_itoa(arg_content, str, 16);
+
+        char *str_ptr = str;
+        while(*str_ptr)
+          *p++ = *str_ptr++;
+        break;
+      }
+      case 's':
+      {
+        char *str_ptr = (char *)arg_content;
+        while(*str_ptr)
+          *p++ = *str_ptr++;
+        break;
+      }
+      default:
+        break;
+    }
+    ++i; // point to next argument
+ 
+  } // end for (char *p = buf; *fmt ; ++fmt, ++i)
+  int len = p-buf;
+  //buf[len]='\0';
+
+  int write(char *buf, int len);
+  write(buf, len);
+
+  return 0;
 }
