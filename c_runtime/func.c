@@ -17,8 +17,8 @@ static inline u32 asm_get_esp(void)
 
 void func(char c, int i, const char *ptr)
 {
-  ++c;
-  ++i;
+  c+=2;
+  i+=3;
   ++ptr;
   printf("%c %d %p\n", c, i, ptr);
 }
@@ -31,9 +31,11 @@ int main(int argc, const char *argv[])
 {
   u32 esp = asm_get_esp();
 
-  //func('a', 9, (char*)(0x1234));        
+  func('a', 9, (char*)(0x1234));        
+  #if 0
   printf("esp: %x\n", esp);
   asm_func('a', 9, (char*)(0x1234));        
   printf("esp: %x\n", esp);
+  #endif
   return 0;
 }
