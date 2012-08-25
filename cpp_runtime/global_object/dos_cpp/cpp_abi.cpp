@@ -53,3 +53,12 @@ extern "C"
 }
 
 
+int __cxa_guard_acquire()
+{
+  return 1;
+}
+
+int __cxa_guard_release()
+{
+  return 1;
+}

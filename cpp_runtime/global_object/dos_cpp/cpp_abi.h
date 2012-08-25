@@ -16,6 +16,8 @@ extern "C"
 {
   int __cxa_atexit(void (*destructor) (void *), void *arg, void *__dso_handle);
   void g_dtors(void);
+  int __cxa_guard_acquire();
+  int __cxa_guard_release();
 }
 
 #endif
