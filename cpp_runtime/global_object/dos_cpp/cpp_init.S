@@ -85,7 +85,7 @@ _start:
 #else
   mov $__start_ctors, %ebx 
 #endif
-  calll *(%ebx)
+#  calll *(%ebx)
 
   calll cpp_main
   calll g_dtors
