@@ -13,8 +13,8 @@ SECTIONS
     .init_array :
     {
       __start_global_ctor__ = .;
-      __end_globa_ctor__ = .;
     }
+    __end_global_ctor__ = .;
     .ctors :
     {
       start_ctors = .; _start_ctors = .; __start_ctors = .;

@@ -111,7 +111,7 @@ _start:
 init_cpp_global_asm:
 #if __GNUC__ >= 4 && __GNUC_MINOR__ >= 7
   mov $__end_global_ctor__, %edi    /* Destination */
-  mov $__start_globa_ctor__, %esi   /* Source */
+  mov $__start_global_ctor__, %esi   /* Source */
 #else
   mov $__end_ctors, %edi    /* Destination */
   mov $__start_ctors, %esi   /* Source */
