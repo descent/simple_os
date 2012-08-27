@@ -18,21 +18,10 @@ extern "C"
     s16_print_int(obj_count, 10);
     print_str("\r\n");
 
-#if 0
-    dobjs[0].dtor_ = destructor;
-    dobjs[0].arg_ = arg;
-    dobjs[0].dso_handle_ = __dso_handle;
-#else
-    //if (obj_count >= DOBJS_SIZE)
-      //return -1;
-     #if 1
     dobjs[obj_count].dtor_ = destructor;
     dobjs[obj_count].arg_ = arg;
     dobjs[obj_count].dso_handle_ = __dso_handle;
-    #endif
     ++obj_count;
-    //print_str("__cxa_atexit: register dtor here\r\n");
-#endif
     return 0;
   }
   void g_dtors(void)
@@ -45,8 +34,8 @@ extern "C"
     for (int i=obj_count-1 ; i >= 0 ; --i)
     {
       //print_str("xx g_dtors\r\n");
-      //dobjs[i].dtor_(dobjs[i].arg_);
-      dobjs[i].dtor_(0);
+      dobjs[i].dtor_(dobjs[i].arg_);
+      //dobjs[i].dtor_((void*)1);
     }
     #endif
   }
