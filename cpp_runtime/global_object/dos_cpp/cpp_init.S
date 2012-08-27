@@ -79,14 +79,7 @@ _start:
 
   # call _GLOBAL__I_XX invoke global object ctor, 
   # in dos environment use 16 or 32 bit address? look like 32 bit
-
-#if __GNUC__ >= 4 && __GNUC_MINOR__ >= 7
-  mov $__start_global_ctor__, %ebx 
-#else
-  mov $__start_ctors, %ebx 
-#endif
-#  calll *(%ebx)
-
+  calll init_cpp_global_asm
   calll cpp_main
   calll g_dtors
 #  call disp_str2
@@ -115,6 +108,23 @@ _start:
 #str2:.ascii "after"
 
 # call global object ctor
+init_cpp_global_asm:
+#if __GNUC__ >= 4 && __GNUC_MINOR__ >= 7
+  mov $__end_global_ctor__, %edi    /* Destination */
+  mov $__start_globa_ctor__, %esi   /* Source */
+#else
+  mov $__end_ctors, %edi    /* Destination */
+  mov $__start_ctors, %esi   /* Source */
+#endif
+  jmp 2f
+1:
+  mov %esi, %ebx 
+  calll *(%ebx)
+  add $4, %esi
+2:
+  cmp %edi, %esi
+  jne 1b
+  ret
 
 # init bss
 init_bss_asm:
