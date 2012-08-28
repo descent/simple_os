@@ -14,6 +14,13 @@
 #define CURSOR_H        0xE     /* reg index of cursor position (MSB) */
 #define CURSOR_L        0xF     /* reg index of cursor position (LSB) */
 
+
+// ref: http://www.2cto.com/kf/201111/109728.html
+#define PALETTE_MASK            0x3c6   //调色板屏蔽寄存器端口，放入0xff可以通过调色板索引寄存器0x3c7和0x3c8访问你希望的寄存器 
+#define PALETTE_REGISTER_RD     0x3c7   //读颜色寄存器端口 
+#define PALETTE_REGISTER_WR     0x3c8   //写颜色寄存器端口 
+#define PALETTE_DATA            0x3c9   //调色板数据寄存器端口 
+
 void draw_box();
 void draw_box_1(int draw_x, int draw_y, int c);
 void draw_str();

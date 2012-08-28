@@ -1,6 +1,8 @@
 #include "draw_func.h"
 #include "font_rawdata.h"
 #include "k_stdlib.h"
+#include "io.h"
+#include "vga.h"
 
 const int y_res = 320;
 
@@ -107,6 +109,14 @@ void draw_bg(void)
   u8 *vb = (u8*)0xa0000;
   int line=0;
   const u8* image_addr = bg_raw_data;
+  //extern u8 PALETTE[];
+  u8 *p = palette_data;
+
+  for (int i=0 ; i < 256; ++i)
+  {
+    set_palette(i, *p, *(p+1), *(p+2));
+    p+=3;
+  }
 
 
   for (int y = 0 ; y < bg_h ; ++y)
@@ -145,6 +155,15 @@ void draw_point(int x, int y, u8 c)
 {
   u32 vm = 0xa0000;
   *((u8*)(vm + x + y*y_res)) = c;
+}
+
+void set_palette(int index, u8 r, u8 g, u8 b)
+{
+  io_out8(PALETTE_MASK,0xff);
+  io_out8(PALETTE_REGISTER_WR,index);
+  io_out8(PALETTE_DATA, r);
+  io_out8(PALETTE_DATA, g);
+  io_out8(PALETTE_DATA, b);
 }
 
 #endif
