@@ -53,7 +53,7 @@ MOV $MODE13H, %si # 320X200 256
 
 CALL SETMODE
 xchg %bx, %bx #bochs magic break point
-call SET_OUT
+#call SET_OUT
 xchg %bx, %bx #bochs magic break point
   ret
 
@@ -689,8 +689,8 @@ GRAY_PALETTE:
 .byte 0xfe, 0xfe, 0xfe
 .byte 0xff, 0xff, 0xff
 
+.global PALETTE
 PALETTE:
-
 .byte 00, 00, 00
 .byte 00, 00, 00
 .byte 00, 00, 00
