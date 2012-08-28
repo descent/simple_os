@@ -124,10 +124,10 @@ void draw_bg(void)
   }
 }
 
-void draw_16x12_grid(int x, int y, u8 c)
+void draw_20x12_grid(int x, int y, u8 c)
 {
   for (int h=0; h < 12 ; ++h)
-    for (int w=0 ; w < 16 ; ++w)
+    for (int w=0 ; w < 20 ; ++w)
       draw_point(x+w, y+h, c);
 }
 
@@ -135,8 +135,8 @@ void draw_256_grid(void)
 {
   u8 c=0;
   for (int y=0 ; y < 200 ; y+=12)
-    for (int x=0 ; x < 320 ; x+=16)
-      draw_16x12_grid(x, y, c++);
+    for (int x=0 ; x < 320 ; x+=20)
+      draw_20x12_grid(x, y, c++);
 
 }
 
