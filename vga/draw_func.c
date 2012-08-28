@@ -1,7 +1,8 @@
 #include "draw_func.h"
-#include "type.h"
 #include "font_rawdata.h"
 #include "k_stdlib.h"
+
+const int y_res = 320;
 
 void draw_box()
 {
@@ -99,3 +100,51 @@ void draw_char(int dx, int dy, char ch)
     ++line;
   }
 }
+
+#if 1
+void draw_bg(void)
+{
+  u8 *vb = (u8*)0xa0000;
+  int line=0;
+  const u8* image_addr = bg_raw_data;
+
+
+  for (int y = 0 ; y < bg_h ; ++y)
+  {    
+    for (int x = 0 ; x < bg_w ; ++x)
+    { 
+      u8 c = *image_addr;
+      draw_point(x, y, c);
+      //*vb++ = c;
+
+      ++image_addr;
+    }
+    //vb = (u8*)(0xa0000+(320*line));
+    //++line;
+  }
+}
+
+void draw_16x12_grid(int x, int y, u8 c)
+{
+  for (int h=0; h < 12 ; ++h)
+    for (int w=0 ; w < 16 ; ++w)
+      draw_point(x+w, y+h, c);
+}
+
+void draw_256_grid(void)
+{
+  u8 c=0;
+  for (int y=0 ; y < 200 ; y+=12)
+    for (int x=0 ; x < 320 ; x+=16)
+      draw_16x12_grid(x, y, c++);
+
+}
+
+// only for 320X200X256 color
+void draw_point(int x, int y, u8 c)
+{
+  u32 vm = 0xa0000;
+  *((u8*)(vm + x + y*y_res)) = c;
+}
+
+#endif
