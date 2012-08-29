@@ -1,1 +1,4 @@
 in dos, test c++ runtime.
+
+gen.sh :
+parse elf __cxa_atexit, then calcuate how many DObjs needed
