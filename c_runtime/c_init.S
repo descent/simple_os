@@ -59,17 +59,20 @@ _start:
   mov $0xb800, %ax
   mov %ax, %gs
 
-  mov $0xef, %al
-  calll disp_al
+  mov $0, %ax
+  mov %ax, %fs
 
-  mov $0x12, %al
-  calll disp_al
-
+  mov %fs:0, %bx
+  calll disp_bx
 
   call init_bss_asm # in dos need not init bss by myself
 
 
   calll c_main
+
+
+  mov %fs:0, %bx
+  calll disp_bx
 #  call disp_str2
   mov     $0x4c00, %ax
   int     $0x21   # 回到 DOS
