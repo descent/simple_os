@@ -4,7 +4,9 @@ void func(char c, int i, const char *ptr);
 
 void c_main(void)
 {
-  func('a', 9, (char*)(0x1234));        
+  char *p=0;
+  *p='a';
+  //while(1);
 }
 
 void func(char c, int i, const char *ptr)
