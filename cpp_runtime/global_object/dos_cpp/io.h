@@ -8,6 +8,10 @@ class Io
     Io();
     ~Io();
     void print(const char   *s);
+    virtual void fun1()
+    {
+      print("Io::func1\r\n");
+    }
   private:
     const char *str_;
 };
@@ -21,6 +25,16 @@ class Ab
   private:
     const char *str_;
     int i_;
+};
+
+class DeriveIo : public Io
+{
+  public:
+    virtual void fun1()
+    {
+      print("DeriveIo::func1\r\n");
+    }
+  private:
 };
 
 #endif
