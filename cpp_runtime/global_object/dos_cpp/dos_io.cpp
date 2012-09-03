@@ -1,5 +1,15 @@
 #include "dos_io.h"
 
+void print(const char   *s)
+{
+  print_str(s);
+}
+
+void print(int i, int radix)
+{
+  s16_print_int(i, radix);
+}
+
 void print_str(const char   *s)
 {
   while(*s)
