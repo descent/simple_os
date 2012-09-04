@@ -375,12 +375,12 @@ int keyboard_read(Tty *tty)
           draw_256_grid();
           //draw_box();
           draw_bg();
+          draw_str(20, 100, 15);
           #if 0
           draw_box_1(40, 0, 3);
           draw_box_1(40, 0, 3);
           draw_box_1(40, 50, 5);
           draw_box_1(100, 100, 10);
-          draw_str();
           #endif
         }
         alt_l = 0;
