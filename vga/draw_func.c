@@ -26,41 +26,29 @@ void draw_box_1(int draw_x, int draw_y, int c)
     {
       *(vb + x + 320*y) = c;
     }
-  void draw_str();
-  draw_str();
+  //void draw_str();
+  //draw_str();
 }
 
 // current only for 320X240
-void draw_str()
+void draw_str(int ox, int oy, u8 color)
 {
-  u8 *vb = (u8*)0xa0000;
-  u8 line=1;
-
   const u8* image_addr = str;
-  int cur_x=0;
 
   for (int y = 0 ; y < hb ; ++y)
   {    
+    int xx=0;          
     for (int x = 0 ; x < wb ; ++x)
     { 
       u8 c = *image_addr;
-          
 
-      for (int i=7 ; i>=0 ; --i)
+      for (int i=7 ; i>=0 ; --i, ++xx)
       {
         if (((c >> i) & 0x1) == 1)
-          *vb = 60;
-        else
-          ;//printf("|");
-        ++cur_x;
-        ++vb;
+          draw_point(ox+xx, oy+y, color);
       }
-
       ++image_addr;
     }
-    cur_x = 0;
-   vb = (u8*)(0xa0000+(320*line));
-    ++line;
   }
 
 }
