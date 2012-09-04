@@ -540,7 +540,8 @@ hwint06:
   HW_INT_MASTER $6
 .align 16
 hwint07:
-  HW_INT_MASTER $7
+  #HW_INT_MASTER $7
+  HWINT_MASTER 7
 .align 16
 hwint08:
   HW_INT_SLAVE $8
