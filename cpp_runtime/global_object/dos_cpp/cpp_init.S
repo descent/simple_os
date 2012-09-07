@@ -51,6 +51,7 @@ _start:
 
   #calll _Z9print_strPKc
 
+#if 0
 # setup stack
 #  mov %ax, %ss
 #  mov $0xffff, %sp
@@ -70,18 +71,39 @@ _start:
 
   mov $0xaa, %al
   calll disp_al
+#endif
+
+  mov $0xb800, %ax
+  mov %ax, %gs
+
+  mov $0, %ax
+  mov %ax, %fs
+
+  mov %fs:0, %bx
+  calll disp_bx
+
+
+
 
   call init_bss_asm # in dos need not init bss by myself
 
-
+#if 0
   mov obj_count, %bx
   calll disp_bx
+#endif
 
   # call _GLOBAL__I_XX invoke global object ctor, 
   # in dos environment use 16 or 32 bit address? look like 32 bit
   calll init_cpp_global_asm
   calll cpp_main
   calll g_dtors
+
+  mov $0, %ax
+  mov %ax, %fs
+
+  mov %fs:0, %bx
+  calll disp_bx
+
 #  call disp_str2
   mov     $0x4c00, %ax
   int     $0x21   # 回到 DOS
