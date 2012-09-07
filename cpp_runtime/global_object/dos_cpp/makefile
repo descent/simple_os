@@ -1,7 +1,12 @@
 #CPPFLAGS = -m32  -g -Wall -Wextra -Werror -nostdlib -fno-builtin -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -fno-stack-protector
-CPPFLAGS = -static -m32  -g -Wall -Wextra -nostdlib -fno-builtin -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -fno-stack-protector
+CPPFLAGS = -static -m32  -g -Wall -Wextra -nostdlib -fno-builtin -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -fno-stack-protector -std=c++0x
 LDFLAGS = -m elf_i386 -static
 CXX=g++
+
+nullptr.bin: nullptr.elf
+	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
+nullptr.elf: cpp_init.o nullptr.o io.o cpp_abi.o obj.o dos_io.o
+	ld $(LDFLAGS) -Tcpp.ld -nostdlib -M -o $@ $^ > $@.map
 
 cppb.bin: cppb.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
