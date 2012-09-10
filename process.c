@@ -47,7 +47,7 @@ void proc_a(void)
   while(1)
   {
     //write(buf, 1);
-    s32_printf("%s", buf);
+    //s32_printf("%s", buf);
   }
 #if 0
 #if 1
@@ -209,7 +209,7 @@ void proc_b(void)
   char buf[1] = {'2'};
   while(1)
   {
-    write(buf, 1);
+    //write(buf, 1);
   }
 #if 0
 #if 1
@@ -258,7 +258,7 @@ void proc_c(void)
   while(1)
   {
     //write(buf, 1);
-    s32_printf("test printf %d %x %s", dec, hex, buf);
+    //s32_printf("test printf %d %x %s", dec, hex, buf);
     //s32_printf("q %s", buf);
   }
 #if 0
@@ -335,9 +335,15 @@ void init_proc(void)
     else
     {
       task = user_proc_table + (i - NR_TASKS);
+      #if 1
       privilege = PRIVILEGE_USER;
       rpl = RPL_USER;
       eflags = 0x202;
+      #else
+      privilege = PRIVILEGE_TASK;
+      rpl = RPL_TASK;
+      eflags = 0x1202;
+      #endif
     }
 
     proc->ldt_sel = selector_ldt;
