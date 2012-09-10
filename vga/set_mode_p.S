@@ -97,12 +97,12 @@ xchg %bx, %bx #bochs magic break point
 # switch to text mode
 .global set_03_mode
 set_03_mode:
+  CALL set_font
   MOV $MODE03H, %si
+  #CALL SETFONT
   CALL SETMODE
-  call clear
-  xchg %bx, %bx #bochs magic break point
-  CALL SETFONT
   CALL SETPALETTE
+  call clear
   ret
 
 
@@ -308,6 +308,104 @@ PAL_LOOP:
    JLE PAL_LOOP
 
    RET
+
+
+# ref: http://wiki.osdev.org/VGA_Fonts
+.global set_font
+set_font:
+  xchg %bx, %bx #bochs magic break point
+  mov $GRACON_ADDR, %dx                     #get graphics port
+  mov $5, %ax                               #get write mode reg
+  out %ax, %dx                              #select the reg
+  call iodelay                          #delay a bit
+
+  mov $0x0406, %ax
+  out %ax, %dx                              #select the reg
+  call iodelay                          #delay a bit
+
+ mov $SEQ_ADDR, %dx                        #get sequencer port
+ mov $0x0402, %ax                               #get map mask reg
+  out %ax, %dx                              #select the reg
+
+ mov $0x0704, %ax                               #get map mask reg
+  out %ax, %dx                              #select the reg
+
+  mov $0xa0000, %edi
+  mov $256, %ecx
+  mov $font, %esi
+
+1:
+  movsd
+  movsd
+  movsd
+  movsd
+  add $16, %edi
+  loop 1b
+
+  mov $0x0302, %ax
+  out %ax, %dx 
+
+  mov $0x0304, %ax
+  out %ax, %dx 
+
+  mov $0x03ce, %dx
+  mov $0x1005, %ax
+  out %ax, %dx 
+
+  mov $0x0a06, %ax
+  out %ax, %dx 
+  ret                                    #exit
+
+
+
+.global get_font
+get_font:
+  xchg %bx, %bx #bochs magic break point
+  mov $GRACON_ADDR, %dx                     #get graphics port
+  mov $5, %ax                               #get write mode reg
+  out %ax, %dx                              #select the reg
+  call iodelay                          #delay a bit
+
+  mov $0x0406, %ax
+  out %ax, %dx                              #select the reg
+  call iodelay                          #delay a bit
+
+ mov $SEQ_ADDR, %dx                        #get sequencer port
+ mov $0x0402, %ax                               #get map mask reg
+  out %ax, %dx                              #select the reg
+
+ mov $0x0704, %ax                               #get map mask reg
+  out %ax, %dx                              #select the reg
+
+  mov $0xa0000, %esi
+  mov $256, %ecx
+  mov $vga_font, %edi
+
+1:
+  movsd
+  movsd
+  movsd
+  movsd
+  add $16, %esi
+  loop 1b
+
+  mov $0x0302, %ax
+  out %ax, %dx 
+
+  mov $0x0304, %ax
+  out %ax, %dx 
+
+  mov $0x03ce, %dx
+  mov $0x1005, %ax
+  out %ax, %dx 
+
+  mov $0x0a06, %ax
+  out %ax, %dx 
+  ret                                    #exit
+
+
+
+
 #if 1
 SETFONT:
   mov $GRACON_ADDR, %dx                     #get graphics port
@@ -365,6 +463,7 @@ SETFONT:
  or $4, %ah                                #set flag
  out %ax, %dx                              #set value
  call iodelay                                #pause
+  xchg %bx, %bx #bochs magic break point
  mov %ds, %ax                          #get seg of font mem
  mov %ax, %es                              #in ES
  mov $0xa0000, %edi
@@ -382,7 +481,7 @@ loop2:                                #
  dec %cl                                 #decrease count
  jnz loop2                            #loop until all done
  pop %edi                                 #restore destination
- add $32, %edi                              #update it
+ addl $32, %edi                              #update it
  dec %ch                                 #decrease outer count
  jnz loop1                            #loop until all done
  mov $GRACON_ADDR, %dx                     #get graphics port
@@ -972,4 +1071,7 @@ oldmode: .byte
 oldmisc: .byte
 oldmask: .byte
 oldmem:  .byte
+
+vga_font:
+.space  4096, 0
 
