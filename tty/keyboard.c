@@ -1,6 +1,7 @@
 #include "io.h"
 #include "irq.h"
 #include "vga.h"
+#include "draw_func.h"
 #include "k_stdio.h"
 #include "k_ctype.h"
 #include "keyboard.h"
@@ -12,8 +13,14 @@ static u8 shift_l=0;
 static u8 alt_r=0;
 static u8 alt_l=0;
 
+#define TEXT_MODE 0
+#define VGA_320X200X256 1
+static int vga_mode;
+
 int init_keyboard(void)
 {
+  int vga_mode = TEXT_MODE;
+
   void keyboard_handler(int irq);
   s32_print("init keyboard", (u8*)(0xb8000+160*23));
 
@@ -340,6 +347,36 @@ int parse_scan_code(KeyStatus *key_status, int keyborad_mode)
   return ret;
 }
 
+
+int switch_mode(int mode)
+{
+  int set_vga_mode(void);  // system call
+  void set_03_mode(void);
+
+  switch (mode)
+  {
+    case TEXT_MODE:
+    {
+      if (vga_mode != TEXT_MODE)
+      {
+        set_03_mode();
+        vga_mode = TEXT_MODE;
+      }
+      break;
+    }
+    case VGA_320X200X256:
+    {
+      if (vga_mode != VGA_320X200X256)
+      {
+        set_vga_mode();  // system call
+        vga_mode = VGA_320X200X256;
+      }
+      break;
+    }
+  }
+
+}
+
 int keyboard_read(Tty *tty)
 {
   u8 make;
@@ -362,16 +399,20 @@ int keyboard_read(Tty *tty)
       case KEY_F2:
       case KEY_F3:
         if (alt_l == 1 && key_status.press == PRESS)
+        {
+          switch_mode(TEXT_MODE);
+          set_cursor(0);
+
           select_tty(key_status.key - KEY_F1);
+        }
         alt_l = 0;
         break;
       case KEY_F6:
         if (alt_l == 1 && key_status.press == PRESS)
         {
-          int set_vga_mode(void);
           select_tty(3);
+          switch_mode(VGA_320X200X256);
 
-          set_vga_mode();  // system call
           draw_256_grid();
           //draw_box();
           draw_bg();
