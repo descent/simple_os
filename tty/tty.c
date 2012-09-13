@@ -41,6 +41,7 @@ int select_tty(int tty_index)
     default:
       break;
   }
+  s32_console_print_str(tty_table[cur_tty_index].console, "\r\nfake login: ");
   s32_console_print_str(tty_table[cur_tty_index].console, "\r\n\r\n");
   set_xy(tty_table[cur_tty_index].console, org_x, org_y);
   u16 cur_console_vm_start = (tty_table[cur_tty_index].console->vm_start-0xb8000)/2;
