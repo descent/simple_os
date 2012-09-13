@@ -203,7 +203,7 @@ disp_bx:
   mov %bl, %al
   call disp_al
   popl %eax
-  ret
+  retl
 
 .data
 CRLF: .asciz "\r\n"
