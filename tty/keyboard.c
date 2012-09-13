@@ -361,6 +361,13 @@ int switch_mode(int mode)
       {
         set_03_mode();
         vga_mode = TEXT_MODE;
+
+        for (int i=0 ; i < CONSOLE_NUM - 1; ++i)
+        {
+          Console *console = &console_table[i];
+          clear_console(console);
+        }
+
       }
       break;
     }
@@ -401,7 +408,7 @@ int keyboard_read(Tty *tty)
         if (alt_l == 1 && key_status.press == PRESS)
         {
           switch_mode(TEXT_MODE);
-          set_cursor(0);
+          //set_cursor(0);
 
           select_tty(key_status.key - KEY_F1);
         }
