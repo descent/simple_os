@@ -51,5 +51,12 @@ void s32_console_print_char_xy(Console *console, u8 ch, int x, int y);
 void s32_console_print_str_xy(Console *console, const u8 *str, int x, int y);
 void set_xy(Console *console, int x, int y);
 void get_xy(Console *console, int *x, int *y);
+inline static void clear_console(Console *console)
+{
+  for (int y=0 ; y < 50 ; ++y)
+    for (int x=0 ; x < 80 ; ++x)
+      s32_console_print_char_xy(console, ' ', x, y);
+  set_xy(console, 0, 2);
+}
 
 #endif
