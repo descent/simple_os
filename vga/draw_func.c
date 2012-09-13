@@ -154,4 +154,27 @@ void set_palette(int index, u8 r, u8 g, u8 b)
   io_out8(PALETTE_DATA, b);
 }
 
+void draw_8x16_ch(int ox, int oy, u8 ch, u8 color)
+{
+  extern char font[];
+  //extern char *font; note: is wrong, so point is diff from array
+  const u8* image_addr = font + ch *16;
+
+  for (int y = 0 ; y < 16 ; ++y)
+  {    
+    int xx=0;          
+    for (int x = 0 ; x < 1 ; ++x)
+    { 
+      u8 c = *image_addr;
+
+      for (int i=7 ; i>=0 ; --i, ++xx)
+      {
+        if (((c >> i) & 0x1) == 1)
+          draw_point(ox+xx, oy+y, color);
+      }
+      ++image_addr;
+    }
+  }
+}
+
 #endif
