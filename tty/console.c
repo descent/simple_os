@@ -153,8 +153,14 @@ void s32_console_print_char(Console *console, u8 ch)
   if (console->type == GRAPHIC_CONSOLE)
   {
     BOCHS_MB
-    draw_char(console->cur_x, console->cur_y, ch);
-    console->cur_x += 32;
+    //draw_char(console->cur_x, console->cur_y, ch);
+    draw_8x16_ch(console->cur_x, console->cur_y, ch, 5);
+    console->cur_x += 8;
+    if (console->cur_x >= 320)
+    {
+      console->cur_x = 0;
+      console->cur_y += 16;
+    }
     return;
   }
 
