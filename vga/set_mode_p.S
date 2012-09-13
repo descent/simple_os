@@ -102,7 +102,7 @@ set_03_mode:
   #CALL SETFONT
   CALL SETMODE
   CALL SETPALETTE
-  call clear
+  #call clear
   ret
 
 
