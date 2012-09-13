@@ -178,6 +178,7 @@ void s32_console_print_char(Console *console, u8 ch)
       //*console_vb = ch;
       //*(console_vb+1) = (text_fg|text_bg);
       *((u8 *)(vm + (console->cur_x + console->cur_y * 80)*2)) = ch;
+      *((u8 *)(vm + (console->cur_x + console->cur_y * 80)*2)+1) = 7; // WHITE
       ++console->cur_x;
       if (console->cur_x >= 80)
       {
