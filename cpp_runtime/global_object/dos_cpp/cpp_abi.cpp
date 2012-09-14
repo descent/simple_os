@@ -45,8 +45,8 @@ extern "C"
     for (int i=obj_count-1 ; i >= 0 ; --i)
     {
       //print_str("xx g_dtors\r\n");
-      //dobjs[i].dtor_(dobjs[i].arg_);
-      dobjs[i].dtor_(0);
+      dobjs[i].dtor_(dobjs[i].arg_);
+      //dobjs[i].dtor_(0);
     }
     #endif
   }
@@ -55,10 +55,12 @@ extern "C"
 
 int __cxa_guard_acquire()
 {
+  print_str("__cxa_guard_acquire\r\n");
   return 1;
 }
 
 int __cxa_guard_release()
 {
+  print_str("__cxa_guard_release\r\n");
   return 1;
 }

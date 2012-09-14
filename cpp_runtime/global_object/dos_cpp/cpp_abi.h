@@ -1,5 +1,7 @@
 __asm__(".code16gcc\n");
 
+#include "dos_io.h"
+
 #ifndef CPP_ABI_H
 #define CPP_ABI_H
 
