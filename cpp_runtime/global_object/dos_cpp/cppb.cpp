@@ -23,14 +23,23 @@ typedef unsigned int u32;
 
 void s16_print_int(int i, int radix);
 void print_str(const char   *s);
+void test_static_obj();
 
 //Io io;
 
 extern "C" int cpp_main(void)
 {
-  BOCHS_MB
-  static Io io;
+  //BOCHS_MB
+  //Ab ab(7);
+  test_static_obj();
+  test_static_obj();
 
   return 0;
 }
 
+void test_static_obj()
+{
+  static Io io;
+  // for compare static object
+  //Io io;
+}
