@@ -1,6 +1,9 @@
 __asm__(".code16gcc\n");
+#include "dos_io.h"
 #ifndef IO_H
 #define IO_H
+
+
 
 class Io
 {
@@ -10,6 +13,8 @@ class Io
     void print(const char   *s);
   private:
     const char *str_;
+    int num_;
+    static int count_;
 };
 
 class Ab
