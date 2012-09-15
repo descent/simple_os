@@ -18,6 +18,8 @@
 #define RPL_TASK 1
 #define RPL_USER 3
 
+extern int k_reenter;
+
 typedef struct StackFrame_
 {
   u32 gs;
