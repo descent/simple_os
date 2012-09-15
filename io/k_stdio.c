@@ -25,6 +25,10 @@ void s32_print(const u8 *s, u8 *vb)
     cur_vb = (u8*)0xb8000+160;
 }
 
+int s32_printk(const char *fmt, ...)
+{
+}
+
 // sign version
 char* s32_itoa_s(int n, char* str, int radix)
 {
