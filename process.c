@@ -36,9 +36,6 @@ u8 get_privilege(void)
   return (cs_reg & 0x03);
 }
 
-int set_vga_mode(void);
-
-int write(char *buf, int len);
 
 void proc_a(void)
 {
