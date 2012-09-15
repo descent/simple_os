@@ -1,8 +1,8 @@
 #include "syscall.h"
+#include "asm_syscall.h"
 #include "type.h"
 #include "vga.h"
 #include "tty.h"
-#include "process.h"
 
 typedef void* SystemCall;
 
