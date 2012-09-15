@@ -21,4 +21,6 @@
 #define PALETTE_REGISTER_WR     0x3c8   //写颜色寄存器端口 
 #define PALETTE_DATA            0x3c9   //调色板数据寄存器端口 
 
+void switch_vga_mode(void);
+
 #endif
