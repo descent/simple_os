@@ -3,6 +3,7 @@
 #include "clock.h"
 #include "protect.h"
 #include "process.h"
+#include "asm_syscall.h"
 #include "syscall.h"
 #include "storage.h"
 #include "romfs.h"
