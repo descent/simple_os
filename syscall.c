@@ -39,5 +39,9 @@ int sys_write(char *buf, int len, Process *proc)
   return 0;
 }
 
-SystemCall sys_call_table[NR_SYS_CALL] = {sys_get_ticks, sys_set_vga_mode, sys_write};
+int sys_sendrec(int function, int src_dest, Message *m, Process *p)
+{
+}
+
+SystemCall sys_call_table[NR_SYS_CALL] = {sys_get_ticks, sys_set_vga_mode, sys_write, sys_sendrec};
 
