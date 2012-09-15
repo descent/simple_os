@@ -3,6 +3,7 @@
 #include "type.h"
 #include "vga.h"
 #include "tty.h"
+#include "k_assert.h"
 
 typedef void* SystemCall;
 
@@ -41,6 +42,33 @@ int sys_write(char *buf, int len, Process *proc)
 
 int sys_sendrec(int function, int src_dest, Message *m, Process *p)
 {
+  assert(k_reenter == 0);
+  assert((src_dest >= 0 && src_dest < NR_TASKS + NR_PROCS) || src_dest == ANY || src_dest == INTERRUPT);
+
+  int ret = 0;
+  int caller = proc2pid(p);
+  Message *msg = (Message *)va2la(caller, m);
+  msg->source = caller;
+
+  assert(msg->source != src_dest);
+
+  if (function == SEND)
+  {
+    ret = msg_send(p, src_dest, m);
+    if (ret != 0)
+      return ret;
+  }
+  else if (function == RECEIVE)
+       {
+         ret = msg_receive(p, src_dest, m);
+           if (ret != 0)
+             return ret;
+       }
+       else
+       {
+         panic("invalid function:");
+       }
+  return 0;
 }
 
 SystemCall sys_call_table[NR_SYS_CALL] = {sys_get_ticks, sys_set_vga_mode, sys_write, sys_sendrec};
