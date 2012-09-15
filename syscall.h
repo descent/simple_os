@@ -1,14 +1,12 @@
 #ifndef SYSCALL_H
 #define SYSCALL_H
 
-#define INT_VECTOR_SYS_CALL 0x90
-#define _NR_GET_TICKS 0
-#define _NR_SET_VGA_MODE 1
-#define _NR_WRITE 2
+#include "process.h"
 
-#define NR_SYS_CALL 3
+// implement in asm_syscall.S
+int get_ticks(void);
+int set_vga_mode(void);
+int write(char *buf, int len);
 
-//int get_ticks(void);
-//int set_vga_mode(void);
 
 #endif
