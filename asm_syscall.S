@@ -1,4 +1,4 @@
-#include "syscall.h"
+#include "asm_syscall.h"
 #include "process_const.h"
 
 .code32
