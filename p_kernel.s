@@ -500,9 +500,14 @@ save:
   pushl %fs
   pushl %gs
 
+  mov %edx, %esi
+
   mov %ss, %dx
   mov %dx, %ds
   mov %dx, %es
+  mov %dx, %fs
+
+  mov %esi, %edx
 
   mov %esp, %esi
 
