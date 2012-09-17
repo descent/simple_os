@@ -1,6 +1,7 @@
 __asm__(".code16gcc\n");
 
 #include "dos_io.h"
+#include "type.h"
 
 #ifndef CPP_ABI_H
 #define CPP_ABI_H
@@ -18,8 +19,8 @@ extern "C"
 {
   int __cxa_atexit(void (*destructor) (void *), void *arg, void *__dso_handle);
   void g_dtors(void);
-  int __cxa_guard_acquire();
-  int __cxa_guard_release();
+  int __cxa_guard_acquire(u32 *myself);
+  void __cxa_guard_release(u32 *myself);
 }
 
 #endif

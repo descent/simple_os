@@ -53,14 +53,14 @@ extern "C"
 }
 
 
-int __cxa_guard_acquire()
+int __cxa_guard_acquire(u32 *myself)
 {
   print_str("__cxa_guard_acquire\r\n");
-  return 1;
+  return !(*((char*)myself));
 }
 
-int __cxa_guard_release()
+void __cxa_guard_release(u32 *myself)
 {
   print_str("__cxa_guard_release\r\n");
-  return 1;
+  *((char*)myself) = 1;
 }
