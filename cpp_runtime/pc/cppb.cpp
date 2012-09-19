@@ -1,8 +1,6 @@
 #include "io.h"
 #include "type.h"
-
-#define BOCHS_MB __asm__ __volatile__("xchg %bx, %bx");
-
+#include "tool.h"
 
 template <typename T> 
 T max(T a, T b)
@@ -14,6 +12,8 @@ T max(T a, T b)
 }
 
 void test_static_obj();
+
+Ab ab(2);
 
 extern "C" int cpp_main(void)
 {
