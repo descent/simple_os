@@ -17,7 +17,7 @@ SECTIONS
     .init_array :
     {
       __start_global_ctor__ = .;
-    } 
+    } > rom
     __end_global_ctor__ = .;
     .ctors :
     {
@@ -25,7 +25,7 @@ SECTIONS
       *(.ctor*)
       end_ctors = .; _end_ctors = .; __end_ctors = .;
 /*      . = ALIGN(0x1000); */
-     }
+     } > rom
      /*
     .dtors :
     {
