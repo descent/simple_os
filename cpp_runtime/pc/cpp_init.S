@@ -38,10 +38,12 @@
 
 .text
   jmp _start
+.global _start1
+_start1:
+retl
 .global _start
 _start:
-  xchg %bx, %bx
-#if 1
+#if 0
   #mov %cs, %ax
   mov $0x10, %ax
   mov %ax, %ds
@@ -57,6 +59,7 @@ _start:
 #  mov $0xffff, %sp
 
 #  call disp_str
+#if 0
   mov $24, %ax
   mov %ax, %gs
 
@@ -72,21 +75,20 @@ _start:
   mov $0xaa, %al
   calll disp_al
 
-  call init_bss_asm # in dos need not init bss by myself
 
 
   mov obj_count, %bx
   calll disp_bx
-
+#endif
   # call _GLOBAL__I_XX invoke global object ctor, 
   # in dos environment use 16 or 32 bit address? look like 32 bit
+  #  xchg %bx, %bx
+
+  call init_bss_asm # in dos need not init bss by myself
   calll init_cpp_global_asm
   calll cpp_main
   calll g_dtors
-  jmp .
-#  call disp_str2
-  mov     $0x4c00, %ax
-  int     $0x21   # 回到 DOS
+  retl
 
 #disp_str: 
 #    mov     $BootMessage, %ax
@@ -130,16 +132,16 @@ init_cpp_global_asm:
 
 # init bss
 init_bss_asm:
-  movw $__bss_end__, %di    /* Destination */
-  movw $__bss_start__, %si   /* Source */
-  movw %ds, %bx
-  movw %bx, %es
+  mov $__bss_end__, %edi    /* Destination */
+  mov $__bss_start__, %esi   /* Source */
+  mov %ds, %bx
+  mov %bx, %es
   jmp 2f
 1:
   mov $0, %eax
-  movw %si, %ax
+  mov %esi, %eax
   movb $0x0, %es:(%eax)
-  add $1, %si
+  add $1, %esi
 
 
   # wait key
@@ -148,7 +150,7 @@ init_bss_asm:
 
   
 2:
-  cmpw %di, %si
+  cmp %edi, %esi
   jne 1b
 
   ret
