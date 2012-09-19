@@ -62,6 +62,9 @@ begin:
   xor     %eax, %eax
   mov     %cs, %ax
   shl     $4, %eax
+
+  xchg %bx, %bx
+  movl %eax, load_addr
 #  addl    $(begin), %eax
 #  sub $0x100, %eax
   movw    %ax, (gdt1 + 2)
@@ -73,6 +76,7 @@ begin:
 #  mov     %cs, %ax
 #  shl     $4, %eax
 #  addl    $(begin), %eax
+  movl    load_addr, %eax
   movw    %ax, (gdt2 + 2)
   shr     $16, %eax
   movb    %al, (gdt2 + 4)
@@ -178,8 +182,11 @@ seg_code32:
 
 #.org 510
 #.word 0xaa55
+.data
+.global load_addr
 pm_entry: .int
 rm_stack_val: .int
+load_addr: .int
 .global PM_STACK
 PM_STACK:
 .space  512, 0
