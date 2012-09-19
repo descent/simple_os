@@ -11,7 +11,7 @@ bhp.bin: bhp.elf
 bhp.o: bhp.S
 	$(CXX) -m32 -c bhp.S
 
-bhp.elf: bhp.o cpp_init.o cppb.o io.o cpp_abi.o 
+bhp.elf: bhp.o cpp_init.o cppb.o io.o cpp_abi.o tool.o
 	ld -m elf_i386 -Tcpp.ld -o bhp.elf $^
 
 
@@ -28,7 +28,7 @@ cpp_init.s: cpp_init.S
 %.dpp: %.cpp
 	set -e; rm -f $@ ; g++ -MM $(CFLAGS) $< > $@.$$$$ ; sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@ ; rm -f $@.$$$$ 
     
-sources = cppb.cpp cpp_abi.cpp io.cpp
+sources = cppb.cpp cpp_abi.cpp io.cpp tool.cpp
 include $(sources:.cpp=.dpp)
 
 
