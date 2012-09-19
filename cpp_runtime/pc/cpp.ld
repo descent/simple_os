@@ -1,4 +1,8 @@
-/* for cb.c */
+MEMORY
+{
+  rom : ORIGIN = 0x00000100, LENGTH = 0x40000
+  ram : ORIGIN = 0x100000, LENGTH = 30K
+}
 ENTRY(begin);
 SECTIONS
 {
@@ -8,12 +12,12 @@ SECTIONS
     {
         *(.text)
         *(.gnu.linkonce.t*)
-    }
+    } > rom
     /* for g++ 4.7 */
     .init_array :
     {
       __start_global_ctor__ = .;
-    }
+    } 
     __end_global_ctor__ = .;
     .ctors :
     {
@@ -36,22 +40,22 @@ SECTIONS
     {
         *(.rodata*)
         *(.gnu.linkonce.r*)
-    }
+    } > rom
 
     .data :
     {
         *(.data)
         *(.gnu.linkonce.d*)
-    }
+    } > rom
 
     .bss :
     {
-        sbss = .; __bss_start__ = .;
+        __bss_start__ = .;
         *(COMMON)
         *(.bss)
         *(.gnu.linkonce.b*)
-        ebss = .; __bss_end__ = .;
-    }
+        __bss_end__ = .;
+   } > ram
 
     /DISCARD/ :
     {
