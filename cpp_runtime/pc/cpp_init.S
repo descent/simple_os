@@ -41,49 +41,9 @@
 .global _start1
 _start1:
 retl
+
 .global _start
 _start:
-#if 0
-  #mov %cs, %ax
-  mov $0x10, %ax
-  mov %ax, %ds
-  mov %ax, %ss
-
-#endif
-#  movl $0, obj_count
-
-  #calll _Z9print_strPKc
-
-# setup stack
-#  mov %ax, %ss
-#  mov $0xffff, %sp
-
-#  call disp_str
-#if 0
-  mov $24, %ax
-  mov %ax, %gs
-
-  mov $0xef, %al
-  calll disp_al
-
-  mov $0x12, %al
-  calll disp_al
-
-  mov obj_count, %bx
-  calll disp_bx
-
-  mov $0xaa, %al
-  calll disp_al
-
-
-
-  mov obj_count, %bx
-  calll disp_bx
-#endif
-  # call _GLOBAL__I_XX invoke global object ctor, 
-  # in dos environment use 16 or 32 bit address? look like 32 bit
-  #  xchg %bx, %bx
-
   call init_bss_asm # in dos need not init bss by myself
   calll init_cpp_global_asm
   calll cpp_main
@@ -134,6 +94,8 @@ init_cpp_global_asm:
 init_bss_asm:
   mov $__bss_end__, %edi    /* Destination */
   mov $__bss_start__, %esi   /* Source */
+#  mov $EndOfBss, %edi    /* Destination */
+#  mov $PM_BSS, %esi   /* Source */
   mov %ds, %bx
   mov %bx, %es
   jmp 2f
@@ -142,7 +104,6 @@ init_bss_asm:
   mov %esi, %eax
   movb $0x0, %es:(%eax)
   add $1, %esi
-
 
   # wait key
 #  xor %eax,%eax
@@ -153,7 +114,7 @@ init_bss_asm:
   cmp %edi, %esi
   jne 1b
 
-  ret
+  retl
 
 #  movw     16(%ebp), %ecx   /* Counter */
 #1:
