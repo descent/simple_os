@@ -1,14 +1,15 @@
 #include "io.h"
+#include "type.h"
 
 int Io::count_ = 0;
 
 Io::Io():str_("data member\r\n")
 {
-#if 0
+#if 1
   print("Io ctor: ");
   print(str_);
   num_ = count_;
-  s16_print_int(num_, 10);
+  //s16_print_int(num_, 10);
   print("\r\n");
   ++count_;
   #endif
@@ -24,6 +25,15 @@ Io::~Io()
 
 void Io::print(const char   *s)
 {
+  __asm__ __volatile__ ("mov $24, %ax\t\n");
+  __asm__ __volatile__ ("mov %ax, %ds\t\n");
+  static u8 *vb = (u8*)(0xb8000+160);
+  *vb = 'I';
+  ++vb;
+  *vb = 9;
+  ++vb;
+  __asm__ __volatile__ ("mov $0x10, %ax\t\n");
+  __asm__ __volatile__ ("mov %ax, %ds\t\n");
 #if 0
   print_str(s);
 #endif
@@ -54,3 +64,11 @@ void Ab::print(const char   *s)
   print_str(s);
 #endif
 }
+
+#if 0
+int main()
+{
+  Io io;
+  return 0;
+}
+#endif
