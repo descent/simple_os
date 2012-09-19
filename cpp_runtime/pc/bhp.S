@@ -22,26 +22,36 @@
 .set    DA_LIMIT_4K, 0x8000     /* 4K */
 .set    DA_CR,   0x9A   /* Execute/Read */
 .set    DA_DRW,  0x92   /* Read/Write */
+.set    DA_C,  0x98
 
 gdt0: Descriptor  0, 0, 0
 gdt1: Descriptor  0, 0xfffff, DA_CR | DA_32 | DA_LIMIT_4K
 gdt2: Descriptor  0, 0xfffff, DA_DRW | DA_32 | DA_LIMIT_4K
 gdt3: Descriptor  0, 0xfffff, DA_DRW | DA_32 | DA_LIMIT_4K
+LABEL_DESC_NORMAL:  Descriptor  0,         0xffff, DA_DRW    # Normal descriptor is for back to real mode.
+LABEL_DESC_CODE16:  Descriptor    0,         0xffff, DA_C      # 非一致程式碼段, 16, back to dos
+
 .set gdt_len, (. - gdt0)
 gdt_ptr: .2byte (gdt_len -1 ) # limit
          .4byte 0             # base
 
 .set selector_code, (gdt1-gdt0)
 .set selector_data, (gdt2-gdt0)
+.set selector_code16, (LABEL_DESC_CODE16 - gdt0)
+.set SelectorNormal, (LABEL_DESC_NORMAL - gdt0)
 
 
 
 begin:
-  xchg %bx, %bx
+  #xchg %bx, %bx
   mov     %cs,%ax
   mov     %ax,%ds
   mov     %ax,%es
   mov     %ax,%ss
+
+  movw %ax, (LABEL_GO_BACK_TO_REAL+3) # modify segment value, indexed memory mode, ref  professional aeesmbly language p 102.
+  movw %sp, rm_stack_val
+
 
 #  mov $0xb8000, %edi   
 #  movb $'R', (%edi)
@@ -52,20 +62,31 @@ begin:
   xor     %eax, %eax
   mov     %cs, %ax
   shl     $4, %eax
-  addl    $(seg_code32), %eax
+#  addl    $(begin), %eax
+#  sub $0x100, %eax
   movw    %ax, (gdt1 + 2)
   shr     $16, %eax
   movb    %al, (gdt1 + 4)
   movb    %ah, (gdt1 + 7)
 
-  xor     %eax, %eax
-  mov     %cs, %ax
-  shl     $4, %eax
-  addl    $(seg_code32), %eax
+#  xor     %eax, %eax
+#  mov     %cs, %ax
+#  shl     $4, %eax
+#  addl    $(begin), %eax
   movw    %ax, (gdt2 + 2)
   shr     $16, %eax
   movb    %al, (gdt2 + 4)
   movb    %ah, (gdt2 + 7)
+
+    /* Initialize 16-bits code segment descriptor. */
+    xor     %eax, %eax
+    mov     %cs, %ax
+    shl     $4, %eax
+    addl    $(LABEL_SEG_CODE16), %eax
+    movw    %ax, (LABEL_DESC_CODE16 + 2)
+    shr     $16, %eax
+    movb    %al, (LABEL_DESC_CODE16 + 4)
+    movb    %ah, (LABEL_DESC_CODE16 + 7)
 
 
     xor     %eax, %eax
@@ -89,7 +110,26 @@ begin:
 
 
 #  ljmpl $selector_code, *(%eax)
-  ljmpl $selector_code, $0
+  ljmpl $selector_code, $seg_code32
+
+LABEL_REAL_ENTRY:               # 從保護模式跳回到實模式就到了這裡
+        mov     %cx, %ax
+        mov     %ax, %ds
+        mov     %ax, %es
+        mov     %ax, %ss
+    
+        movw    rm_stack_val, %sp
+
+        in      $0x92, %al
+        and     $0b11111101, %al   #  close A20 line
+        out     %al, $0x92
+    
+        sti                     # 開中斷
+    
+#  jmp .
+        mov     $0x4c00, %ax
+        int     $0x21             #  回到 DOS
+
 
 
   movw    $0xb800, %ax
@@ -119,17 +159,57 @@ msg:
   #.asciz "Hello World"
 .code32
 seg_code32:
-#  xchg %bx, %bx
   mov $24, %ax
   mov %ax, %ds
   mov %ax, %es
-  mov %ax, %ss
+
   mov $0xb8004, %edi    /* Destination */
   movb $'P', (%edi)
   mov $0xb8005, %edi    /* Destination */
   movb $0x9, (%edi)
-  jmp _start
+  mov $0x10, %ax
+  mov %ax, %ds
+  mov %ax, %ss
+  mov $TopOfStack, %esp
+  #calll _start1
+  calll _start
+
+  ljmpl $selector_code16,$0
 
 #.org 510
 #.word 0xaa55
 pm_entry: .int
+rm_stack_val: .int
+.global PM_STACK
+PM_STACK:
+.space  512, 0
+.set    TopOfStack, (. - PM_STACK - 1)
+
+
+
+.code16
+LABEL_SEG_CODE16:
+    #jmp     .
+        # back to real mode
+        mov     $SelectorNormal, %ax
+        mov     %ax, %ds
+        mov     %ax, %es
+        mov     %ax, %fs
+        mov     %ax, %gs
+        mov     %ax, %ss
+
+        mov     %cr0, %eax
+        and     $0b11111110, %al
+        mov     %eax, %cr0
+
+
+LABEL_GO_BACK_TO_REAL:
+#.2byte 0xea66
+#.4byte 0x00000000
+#.2byte LABEL_REAL_ENTRY
+    jmp     $0, $LABEL_REAL_ENTRY      # 段位址會在程序開始處被設置成正確的值
+
+
+.set Code16Len, . - LABEL_SEG_CODE16
+
+
