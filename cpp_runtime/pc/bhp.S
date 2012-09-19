@@ -118,7 +118,7 @@ LABEL_REAL_ENTRY:               # 從保護模式跳回到實模式就到了這�
         mov     %ax, %es
         mov     %ax, %ss
     
-        movw    rm_stack_val, %sp
+#        movw    rm_stack_val, %sp # if restore %sp will happen strange thing
 
         in      $0x92, %al
         and     $0b11111101, %al   #  close A20 line
