@@ -5,5 +5,10 @@ else
 include ../rule.mk
 endif
 
-k_stdio.o: k_stdio.c
-	gcc $(CFLAGS) -c $<
+sources = k_stdio.c k_stdio_k.c
+include $(sources:.c=.d)
+
+.PHONE: clean 
+
+clean:
+	rm -rf *.o 
