@@ -7,3 +7,8 @@ endif
 
 sources = k_stdio.c k_stdio_k.c
 include $(sources:.c=.d)
+
+.PHONE: clean 
+
+clean:
+	rm -rf *.o 
