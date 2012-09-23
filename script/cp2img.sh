@@ -5,8 +5,8 @@
 make kloaderp.bin
 make p_kernel.elf
 sudo  mount -o loop boot.img /mnt/
-sudo  cp kloader.bin  /mnt/loader.bin
-sudo  cp kernel_loader/kloaderp.bin  /mnt/loader.bin
+#sudo  cp kloader.bin  /mnt/loader.bin
+sudo  cp -v kernel_loader/kloaderp.bin  /mnt/loader.bin
 #sudo  cp kloader.bin  /mnt/test.bin
 sudo  cp kernel.bin  /mnt/
 sudo  cp kernel.elf  /mnt/
