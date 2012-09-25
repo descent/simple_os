@@ -174,7 +174,8 @@ seg_code32:
   mov $0x10, %ax
   mov %ax, %ds
   mov %ax, %ss
-  mov $TopOfStack, %esp
+  #mov $TopOfStack, %esp
+  mov $0x300000, %esp
   #calll _start1
   calll _start
 
