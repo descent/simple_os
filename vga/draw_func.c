@@ -92,13 +92,13 @@ void draw_char(int dx, int dy, char ch)
 }
 
 #if 1
-void draw_bg(void)
+void draw_bg(int ox, int oy, u8 *pic_raw_data, int w, int h, u8 *palette)
 {
   u8 *vb = (u8*)0xa0000;
   int line=0;
-  const u8* image_addr = bg_raw_data;
+  const u8* image_addr = pic_raw_data;
   //extern u8 PALETTE[];
-  u8 *p = palette_data;
+  u8 *p = palette;
 
   for (int i=0 ; i < 256; ++i)
   {
@@ -107,12 +107,12 @@ void draw_bg(void)
   }
 
 
-  for (int y = 0 ; y < bg_h ; ++y)
+  for (int y = 0 ; y < h ; ++y)
   {    
-    for (int x = 0 ; x < bg_w ; ++x)
+    for (int x = 0 ; x < w ; ++x)
     { 
       u8 c = *image_addr;
-      draw_point(x, y, c);
+      draw_point(ox+x, y, c);
       //*vb++ = c;
 
       ++image_addr;
