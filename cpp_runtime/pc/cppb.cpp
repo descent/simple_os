@@ -17,16 +17,23 @@ Ab ab(2);
 
 extern "C" int cpp_main(void)
 {
+  //while(1);
+#if 1
   //BOCHS_MB
   test_static_obj();
   test_static_obj();
   int ii = max(5, 6);
   float fi = max(7.8, 9.1);
+  char ch = max('c', 'z');
+  print('^');
+  print(ch);
+
   #if 0
   print_str("\r\n");
   s16_print_int(ii, 10);
   print_str("\r\n");
   s16_print_int(fi, 10);
+  #endif
   #endif
 
   return 0;
