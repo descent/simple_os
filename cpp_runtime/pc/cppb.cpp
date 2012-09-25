@@ -20,6 +20,9 @@ extern "C" int cpp_main(void)
   //while(1);
 #if 1
   //BOCHS_MB
+  print("@g++ version: ");
+  print(__VERSION__);
+  print("@");
   test_static_obj();
   test_static_obj();
   int ii = max(5, 6);
