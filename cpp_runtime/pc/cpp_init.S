@@ -73,7 +73,9 @@ _start:
 
 # call global object ctor
 init_cpp_global_asm:
-#if __GNUC__ >= 4 && __GNUC_MINOR__ >= 7
+  xchg %bx, %bx
+
+#if (__GNUC__ >= 4) && (__GNUC_MINOR__ >= 7)
   mov $__end_global_ctor__, %edi    /* Destination */
   mov $__start_global_ctor__, %esi   /* Source */
 #else
