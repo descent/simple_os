@@ -422,7 +422,18 @@ int keyboard_read(Tty *tty)
 
           draw_256_grid();
           //draw_box();
-          draw_bg();
+          extern u8 bg_raw_data[];
+          extern int bg_w;
+          extern int bg_h;
+          extern u8 palette_data[];
+
+          extern u8 os_bg_raw_data[];
+          extern int os_bg_w;
+          extern int os_bg_h;
+          extern u8 os_palette_data[];
+
+          draw_bg(0, 0, os_bg_raw_data, os_bg_w, os_bg_h, os_palette_data);
+          //draw_bg(0, 0, bg_raw_data, bg_w, bg_h, palette_data);
           draw_str(20, 100, 15);
           #if 0
           draw_box_1(40, 0, 3);
