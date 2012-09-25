@@ -9,7 +9,7 @@ else
 include ../rule.mk
 endif
 
-sources = draw_func.c
+sources = draw_func.c font_rawdata.c
 include $(sources:.c=.d)
 
 
