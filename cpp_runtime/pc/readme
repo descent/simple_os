@@ -1,1 +1,3 @@
-enter protected mode and use c++ code.
+enter protected mode and use c++ code to test global object and local static object.
+
+in protected mode, I set %esp to 0x300000, bss to 0x100000 (cpp.ld) avoid write dos memory.
