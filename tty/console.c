@@ -161,6 +161,31 @@ void s32_console_print_char(Console *console, u8 ch)
       console->cur_x = 0;
       console->cur_y += 16;
     }
+#if 1
+    if (ch == '`')
+    {
+      static u8 odd=0;
+      extern u8 bg_raw_data[];
+      extern int bg_w;
+      extern int bg_h;
+      extern u8 palette_data[];
+
+      extern u8 os_bg_raw_data[];
+      extern int os_bg_w;
+      extern int os_bg_h;
+      extern u8 os_palette_data[];
+      draw_256_grid();
+      if (odd % 2 == 0)
+      {
+        draw_bg(120, 0, bg_raw_data, bg_w, bg_h, palette_data);
+      }
+      else
+      {
+        draw_bg(0, 0, os_bg_raw_data, os_bg_w, os_bg_h, os_palette_data);
+      }
+      odd = (odd+1) %2;
+    }
+#endif
     return;
   }
 
