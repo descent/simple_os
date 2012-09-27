@@ -51,10 +51,10 @@ static inline void bios_reset_disk()
   __asm__ __volatile__("int $0x13\n");
 }
 
-
+int s32_sprintf(char *str_buf, const char *format, ...);
 int s32_printf(const char *fmt, ...);
-
 int s32_printk(const char *fmt, ...);
+void h2c(u8 hex, u8 ch[2]);
 
 
 
