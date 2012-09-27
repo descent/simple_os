@@ -29,10 +29,6 @@ void s32_print(const u8 *s, u8 *vb)
     cur_vb = (u8*)0xb8000+160;
 }
 
-int s32_printk(const char *fmt, ...)
-{
-}
-
 // sign version
 char* s32_itoa_s(int n, char* str, int radix)
 {
@@ -174,5 +170,32 @@ void p_dump_u8(u8 *buff, int len)
     s32_print("len:", (u8*)(0xb8000+160*line));
     s32_print_int(len, (u8*)(0xb8000+160*line+12*2), 16);
     #endif
+}
+
+void h2c(u8 hex, u8 ch[2])
+{
+  u8 l = hex >> 4;
+
+  if ( 0<= l && l <= 9)
+  {
+    ch[0]=l+0x30;
+  }
+  else
+  {
+    ch[0]=l+0x41-0xa; //a
+    ch[0]=l+0x61-0xa; // A
+  }
+
+  l = hex & 0x0f;
+
+  if ( 0<= l && l <= 9)
+  {
+    ch[1]=l+0x30;
+  }
+  else
+  {
+    ch[1]=l+0x41-0xa; //a
+    ch[1]=l+0x61-0xa; // A
+  }
 }
 
