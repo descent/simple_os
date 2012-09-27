@@ -72,32 +72,6 @@ void store_cr0(u32 cr0)
 }
 #endif
 
-void h2c(u8 hex, u8 ch[2])
-{
-  u8 l = hex >> 4;
-
-  if ( 0<= l && l <= 9)
-  {
-    ch[0]=l+0x30;
-  }
-  else
-  {
-    ch[0]=l+0x41-0xa; //a
-    ch[0]=l+0x61-0xa; // A
-  }
-
-  l = hex & 0x0f;
-
-  if ( 0<= l && l <= 9)
-  {
-    ch[1]=l+0x30;
-  }
-  else
-  {
-    ch[1]=l+0x41-0xa; //a
-    ch[1]=l+0x61-0xa; // A
-  }
-}
 
 
 // copy from 30days_os/projects/09_day/harib06b/bootpack.c
