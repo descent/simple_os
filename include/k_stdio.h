@@ -52,6 +52,7 @@ static inline void bios_reset_disk()
 }
 
 int s32_sprintf(char *str_buf, const char *format, ...);
+int s32_vsprintf(char *str_buf, const char *fmt, char * ap);
 int s32_printf(const char *fmt, ...);
 int s32_printk(const char *fmt, ...);
 void h2c(u8 hex, u8 ch[2]);
