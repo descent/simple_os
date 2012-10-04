@@ -2,7 +2,6 @@
 #define SYSCALL_H
 
 #include "process.h"
-#include "ipc.h"
 
 // implement in asm_syscall.S
 int get_ticks(void);
