@@ -5,6 +5,7 @@
 #include "console.h"
 #include "k_stdio.h"
 #include "k_stdlib.h"
+#include "draw_func.h"
 
 static int cur_console_index=0;
 
