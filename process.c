@@ -1,11 +1,14 @@
 #include "process.h"
 #include "keyboard.h"
 #include "console.h"
-#include "k_stdio.h"
 #include "tty.h"
 #include "romfs.h"
 #include "syscall.h"
 #include "vga.h"
+#include "k_assert.h"
+#include "k_stdio.h"
+#include "k_string.h"
+#include "k_assert.h"
 
 Process proc_table[NR_TASKS + NR_PROCS];
 u8 task_stack[STACK_SIZE_TOTAL];
@@ -39,6 +42,7 @@ u8 get_privilege(void)
 
 void proc_a(void)
 {
+  //assert(0);
   //char buf[1] = {'1'};
   char buf[] = "ws";
   while(1)
@@ -378,4 +382,108 @@ void init_proc(void)
 
 
 
+}
+
+
+int deadlock(int src, int dest)
+{
+}
+
+void unblock(Process *p)
+{
+  assert(p->p_flags == 0);
+}
+
+void block(Process *p)
+{
+  assert(p->p_flags);
+  //schedule();
+}
+
+// virtual address -> linear address
+void* va2la(int pid, void* va)
+{
+  Process *p = &proc_table[pid];
+  u32 seg_base = ldt_seg_linear(p, LDT_DATA);
+  u32 la = seg_base + (u32)va;
+
+  if (pid < NR_TASKS + NR_PROCS)
+  {
+    assert(la==(u32)va);
+  }
+  return (void*)la;
+}
+
+int ldt_seg_linear(Process *p, int ldt_index)
+{
+  Descriptor *d = &(p->ldt[ldt_index]);
+  return d->base_high << 24 | d->base_mid << 16 | d->base_low;
+}
+
+int msg_send(Process* current, int dest, Message* m)
+{
+  Process *sender = current;
+  Process *p_dest = proc_table + dest;
+
+  assert(proc2pid(sender) != dest);
+
+  if (deadlock(proc2pid(sender), dest))
+  {
+    panic("");
+  }
+
+  if ((p_dest->p_flags & RECEIVING) && (p_dest->p_recvfrom == proc2pid(sender) || p_dest->p_recvfrom == ANY))
+  {
+    assert(p_dest->msg);
+    assert(m);
+
+    p_asm_memcpy(va2la(dest, p_dest->msg), va2la(proc2pid(sender), m), sizeof(Message) );
+    p_dest->msg = 0;
+    p_dest->p_flags &= ~RECEIVING;
+    p_dest->p_recvfrom = NO_TASK;
+    unblock(p_dest);
+
+    assert(p_dest->p_flags == 0);
+    assert(p_dest->msg == 0);
+    assert(p_dest->p_recvfrom == NO_TASK);
+    assert(p_dest->p_sendto == NO_TASK);
+
+    assert(sender->p_flags == 0);
+    assert(sender->msg == 0);
+    assert(sender->p_recvfrom == NO_TASK);
+    assert(sender->p_sendto == NO_TASK);
+  }
+  else
+  {
+    sender->p_flags |= SENDING;
+    assert(sender->p_flags == SENDING);
+    sender->p_sendto = dest;
+    sender->msg = m;
+
+    Process *p;
+    if (p_dest->q_sending)
+    {
+      p = p_dest->q_sending;
+      while(p->next_sending)
+        p = p->next_sending;
+      p->next_sending = sender;
+    }
+    else
+    {
+      p_dest->q_sending = sender;
+    }
+    sender->next_sending = 0;
+
+    block(sender);
+
+    assert(sender->p_flags == SENDING);
+    assert(sender->msg != 0);
+    assert(sender->p_recvfrom == NO_TASK);
+    assert(sender->p_sendto == dest);
+  }
+  return 0;
+}
+
+int msg_receive(Process* current, int src, Message* m)
+{
 }
