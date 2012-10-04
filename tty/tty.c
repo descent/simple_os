@@ -2,6 +2,7 @@
 #include "k_stdio.h"
 #include "console.h"
 #include "keyboard.h"
+#include "k_assert.h"
 
 #define TRUE 1
 #define FALSE (!TRUE)
@@ -55,6 +56,7 @@ int select_tty(int tty_index)
 
 int init_tty(Tty *tty)
 {
+  //panic("in tty");
   tty->inbuf_count = 0;
   tty->inbuf_head = tty->inbuf_tail = tty->inbuf;
 
@@ -162,6 +164,8 @@ void task_tty(void)
   static int i=0;
   while(1)
   {
+    //assert(0);
+    //panic("in tty");
     s32_print_int(i, (u8*)(0xb8000+160*23), 10);
     ++i;
     for (tty = tty_table ; tty < tty_table + TTY_NUM ; ++tty)
