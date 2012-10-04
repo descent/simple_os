@@ -34,6 +34,10 @@ typedef struct Gate_
 #define SELECTOR_KERNEL_DS 16 // (8*2)
 #define SELECTOR_KERNEL_GS 24+3 // (8*3) , RPL: 3
 
+// ldt index
+#define LDT_CODE 0
+#define LDT_DATA 1
+
 #define SELECTOR_TSS 8*4
 
 #define	DA_386IGate	0x8E	/* 386 中斷門類型值			*/
