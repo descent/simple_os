@@ -34,6 +34,13 @@ sendrec:
   int $INT_VECTOR_SYS_CALL
   ret
 
+.global printk
+printk:
+  mov $_NR_PRINTK, %eax
+  mov 4(%esp), %edx
+  int $INT_VECTOR_SYS_CALL
+  ret
+
 .global sys_call
 sys_call:
   call save

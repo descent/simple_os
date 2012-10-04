@@ -6,8 +6,9 @@
 #define _NR_SET_VGA_MODE 1
 #define _NR_WRITE 2
 #define _NR_SENDREC 3
+#define _NR_PRINTK 4
 
-#define NR_SYS_CALL 4
+#define NR_SYS_CALL 5
 
 //int get_ticks(void);
 //int set_vga_mode(void);

@@ -1,9 +1,12 @@
 #include "syscall.h"
 #include "asm_syscall.h"
+#include "k_assert.h"
+#include "k_stdlib.h"
+#include "process.h"
 #include "type.h"
 #include "vga.h"
 #include "tty.h"
-#include "k_assert.h"
+#include "irq.h"
 
 typedef void* SystemCall;
 
@@ -71,5 +74,62 @@ int sys_sendrec(int function, int src_dest, Message *m, Process *p)
   return 0;
 }
 
-SystemCall sys_call_table[NR_SYS_CALL] = {sys_get_ticks, sys_set_vga_mode, sys_write, sys_sendrec};
+int sys_printk(int unused1, int unused2, char *s, Process *proc)
+{
+  const char *p;
+  char ch;
+  char reenter_err[] = "?k_reenter is incorrect for unknown reason";
+  reenter_err[0] = MAG_CH_PANIC;
+
+  if (k_reenter == 0) // ring 1 ~ 3
+    p = va2la(proc2pid(proc), s);
+  else if (k_reenter > 0) // ring 0
+         p = s;
+       else
+         p = reenter_err;
+
+  if ((*p == MAG_CH_PANIC) || (*p == MAG_CH_ASSERT && ready_process < &proc_table[NR_TASKS]))
+  {
+    disable_int();
+    char *v = (char*)V_MEM_BASE;
+    const char *q=p+1;
+
+    while(v <(char *)(V_MEM_BASE + V_MEM_SIZE))
+    {
+      *v++ = *q++;
+      *v++ = RED_CHAR;
+      if (!*q)
+      {
+        while(((int)v - V_MEM_BASE) % (SCR_WIDTH * 16))
+        {
+          ++v;
+          *v++ = GRAY_CHAR;
+        }
+        q = p+1;
+      }
+
+    }
+    __asm__ __volatile__("hlt");
+  }
+  //int x=0, y=5;
+  while((ch = *p++) != 0)
+  {
+    if (ch == MAG_CH_PANIC || ch == MAG_CH_ASSERT)
+      continue;
+    //s32_console_print_char_xy(tty_table[proc->tty_index].console, ch, x, y);
+    s32_console_print_char(tty_table[proc->tty_index].console, ch);
+    #if 0
+    ++x;
+    if (x > 80)
+    {
+      ++y;
+      x=0;
+    }
+    #endif
+  }
+  return 0;
+
+}
+
+SystemCall sys_call_table[NR_SYS_CALL] = {sys_get_ticks, sys_set_vga_mode, sys_write, sys_sendrec, sys_printk};
 
