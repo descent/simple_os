@@ -2,6 +2,7 @@
 #define K_STDIO_H
 
 #include "type.h"
+#include "process.h"
 
 extern u8 *cur_vb;
 
@@ -54,9 +55,8 @@ static inline void bios_reset_disk()
 int s32_sprintf(char *str_buf, const char *format, ...);
 int s32_vsprintf(char *str_buf, const char *fmt, char * ap);
 int s32_printf(const char *fmt, ...);
-int s32_printk(const char *fmt, ...);
+int sys_printk(int unused1, int unused2, char *s, struct Process_ *proc);
+int printx(const char *fmt, ...);
 void h2c(u8 hex, u8 ch[2]);
-
-
 
 #endif

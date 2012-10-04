@@ -4,9 +4,7 @@
 
 #include "k_stdio.h"
 #include "console.h"
-#include "type.h"
 #include "k_stdlib.h"
-
 
 int s32_printf(const char *fmt, ...)
 {
@@ -69,6 +67,15 @@ int s32_printf(const char *fmt, ...)
   return 0;
 }
 
-int s32_printk(const char *fmt, ...)
+int printx(const char *fmt, ...)
 {
+  int i;
+  char buf[256];
+  char *arg = (char *)(&fmt+1);
+
+  i = s32_vsprintf(buf, fmt, arg);
+  printk(buf); // system call
+  //while(1);
+  return i;
 }
+
