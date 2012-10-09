@@ -115,7 +115,7 @@ tty/console.o: tty
 	(cd tty; make console.o)
 tty/tty.o: tty
 	(cd tty; make tty.o)
-sources = clock.c start.c process.c storage.c syscall.c ipc.c k_assert.c
+sources = clock.c start.c process.c storage.c syscall.c k_assert.c
 include $(sources:.c=.d)
 #C_OBJS = $(sources:.c=.o)
 C_OBJS = clock.o start.o process.o storage.o syscall.o
