@@ -18,6 +18,17 @@ void clear_line(u8 line_no);
 void loop_delay(int time);
 #endif
 
+#ifdef IPC
+int get_ticks(void)
+{
+  Message msg;
+  reset_msg(&msg);
+  msg.type = GET_TICKS;
+  send_recv(BOTH, TASK_SYS, &msg);
+  return msg.RETVAL;
+}
+#endif
+
 int sys_get_ticks(void)
 {
   extern u32 ticks;

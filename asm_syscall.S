@@ -5,11 +5,14 @@
 .extern save
 
 .text
+
+#ifndef IPC
 .global get_ticks
 get_ticks:
   mov $_NR_GET_TICKS, %eax
   int $INT_VECTOR_SYS_CALL
   ret
+#endif
 
 .global set_vga_mode
 set_vga_mode:
