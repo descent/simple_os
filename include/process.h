@@ -65,7 +65,7 @@ typedef struct Process_
   int has_int_msg;
   struct Process_ *q_sending;
   struct Process_ *next_sending;
-
+  char name[16];
 }Process;
 
 typedef void (*TaskAddr)(void);
@@ -147,5 +147,13 @@ int msg_receive(Process* current, int src, Message* m);
 #define RECEIVING 0x04  /* set when proc trying to recv */
 
 
+static inline void reset_msg(Message *m)
+{
+  void p_asm_memset(void *dest, int c, u16 n);
+
+  p_asm_memset(m, 0, sizeof(Message));
+}
+
+#define HARD_INT 1
 
 #endif

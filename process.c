@@ -378,14 +378,36 @@ void init_proc(void)
   proc_table[1].tty_index = 0;
   proc_table[2].tty_index = 1;
   proc_table[3].tty_index = 2;
-
-
-
 }
 
 
 int deadlock(int src, int dest)
 {
+  Process *p = proc_table + dest;
+  while(1)
+  {
+    if (p->p_flags & SENDING)
+    {
+      if (p->p_sendto == src)
+      {
+        p = proc_table + dest;
+        printx("=_=%s", p->name);
+        do
+        {
+          assert(p->msg);
+          p = proc_table + p->p_sendto;
+          printx("->%s", p->name);
+        }while (p != proc_table + src);
+        printx("=-=");
+        return 1;
+      }
+      p = proc_table + p->p_sendto;
+    }
+    else
+      break;
+  }
+
+  return 0;
 }
 
 void unblock(Process *p)
@@ -408,7 +430,7 @@ void schedule(void)
 void block(Process *p)
 {
   assert(p->p_flags);
-  //schedule();
+  schedule();
 }
 
 // virtual address -> linear address
@@ -497,4 +519,120 @@ int msg_send(Process* current, int dest, Message* m)
 
 int msg_receive(Process* current, int src, Message* m)
 {
+  Process *who_wanna_recv = current;
+  Process *from = 0;
+  Process *prev = 0;
+  int copyok = 0;
+  assert(proc2pid(who_wanna_recv) != src);
+
+  if ((who_wanna_recv->has_int_msg) && ((src == ANY) || (src == INTERRUPT)) )
+  {
+    Message msg;
+    reset_msg(&msg);
+    msg.source = INTERRUPT;
+    msg.type = HARD_INT;
+    assert(m);
+    p_asm_memcpy(va2la(proc2pid(who_wanna_recv), m), &msg, sizeof(Message) );
+    who_wanna_recv->has_int_msg = 0;
+
+    assert(who_wanna_recv->p_flags == 0);
+    assert(who_wanna_recv->msg == 0);
+    assert(who_wanna_recv->p_sendto == NO_TASK);
+    assert(who_wanna_recv->has_int_msg == 0);
+    return 0;
+  }
+
+  if (src == ANY)
+  {
+    if (who_wanna_recv->q_sending)
+    {
+      from = who_wanna_recv->q_sending;
+      copyok = 1;
+
+      assert(who_wanna_recv->p_flags == 0);
+      assert(who_wanna_recv->msg == 0);
+      assert(who_wanna_recv->p_recvfrom == NO_TASK);
+      assert(who_wanna_recv->p_sendto == NO_TASK);
+      assert(who_wanna_recv->q_sending != 0);
+
+      assert(from->p_flags == SENDING);
+      assert(from->msg != 0);
+      assert(from->p_recvfrom == NO_TASK);
+      assert(from->p_sendto == proc2pid(who_wanna_recv));
+    }
+  }
+  else
+  {
+    from = &proc_table[src];
+
+    if ((from->p_flags & SENDING) && (from->p_sendto == proc2pid(who_wanna_recv)))
+    {
+      copyok = 1;
+      Process *p = who_wanna_recv->q_sending;
+      assert(p);
+      while(p)
+      {
+        assert(from->p_flags & SENDING);
+        if (proc2pid(p) == src)
+        {
+          from = p;
+          break;
+        }
+        prev = p;
+        p = p->next_sending;
+      }
+
+      assert(who_wanna_recv->p_flags == 0);
+      assert(who_wanna_recv->msg == 0);
+      assert(who_wanna_recv->p_recvfrom == NO_TASK);
+      assert(who_wanna_recv->p_sendto == NO_TASK);
+      assert(who_wanna_recv->q_sending != 0);
+
+      assert(from->p_flags == SENDING);
+      assert(from->msg != 0);
+      assert(from->p_recvfrom == NO_TASK);
+      assert(from->p_sendto == proc2pid(who_wanna_recv));
+    }
+  }
+
+  if (copyok)
+  {
+    if (from == who_wanna_recv->q_sending)
+    {
+      assert(prev == 0);
+      who_wanna_recv->q_sending = from->next_sending;
+      from->next_sending = 0;
+    }
+    else
+    {
+      assert(prev);
+      prev->next_sending = from->next_sending;
+      from->next_sending = 0;
+    }
+    assert(m);
+    assert(from->msg);
+    p_asm_memcpy(va2la(proc2pid(who_wanna_recv), m), va2la(proc2pid(from), from->msg), sizeof(Message) );
+
+    from->msg = 0;
+    from->p_sendto = NO_TASK;
+    from->p_flags &= ~SENDING;
+    unblock(from);
+  }
+  else
+  {
+    who_wanna_recv->p_flags |= RECEIVING;
+    who_wanna_recv->msg = m;
+    if (src == ANY)
+      who_wanna_recv->p_recvfrom = ANY;
+    else
+      who_wanna_recv->p_recvfrom = proc2pid(from);
+    block(who_wanna_recv);
+
+    assert(who_wanna_recv->p_flags == RECEIVING);
+    assert(who_wanna_recv->msg != 0);
+    assert(who_wanna_recv->p_recvfrom != NO_TASK);
+    assert(who_wanna_recv->p_sendto == NO_TASK);
+    assert(who_wanna_recv->has_int_msg == 0);
+  }
+  return 0;
 }
