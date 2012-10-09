@@ -2,8 +2,9 @@
  * kernel io function
  */
 
-#include "k_stdio.h"
+#include "syscall.h"
 #include "console.h"
+#include "k_stdio.h"
 #include "k_stdlib.h"
 
 int s32_printf(const char *fmt, ...)
@@ -69,6 +70,8 @@ int s32_printf(const char *fmt, ...)
 
 int printx(const char *fmt, ...)
 {
+ // int printk(char *s);
+
   int i;
   char buf[256];
   char *arg = (char *)(&fmt+1);
