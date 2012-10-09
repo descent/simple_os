@@ -8,6 +8,7 @@
 #include "k_assert.h"
 #include "k_stdio.h"
 #include "k_string.h"
+#include "systask.h"
 
 Process proc_table[NR_TASKS + NR_PROCS];
 u8 task_stack[STACK_SIZE_TOTAL];
@@ -47,7 +48,8 @@ void proc_a(void)
   while(1)
   {
     //write(buf, 1);
-    //s32_printf("%s", buf);
+    //s32_printf("<Ticks: %d>", get_ticks() );
+    //milli_delay(200);
   }
 #if 0
 #if 1
@@ -298,7 +300,8 @@ void proc_c(void)
 // how to add a task/process:
 // add function to tasks and add 1 to NR_TASKS
 Task task_table[NR_TASKS] = {
-                         {task_tty, TASK_STACK, "tty"},
+                         {task_tty, TASK_STACK, "TTY"},
+                         {task_sys, TASK_STACK, "SYS"},
                        };
 
 Task user_proc_table[NR_PROCS] = 
@@ -420,9 +423,15 @@ void schedule(void)
   //Process *p;
   //int greatest_ticks = 0;
 
-  ++ready_process;
-  if (ready_process >= &proc_table[NR_TASKS + NR_PROCS])
-    ready_process = proc_table;
+  while(1)
+  {
+    ++ready_process;
+    if (ready_process >= &proc_table[NR_TASKS + NR_PROCS])
+      ready_process = proc_table;
+
+    if (ready_process->p_flags == 0) // only p_flags == 0 can be selected to run
+      break;
+  }
 
 
 }
@@ -635,4 +644,39 @@ int msg_receive(Process* current, int src, Message* m)
     assert(who_wanna_recv->has_int_msg == 0);
   }
   return 0;
+}
+
+int send_recv(int function, int src_dest, Message *msg)
+{
+  void p_asm_memset(void *dest, int c, u16 n);
+
+  int ret = 0;
+
+  if (function == RECEIVE)
+    p_asm_memset(msg, 0 , sizeof(Message));
+
+  switch (function)
+  {
+    case BOTH:
+    {
+      ret = sendrec(SEND, src_dest, msg);
+      if (ret == 0)
+        ret = sendrec(RECEIVE, src_dest, msg);
+      break;
+    }
+    case SEND:
+    case RECEIVE:
+    {
+      ret = sendrec(function, src_dest, msg);
+      break;
+    }
+    default:
+    {
+      assert((function == BOTH) || (function == SEND) || (function == RECEIVE));
+      break;
+    }
+  }
+
+  return ret;
+
 }

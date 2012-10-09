@@ -5,8 +5,12 @@
 #include "protect.h"
 
 #define LDT_SIZE 2
-#define NR_TASKS 1
+#define NR_TASKS 2
 #define NR_PROCS 3
+
+#define TASK_TTY 0
+#define TASK_SYS 1
+
 
 #define STACK_SIZE_TESTA 0x8000
 #define TASK_STACK 0x8000
@@ -42,11 +46,47 @@ typedef struct StackFrame_
   u32 ss;
 }StackFrame;
 
+typedef struct Mess1_
+{
+  int m1i1;
+  int m1i2;
+  int m1i3;
+  int m1i4;
+}Mess1;
+
+typedef struct Mess2_
+{
+  int m2i1;
+  int m2i2;
+  int m2i3;
+  int m2i4;
+}Mess2;
+
+typedef struct Mess3_
+{
+  int m3i1;
+  int m3i2;
+  int m3i3;
+  int m3i4;
+  u64 m3l1;
+  u64 m3l2;
+  void * m3p1;
+  void * m3p2;
+}Mess3;
+
 typedef struct Message_
 {
   int source;
   int type;
+  union
+  {
+    Mess1 m1;
+    Mess2 m2;
+    Mess3 m3;
+  }u;
 }Message;
+
+#define RETVAL u.m3.m3i1
 
 typedef struct Process_
 {
@@ -128,6 +168,7 @@ void* va2la(int pid, void* va);
 //int msg_receive(struct Process_* current, int src, struct Message_* m);
 int msg_send(Process* current, int dest, Message* m);
 int msg_receive(Process* current, int src, Message* m);
+int send_recv(int function, int src_dest, Message *msg);
 
 #define SEND            1
 #define RECEIVE         2
@@ -154,6 +195,8 @@ static inline void reset_msg(Message *m)
   p_asm_memset(m, 0, sizeof(Message));
 }
 
+
 #define HARD_INT 1
+#define GET_TICKS 2
 
 #endif
