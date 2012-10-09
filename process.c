@@ -8,7 +8,6 @@
 #include "k_assert.h"
 #include "k_stdio.h"
 #include "k_string.h"
-#include "k_assert.h"
 
 Process proc_table[NR_TASKS + NR_PROCS];
 u8 task_stack[STACK_SIZE_TOTAL];
