@@ -116,6 +116,7 @@ extern Process *ready_process;
 extern Tss tss;
 
 void init_proc(void);
+void schedule(void);
 
 int ldt_seg_linear(Process *p, int ldt_index);
 
