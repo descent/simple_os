@@ -206,6 +206,7 @@ void dump_u8(u8 *buff, int count)
     }
 }
 
+#if 0
 void h2c(u8 hex, u8 ch[2])
 {
   u8 l = hex >> 4;
@@ -232,6 +233,7 @@ void h2c(u8 hex, u8 ch[2])
     ch[1]=l+0x61-0xa; // A
   }
 }
+#endif
 
 void print_bpb(BPB *bpb)
 {
