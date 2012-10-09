@@ -88,7 +88,7 @@ asm_func.s: asm_func.S
 
 asm_syscall.o: asm_syscall.s
 	as --32 -o $@ $<
-asm_syscall.s: asm_syscall.S syscall.h process_const.h
+asm_syscall.s: asm_syscall.S include/syscall.h process_const.h
 	gcc $(CFLAGS) -o $@ -E $<
 
 #syscall.o: syscall.c syscall.h
