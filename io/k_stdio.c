@@ -216,6 +216,11 @@ int s32_vsprintf(char *str_buf, const char *fmt, char * ap)
 
     switch (*fmt)
     {
+      case 'c':
+      {
+        *p++ = (char)arg_content;
+        break;
+      }
       case 'd':
       {
         u8 str[12]="";
