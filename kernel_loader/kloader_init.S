@@ -238,7 +238,7 @@ init_protected_mode:
   orl $1, %eax
   movl %eax, %cr0
 
-  xchg %bx, %bx
+  #xchg %bx, %bx
   #ljmpl $sel_flat_c, $pm_phy_addr
   ljmpl $sel_flat_c, $enter_pm_addr
 

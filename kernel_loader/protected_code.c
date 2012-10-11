@@ -72,7 +72,7 @@ void copy_elf_code(void)
   s16_print_int(elf_header->e_phnum, 10);
 #endif
 
-  BOCHS_MB
+  //BOCHS_MB
   for (int i=0 ; i < elf_header->e_phnum; ++i)
   {
   ++line;
@@ -92,11 +92,11 @@ void copy_elf_code(void)
       //print_num(elf_pheader->p_filesz, "elf_pheader->p_filesz");
       //asm_absolute_memcpy((u8*)elf_pheader->p_vaddr, buff+(elf_pheader->p_offset), elf_pheader->p_filesz);
       s32_memcpy((u8*)elf_pheader->p_vaddr, buff+(elf_pheader->p_offset), elf_pheader->p_filesz);
-  BOCHS_MB
+  //BOCHS_MB
     }
     ++elf_pheader;
   }
-  BOCHS_MB
+  //BOCHS_MB
   ++line;
   clear_line(line);
   s32_print_int(elf_header->e_entry, (u8*)(0xb8000+160*line), 16);
