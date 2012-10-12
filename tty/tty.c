@@ -1,5 +1,6 @@
 #include "tty.h"
 #include "k_stdio.h"
+#include "k_stdlib.h"
 #include "console.h"
 #include "keyboard.h"
 #include "k_assert.h"
@@ -56,6 +57,7 @@ int select_tty(int tty_index)
 
 int init_tty(Tty *tty)
 {
+  BOCHS_MB
   //panic("in tty");
   tty->inbuf_count = 0;
   tty->inbuf_head = tty->inbuf_tail = tty->inbuf;
