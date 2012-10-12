@@ -21,7 +21,7 @@ int select_tty(int tty_index)
   else
     ret = -1;
 
-  s32_print_int(tty_table[cur_tty_index].console->vm_start, (u8*)(0xb8000+160*1), 16);
+  //s32_print_int(tty_table[cur_tty_index].console->vm_start, (u8*)(0xb8000+160*1), 16);
 
   int org_x, org_y;
   get_xy(tty_table[cur_tty_index].console, &org_x, &org_y);
@@ -64,8 +64,8 @@ int init_tty(Tty *tty)
 
   u8 tty_index = tty - tty_table;
   tty->console = console_table + tty_index;
+  tty->ready = 1;
 
-  select_tty(0);
   return 0;
 }
 
@@ -162,6 +162,7 @@ void task_tty(void)
   {
     init_tty(tty);
   }
+  select_tty(0);
 
   static int i=0;
   while(1)
@@ -172,8 +173,11 @@ void task_tty(void)
     ++i;
     for (tty = tty_table ; tty < tty_table + TTY_NUM ; ++tty)
     {
-      tty_do_read(tty);
-      tty_do_write(tty);
+      if (tty->ready == 1)
+      {
+        tty_do_read(tty);
+        tty_do_write(tty);
+      }
     }
   }
 }
@@ -194,6 +198,7 @@ int put_key(Tty *tty, u32 key)
 void tty_write(Tty *tty, char *buf, int len)
 {
   for (int i=0 ; i < len ; ++i)
-    s32_console_print_char(tty->console, buf[i]);
+    if (tty->ready == 1)
+      s32_console_print_char(tty->console, buf[i]);
 
 }

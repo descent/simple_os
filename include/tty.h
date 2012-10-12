@@ -14,6 +14,7 @@ typedef struct Tty_
   u32 * inbuf_head;
   u32 * inbuf_tail;
   int inbuf_count;
+  u32 ready;
   struct Console_ *console;
 }Tty;
 
