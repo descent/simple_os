@@ -119,7 +119,7 @@ _start:
 
   jmp csinit
 csinit:
-  xchg %bx, %bx #bochs magic break point
+  #xchg %bx, %bx #bochs magic break point
 
   #call switch_vga_mode
   call plat_boot
@@ -526,7 +526,7 @@ save:
 .align 16
 hwint01:
   #HW_INT_MASTER $1
-  xchg %bx, %bx #bochs magic break point
+  #xchg %bx, %bx #bochs magic break point
   HWINT_MASTER 1
 .align 16
 hwint02:
