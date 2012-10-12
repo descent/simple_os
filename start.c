@@ -519,10 +519,9 @@ void milli_delay(int milli_sec)
 #if 0
   while(((get_ticks() - t ) * 1000 / HZ) < milli_sec);
 #else
-  BOCHS_MB
+  //BOCHS_MB
   while(1)
   {
-  BOCHS_MB
     t2 = get_ticks();
     s32_print_int(t2, (u8*)(0xb8000+160*20), 10);
     if (((t2 - t) * 1000/HZ ) >= milli_sec)
@@ -561,9 +560,6 @@ int init_timer(void)
 
 void kernel_main(void)
 {
-  clear();
-  clear_line(13);
-  s32_print("memory size", (u8*)(0xb8000+160*13));
   //int memsize = memtest(0x00400000, 0xbfffffff) / (1024 * 1024);
   // 0x2000000 = 32MB
   // because of bochs will alert memory access more than the memory size,
@@ -577,7 +573,7 @@ void kernel_main(void)
   
   clear();
 #if 1
-  clear_line(24);
+  //clear_line(24);
   s32_print("memory size", (u8*)(0xb8000+160*24));
   s32_print(sp, (u8*)(0xb8000+160*24 + 12*2));
   s32_print("MB", (u8*)(0xb8000+160*24 + 12*2 + 4*2));
@@ -600,6 +596,7 @@ void kernel_main(void)
 
   cur_vb = (u8*)0xb8000+160;
 
+  BOCHS_MB
   void restart(void);
   restart(); // need run restart(), because restart() iret will enable interrupt
 
