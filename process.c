@@ -8,6 +8,7 @@
 #include "k_assert.h"
 #include "k_stdio.h"
 #include "k_string.h"
+#include "k_stdlib.h"
 #include "systask.h"
 
 Process proc_table[NR_TASKS + NR_PROCS];
@@ -21,7 +22,6 @@ extern u8 *cur_vb;
 //int k_reenter = -1;
 int k_reenter = 0;
 
-char* s32_itoa(int n, char* str, int radix);
 void s32_print(const u8 *s, u8 *vb);
 void s32_print_int(int i, u8 *vb, int radix);
 void clear_line(u8 line_no);
@@ -44,12 +44,15 @@ void proc_a(void)
 {
   //assert(0);
   //char buf[1] = {'1'};
-  char buf[] = "ws";
+  //char buf[] = "ws";
+  //BOCHS_MB
   while(1)
   {
     //write(buf, 1);
-    //s32_printf("<Ticks: %d>", get_ticks() );
-    //milli_delay(200);
+#ifdef IPC
+    s32_printf("<Ticks: %d>", get_ticks() );
+    milli_delay(200);
+#endif
   }
 #if 0
 #if 1
@@ -374,13 +377,23 @@ void init_proc(void)
     proc->pid = i;
     proc->tty_index = 0;
 
+#ifdef IPC
+    proc->p_flags = 0;
+    proc->msg = 0;
+    proc->p_recvfrom = NO_TASK;
+    proc->p_sendto = NO_TASK;
+    proc->has_int_msg = 0;
+    proc->q_sending = 0;
+    proc->next_sending = 0;
+#endif
+
     selector_ldt += (1 << 3); // +8
     ++task;
     ++proc;
   }
-  proc_table[1].tty_index = 0;
-  proc_table[2].tty_index = 1;
-  proc_table[3].tty_index = 2;
+  proc_table[NR_TASKS + 0].tty_index = 0;
+  proc_table[NR_TASKS + 1].tty_index = 1;
+  proc_table[NR_TASKS + 2].tty_index = 2;
 }
 
 
