@@ -523,7 +523,10 @@ void milli_delay(int milli_sec)
   while(1)
   {
     t2 = get_ticks();
+#if 1
+// if don't run the line, proc_a will get right behave, but I don't know why
     s32_print_int(t2, (u8*)(0xb8000+160*20), 10);
+#endif
     if (((t2 - t) * 1000/HZ ) >= milli_sec)
       break;
 
