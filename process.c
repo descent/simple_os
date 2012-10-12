@@ -46,11 +46,13 @@ void proc_a(void)
   //char buf[1] = {'1'};
   //char buf[] = "ws";
   //BOCHS_MB
+  static i=0;
   while(1)
   {
     //write(buf, 1);
 #ifdef IPC
-    s32_printf("<Ticks: %d>", get_ticks() );
+    //s32_printf("a <Ticks: %d>", i++);
+    s32_printf("a <Ticks: %d>", get_ticks() );
     milli_delay(200);
 #endif
   }
@@ -214,6 +216,8 @@ void proc_b(void)
   char buf[1] = {'2'};
   while(1)
   {
+    //s32_printf("b <Ticks: %d>", get_ticks() );
+    //milli_delay(200);
     //write(buf, 1);
   }
 #if 0
@@ -262,6 +266,8 @@ void proc_c(void)
   int dec=98;
   while(1)
   {
+    //s32_printf("c <Ticks: %d>", get_ticks() );
+    //milli_delay(200);
     //write(buf, 1);
     //s32_printf("test printf %d %x %s", dec, hex, buf);
     //s32_printf("q %s", buf);
