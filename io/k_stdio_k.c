@@ -59,7 +59,7 @@ int s32_printf(const char *fmt, ...)
     ++i; // point to next argument
  
   } // end for (char *p = buf; *fmt ; ++fmt, ++i)
-  int len = p-buf - 1;
+  int len = p-buf;
   //buf[len]='\0';
 
   int write(char *buf, int len);
