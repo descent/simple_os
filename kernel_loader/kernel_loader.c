@@ -762,6 +762,7 @@ void start_c()
   print("\r\nfirst_ramdisk_cluster: ");
   s16_print_int(first_ramdisk_cluster, 10);
 
+  BOCHS_MB
   print("\r\nload kernel: ");
   print(kernel_name);
   // load kernel
@@ -770,6 +771,7 @@ void start_c()
   load_file_to_ram(first_kernel_cluster, (file_size> 512) ? 1: 0, org_es, es);
   print("\r\n");
 
+#if 0
   // load ramdisk
   print("\r\nload ramdisk:");
   print(ramdisk_name);
@@ -778,7 +780,7 @@ void start_c()
   load_file_to_ram(first_ramdisk_cluster, (file_size> 512) ? 1: 0, org_es, es);
   print("\r\n");
   //dump_u8((u8 *)IMAGE_LMA, 32);
-
+#endif
   void init_protected_mode();
 
   init_protected_mode();
