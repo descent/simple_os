@@ -57,12 +57,16 @@ kernel.o: kernel.s
 	as $(ASFLAGS) -o $@ $<
 
 
-p_kernel.elf: p_kernel.o io/k_stdio.o asm_func.o asm_syscall.o $(FS_OBJS) vga/set_mode_p.o vga/draw_func.o vga/font_rawdata.o tty/tty.o tty/keyboard.o tty/console.o clock.o start.o process.o storage.o syscall.o io/k_stdio_k.o k_assert.o systask.o
+p_kernel.elf: p_kernel.o io/k_stdio.o asm_func.o asm_syscall.o $(FS_OBJS) vga/set_mode_p.o vga/draw_func.o vga/font_rawdata.o tty/tty.o tty/keyboard.o tty/console.o clock.o start.o process.o storage.o syscall.o io/k_stdio_k.o k_assert.o systask.o test-romfs.o
 	ld $(LDFLAGS) -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
 
 p_kernel.o: p_kernel.s
 	as --32 -o $@ $<
 
+test-romfs.o: rom.fs
+	objcopy -I binary -O elf32-i386 -B i386 --prefix-sections '.romfs' $< test-romfs.o
+#rom.fs:
+	
 #start.o: start.c io.h clock.h protect.h process.h syscall.h \
 # include/storage.h include/type.h include/romfs.h include/k_string.h \
 #  include/endian.h
