@@ -28,6 +28,14 @@ SECTIONS
   }
   __bss_end__ = .;
 
+  . = ALIGN(32);
+  __romfs_start__ =.;
+  .romfs.data :
+  {
+    *(.romfs.data)
+  }
+  __romfs_end__ = .;
+
 /*
   .sig : AT(0x7DFE)
   {
