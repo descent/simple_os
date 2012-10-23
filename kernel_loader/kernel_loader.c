@@ -36,6 +36,9 @@ __asm__(".code16gcc\n");
 
 //#define BOCHS_MB __asm__ __volatile__("xchg %bx, %bx");
 
+#define FAT_BUF_LEN 2048
+static u8 fat_buffer[2048];
+
 void dump_reg(void)
 {
   u16 reg_v=0;
@@ -424,7 +427,7 @@ int is_odd(int n)
 u16 get_next_cluster(u16 cur_cluster)
 {
   u16 offset, next_cluster=0;
-  volatile u8 *fat_buf = (volatile u8 *)READ_FAT_ADDR;
+  u8 *fat_buf = fat_buffer;
 
 
   //print_num(cur_cluster, "cur_cluster");
