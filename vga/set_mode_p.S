@@ -49,12 +49,9 @@ mov %ax, %ss
 #endif
 
 #MOV $MODE10H, %si
-MOV $MODE13H, %si # 320X200 256 
+MOV $MODE13H, %esi # 320X200 256 
 
 CALL SETMODE
-xchg %bx, %bx #bochs magic break point
-#call SET_OUT
-xchg %bx, %bx #bochs magic break point
   ret
 
 # draw screen 0x13 mode
@@ -98,7 +95,7 @@ xchg %bx, %bx #bochs magic break point
 .global set_03_mode
 set_03_mode:
   CALL set_font
-  MOV $MODE03H, %si
+  MOV $MODE03H, %esi
   #CALL SETFONT
   CALL SETMODE
   CALL SETPALETTE
@@ -159,16 +156,16 @@ CLEAR_LOOP2:
 SETMODE:
    # Send MISC regs
    MOV $MISC_ADDR, %dx
-   MOV (%si), %AL
+   MOV (%esi), %AL
    OUT %al, %DX
    call iodelay
-   INC %SI
+   INC %esi
 
    MOV $STATUS_ADDR, %dx
-   MOV (%si), %AL
+   MOV (%esi), %AL
    OUT %AL, %dx
    call iodelay
-   INC %SI
+   INC %esi
 
    # Send SEQ regs
    MOV $0, %CX
@@ -180,10 +177,10 @@ REG_LOOP:
 
    MOV $SEQ_ADDR, %dx
    INC %DX
-   MOV (%si), %AL
+   MOV (%esi), %AL
    OUT %AL, %dx
    call iodelay
-   INC %SI
+   INC %esi
    INC %CX
    CMP $5, %cl
    JL REG_LOOP
@@ -206,11 +203,11 @@ REG_LOOP2:
 
    MOV $CRTC_ADDR, %dx
    INC %DX
-   MOV (%si), %AL
+   MOV (%esi), %AL
    OUT %AL, %dx
    call iodelay
 
-   INC %SI
+   INC %esi
    INC %CX
    CMP $25, %CL
    JL REG_LOOP2
@@ -225,11 +222,11 @@ REG_LOOP3:
 
    MOV $GRACON_ADDR, %dx
    INC %DX
-   MOV (%si), %AL
+   MOV (%esi), %AL
    OUT %AL, %dx
    call iodelay
 
-   INC %SI
+   INC %esi
    INC %CX
    CMP $9, %CL
    JL REG_LOOP3
@@ -248,11 +245,11 @@ REG_LOOP4:
    OUT %AL, %dx
    call iodelay
 
-   MOV (%si), %AL
+   MOV (%esi), %AL
    OUT %AL, %dx
    call iodelay
 
-   INC %SI
+   INC %esi
    INC %CX
    CMP $21, %CL
    JL REG_LOOP4
@@ -276,7 +273,7 @@ iodelay:
 
 SETPALETTE:
    # Address of the 6-byte array
-   MOV $PALETTE, %di
+   MOV $PALETTE, %edi
 
    MOV $0, %ECX
 PAL_LOOP:
@@ -287,20 +284,20 @@ PAL_LOOP:
 
    # Write R value
    MOV $0x03C9, %dx
-   movb (%DI), %al
+   movb (%edi), %al
    OUT %AL, %dx
 
    # Write G value
    MOV $0x03C9, %dx
-   movb 1(%DI), %al
+   movb 1(%edi), %al
    OUT %AL, %dx
 
    # Write B value
    MOV $0x03C9, %dx
-   movb 2(%DI), %al
+   movb 2(%edi), %al
    OUT %AL, %dx
 
-   ADD $3, %di
+   ADD $3, %edi
    INC %CX
    mov %cl, %al
    CMP $16, %CX
