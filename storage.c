@@ -5,6 +5,8 @@
 #define RAMDISK_SECTOR_MASK (~(RAMDISK_SECTOR_SIZE-1))
 #define RAMDISK_SECTOR_OFFSET ((RAMDISK_SECTOR_SIZE-1))
 
+extern int __romfs_start__, __romfs_end__;
+
 void p_asm_memcpy(u8 *dest, u8 *src, int n);
 
 int ramdisk_dout(StorageDevice *sd, void *dest, u32 addr, u32 size)
@@ -19,6 +21,8 @@ int ramdisk_dout(StorageDevice *sd, void *dest, u32 addr, u32 size)
 
 #define RAMFS_ADDR (16*RAMDISK_ES + LOAD_KERNEL_OFFSET)
 
+
+
 // c99
 StorageDevice ramdisk_sd=
 {
@@ -26,7 +30,7 @@ StorageDevice ramdisk_sd=
   .sector_size = RAMDISK_SECTOR_SIZE,
   .storage_size = 2*1024*1024,
   //.start_pos = 0x40800000,
-  .start_pos = RAMFS_ADDR // loaded by kloaderp.bin
+  .start_pos = (int)&__romfs_start__,
 };
 
 int ramdisk_driver_init(void)
