@@ -6,6 +6,7 @@
 #include "k_stdio.h"
 #include "k_stdlib.h"
 #include "draw_func.h"
+#include "font_rawdata.h"
 
 static int cur_console_index=0;
 
@@ -176,15 +177,25 @@ void s32_console_print_char(Console *console, u8 ch)
       extern int os_bg_h;
       extern u8 os_palette_data[];
       draw_256_grid();
-      if (odd % 2 == 0)
+      switch (odd)
       {
-        draw_bg(120, 0, bg_raw_data, bg_w, bg_h, palette_data);
+        case 0:
+        {
+          draw_bg(120, 0, bg_raw_data, bg_w, bg_h, palette_data);
+          break;
+        }
+        case 1:
+        {
+          draw_bg(0, 0, os_bg_raw_data, os_bg_w, os_bg_h, os_palette_data);
+          break;
+        }
+        case 2:
+        {
+          draw_bg(0, 0, pe_320_180_256_bmp, pe_320_180_256_wb, pe_320_180_256_hb, pe_320_180_256_palette_data);
+          break;
+        }
       }
-      else
-      {
-        draw_bg(0, 0, os_bg_raw_data, os_bg_w, os_bg_h, os_palette_data);
-      }
-      odd = (odd+1) %2;
+      odd = (odd+1) % 3;
     }
 #endif
     return;
