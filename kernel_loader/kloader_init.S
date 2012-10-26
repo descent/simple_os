@@ -81,6 +81,7 @@ init_bss_asm:
 #  movw %ax, %gs
   jmp 2f
 1:
+  mov $0, %eax
   movw %si, %ax
   movb $0x1, (%eax)
 #  movb $0x1, %ds:(%eax)
