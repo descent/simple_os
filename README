@@ -14,23 +14,20 @@ kloaderp.bin load p_kernel.elf to
 KERNEL_ES:LOAD_KERNEL_OFFSET (can more than 64k)
 
 than copy p_kernel.elf by elf 
-information to absolute address 0x5000.
-kernel load address depends k.ld (. = 0x5000), current is 0x5000,
-p_kernel.elf entry pointer is 0x5000.
+information to absolute address 0x100000.
+kernel load address depends k.ld (. = 0x100000), current is 0x100000.
+p_kernel.elf entry pointer is 0x100000.
 
-ramdisk is loaded by kloaderp.bin to 
-
-RAMDISK_ES:LOAD_KERNEL_OFFSET
+ramdisk is megered to p_kernel.elf.
 
 ramdisk filesystem is romfs.
 
 note:
 KERNEL_ES:LOAD_KERNEL_OFFSET
-RAMDISK_ES:LOAD_KERNEL_OFFSET
 see include/kl_global.h
 
 tty design:
 0, 1, 2 text mode alt+f1, alt+f2, alt+f3
-3 graphic mode alt+f7
-now if switch to graphic mode tty, cannot to switch text mode tty.
+The 3rd tty is graphic mode (alt+f6)
+now can switch graphic/text mode tty.
 
