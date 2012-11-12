@@ -48,7 +48,7 @@ int sys_set_vga_mode(void)
   return 0;
 }
 
-int sys_write(char *buf, int len, Process *proc)
+int sys_write(char *buf, int len, int useless, Process *proc)
 {
   tty_write(&tty_table[proc->tty_index], buf, len);
   return 0;
