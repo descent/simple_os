@@ -1,3 +1,4 @@
+.code32
 .text
 
 .extern main
