@@ -10,6 +10,8 @@
 #include "k_string.h"
 #include "k_stdlib.h"
 #include "systask.h"
+#include "vfs.h"
+#include "storage.h"
 
 Process proc_table[NR_TASKS + NR_PROCS];
 u8 task_stack[STACK_SIZE_TOTAL];
@@ -40,6 +42,7 @@ u8 get_privilege(void)
 }
 
 
+#define TEST_ROMFS
 void proc_a(void)
 {
   //assert(0);
@@ -47,10 +50,22 @@ void proc_a(void)
   //char buf[] = "ws";
   //BOCHS_MB
   static i=0;
+
+#ifdef TEST_ROMFS
+  INode *inode = fs_type[ROMFS]->namei(fs_type[ROMFS], "t1"); // get super block infomation
+  s32_printf("inode->dsize: %d\r\n", inode->dsize);
+
+  int addr = fs_type[ROMFS]->get_daddr(inode);
+  u8 buf[512];
+  fs_type[ROMFS]->device->dout(fs_type[ROMFS]->device, buf, fs_type[ROMFS]->get_daddr(inode), inode->dsize);
+  p_dump_u8(buf, inode->dsize);
+#endif
+
   while(1)
   {
+
     //write(buf, 1);
-#ifdef IPC
+#ifdef TEST_IPC
     //s32_printf("a <Ticks: %d>", i++);
     s32_printf("a <Ticks: %d>", get_ticks() );
     milli_delay(200);
