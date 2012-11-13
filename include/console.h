@@ -23,6 +23,10 @@
 #define TEXT_CONSOLE 0
 #define GRAPHIC_CONSOLE 1
 
+// 80X25 char
+#define CON_H 25
+#define CON_W 80
+
 typedef struct Console_
 {
   u32 vm_start; // video memory start
