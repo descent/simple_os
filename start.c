@@ -15,6 +15,7 @@
 #include "keyboard.h"
 #include "irq.h"
 #include "tty.h"
+#include "mm.h"
 
 #define INT_M_PORT 0x20
 #define INT_S_PORT 0xa0
@@ -49,10 +50,6 @@ IrqHandler irq_table[NR_IRQ];
 
 
 
-u32 io_load_eflags(void);
-void io_store_eflags(u32 eflg);
-u32 load_cr0(void);
-void store_cr0(u32 cr0);
 
 #if 0
 u32 io_load_eflags(void)
@@ -71,70 +68,6 @@ void store_cr0(u32 cr0)
 {
 }
 #endif
-
-
-
-// copy from 30days_os/projects/09_day/harib06b/bootpack.c
-u32 memtest(volatile u32 start, volatile u32 end)
-{
-  u32 memtest_sub(volatile u32 start, volatile u32 end);
-
-	char flg486 = 0;
-	u32 eflg, cr0, i;
-
-	/* 386©A486È~ÈÌ©ÌmF */
-	eflg = io_load_eflags();
-	eflg |= EFLAGS_AC_BIT; /* AC-bit = 1 */
-	io_store_eflags(eflg);
-	eflg = io_load_eflags();
-	if ((eflg & EFLAGS_AC_BIT) != 0) { /* 386ÅÍAC=1ÉµÄà©®Å0ÉßÁÄµÜ¤ */
-		flg486 = 1;
-	}
-	eflg &= ~EFLAGS_AC_BIT; /* AC-bit = 0 */
-	io_store_eflags(eflg);
-
-	if (flg486 != 0) {
-		cr0 = load_cr0();
-		cr0 |= CR0_CACHE_DISABLE; /* LbVÖ~ */
-		store_cr0(cr0);
-	}
-
-	i = memtest_sub(start, end);
-
-	if (flg486 != 0) {
-		cr0 = load_cr0();
-		cr0 &= ~CR0_CACHE_DISABLE; /* LbVÂ */
-		store_cr0(cr0);
-	}
-
-	return i;
-}
-
-#if 0
-u32 memtest_sub(volatile u32 start, volatile u32 end)
-{
-	volatile unsigned int i, *p, old, pat0 = 0xaa55aa55, pat1 = 0x55aa55aa;
-	for (i = start; i <= end; i += 0x1000) {
-		p = (unsigned int *) (i + 0xffc);
-		old = *p;			/* ¢¶éOÌlðo¦Ä¨­ */
-		*p = pat0;			/* ½ßµÉ¢ÄÝé */
-		*p ^= 0xffffffff;	/* »µÄ»êð½]µÄÝé */
-		if (*p != pat1) {	/* ½]ÊÉÈÁ½©H */
-not_memory:
-			*p = old;
-			break;
-		}
-		*p ^= 0xffffffff;	/* à¤êx½]µÄÝé */
-		if (*p != pat0) {	/* ³ÉßÁ½©H */
-			goto not_memory;
-		}
-		*p = old;			/* ¢¶Á½lð³Éß· */
-	}
-	return i;
-}
-#endif
-
-
 
 void p_asm_memcpy(void *dest, void *src, u16 n);
 void p_asm_memset(void *dest, int c, u16 n);
@@ -561,21 +494,33 @@ int init_timer(void)
   return 0;
 }
 
+//#define TEST_ALLOC_MEM
 void kernel_main(void)
 {
+#ifdef TEST_ALLOC_MEM
+  char *mem_p[64];
+  for (int i=0 ; i < 64 ; ++i)
+  {
+    mem_p[i] = (u8*)alloc_mem();
+  }
+  int con=1;
+  for (int i=0 ; i < 64 ; ++i)
+  {
+    free_mem(mem_p[i]);
+  }
+#endif
+#if 0
   //int memsize = memtest(0x00400000, 0xbfffffff) / (1024 * 1024);
   // 0x2000000 = 32MB
   // because of bochs will alert memory access more than the memory size,
   //   so limit address to 0x2000000, if use qemu, it works fine.
   memsize = memtest(0x00400000, 0x2000000);
-  int memsize_mb = memsize / (1024 * 1024);
+  memsize_mb = memsize / (1024 * 1024);
 
   u8 stack_str[10]="y";
   u8 *sp = stack_str;
   sp = s32_itoa(memsize_mb, stack_str, 10);
-  
   clear();
-#if 1
   //clear_line(24);
   s32_print("memory size", (u8*)(0xb8000+160*24));
   s32_print(sp, (u8*)(0xb8000+160*24 + 12*2));
@@ -622,7 +567,7 @@ static InitFunc init[]={
                          ramdisk_driver_init,
                          init_keyboard,
                          romfs_init,
-                         //init_tty,
+                         mm_init,
                          0
                        };
 
