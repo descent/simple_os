@@ -57,7 +57,7 @@ kernel.o: kernel.s
 	as $(ASFLAGS) -o $@ $<
 
 
-p_kernel.elf: p_kernel.o io/k_stdio.o asm_func.o asm_syscall.o $(FS_OBJS) vga/set_mode_p.o vga/draw_func.o vga/font_rawdata.o tty/tty.o tty/keyboard.o tty/console.o clock.o start.o process.o storage.o syscall.o io/k_stdio_k.o k_assert.o systask.o test-romfs.o
+p_kernel.elf: p_kernel.o io/k_stdio.o asm_func.o asm_syscall.o $(FS_OBJS) vga/set_mode_p.o vga/draw_func.o vga/font_rawdata.o tty/tty.o tty/keyboard.o tty/console.o clock.o start.o process.o storage.o syscall.o io/k_stdio_k.o k_assert.o systask.o test-romfs.o mm/mm.o
 	ld $(LDFLAGS) -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
 
 p_kernel.o: p_kernel.s
@@ -100,6 +100,8 @@ asm_syscall.s: asm_syscall.S include/syscall.h process_const.h
 
 $(FS_OBJS):$(FS_SRC)
 	(cd fs; make)
+mm/mm.o: mm
+	(cd mm; make mm.o)
 vga/set_mode_p.o: vga
 	(cd vga; make set_mode_p.o)
 
