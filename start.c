@@ -6,12 +6,12 @@
 #include "asm_syscall.h"
 #include "syscall.h"
 #include "storage.h"
+#include "vfs.h"
 #include "romfs.h"
 #include "k_string.h"
 #include "k_stdlib.h"
 #include "k_stdio.h"
 #include "endian.h"
-#include "vfs.h"
 #include "keyboard.h"
 #include "irq.h"
 #include "tty.h"
@@ -495,6 +495,7 @@ int init_timer(void)
 }
 
 //#define TEST_ALLOC_MEM
+#define TEST_ROMFS
 void kernel_main(void)
 {
 #ifdef TEST_ALLOC_MEM
@@ -508,6 +509,24 @@ void kernel_main(void)
   {
     free_mem(mem_p[i]);
   }
+#endif
+#ifdef TEST_ROMFS
+  INode *inode = fs_type[ROMFS]->namei(fs_type[ROMFS], "echo.bin"); // get super block infomation
+
+  //s32_printf("inode->dsize: %d\r\n", inode->dsize);
+
+  int addr = fs_type[ROMFS]->get_daddr(inode);
+  //u32 romfs_get_daddr(INode *inode);
+  //int addr = romfs_get_daddr(inode);
+
+
+  //u8 buf[512];
+  u8 *buf = (u8*)0x1000;
+  //fs_type[ROMFS]->device->dout(fs_type[ROMFS]->device, buf, fs_type[ROMFS]->get_daddr(inode), inode->dsize);
+  fs_type[ROMFS]->device->dout(fs_type[ROMFS]->device, buf, addr, inode->dsize);
+  p_dump_u8(buf, inode->dsize);
+  exec(buf);
+  while(1);
 #endif
 #if 0
   //int memsize = memtest(0x00400000, 0xbfffffff) / (1024 * 1024);
@@ -543,6 +562,7 @@ void kernel_main(void)
   //set_video_start_addr(80);
 
   cur_vb = (u8*)0xb8000+160;
+
 
   BOCHS_MB
   void restart(void);
@@ -613,7 +633,7 @@ void load_init_boot(InitFunc *init_func)
   storage[RAMDISK]->dout(storage[RAMDISK], buf, 0, sizeof(buf));
   p_dump_u8(buf, 32);
 
-  romfs_init();
+  //romfs_init();
   //test_romfs();
   //test_vga();
 
