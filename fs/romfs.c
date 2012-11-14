@@ -5,6 +5,7 @@
 #include "k_string.h"
 #include "k_stdio.h"
 #include "k_stdlib.h"
+#include "mm.h"
 
 INode *romfs_namei(SuperBlock *sb, char *dir);
 u32 romfs_get_daddr(INode *node);
@@ -19,6 +20,9 @@ SuperBlock romfs_sb =
 int romfs_init(void)
 {
   int ret;
+
+  //romfs_sb.namei = romfs_namei;
+  //romfs_sb.get_daddr = romfs_get_daddr;
 
   ret = register_file_system(&romfs_sb, ROMFS);
   romfs_sb.device = storage[RAMDISK];
@@ -93,17 +97,23 @@ RomFsHeader* print_romfs_entry(int begin_print_line, u32 *offset, u8 *buf, u8 is
   return rom_fs_header;
 }
 
-INode return_inode; // because not yet malloc function, use global variable for return.
+//INode return_inode; // because not yet malloc function, use global variable for return.
 
 INode *romfs_namei(SuperBlock *sb, char *dir)
 {
-  static u8 buf[512];
+  u8 *buf = alloc_mem();
+  u32 read_count;
+  u32 all_read_count=0;
 
   #if 1
-  if (sb->device->dout(sb->device, buf, 0, sb->device->sector_size) != 0)
+  while(1)
   {
-    return 0; // error
-  }
+    //read_count = sb->device->dout(sb->device, buf, 0, sb->device->sector_size);
+    read_count = sb->device->dout(sb->device, buf, 0, sb->device->storage_size); // read all ramdisk at once
+    if (read_count == 0) return 0; // read nothing
+    all_read_count += read_count;
+
+
 
   RomFsHeader *rom_fs_header;
   rom_fs_header = (RomFsHeader*)buf;
@@ -144,16 +154,18 @@ INode *romfs_namei(SuperBlock *sb, char *dir)
 
     if (s_strcmp(buf+fn_offset, dir) == 0)
     {
+      INode *return_inode = (INode*)alloc_mem();
       clear_line(24);
       s32_print("find fn:", (u8*)(0xb8000+160*24));
       s32_print(dir, (u8*)(0xb8000+160*24 + 13*2));
 
       // fill inode
-      return_inode.fn_name=buf+fn_offset; // fixed me: vary danger, because buf will to release or corrupt by other data.
-      return_inode.dsize = be32tole32(rom_fs_header->size);
-      return_inode.daddr = next_offset;
-      return_inode.sb = sb;
-      return &return_inode;
+      return_inode->fn_name=buf+fn_offset; // fixed me: vary danger, because buf will to release or corrupt by other data.
+      return_inode->dsize = be32tole32(rom_fs_header->size);
+      return_inode->daddr = next_offset;
+      return_inode->sb = sb;
+      free_mem(buf);
+      return return_inode;
     }
 
     u32 fn_content_offset = 0;
@@ -188,6 +200,10 @@ INode *romfs_namei(SuperBlock *sb, char *dir)
   clear_line(line);
   s32_print("scan romfs ok", (u8*)(0xb8000+160*line));
   #endif
+
+    if (all_read_count >= sb->device->storage_size)
+      return 0;
+  } // end while(1)
 }
 
 u32 romfs_get_daddr(INode *inode)
