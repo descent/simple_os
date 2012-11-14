@@ -16,6 +16,7 @@
 #include "irq.h"
 #include "tty.h"
 #include "mm.h"
+#include "elf.h"
 
 #define INT_M_PORT 0x20
 #define INT_S_PORT 0xa0
@@ -511,7 +512,8 @@ void kernel_main(void)
   }
 #endif
 #ifdef TEST_ROMFS
-  INode *inode = fs_type[ROMFS]->namei(fs_type[ROMFS], "echo.bin"); // get super block infomation
+  //INode *inode = fs_type[ROMFS]->namei(fs_type[ROMFS], "echo.bin"); // get super block infomation
+  INode *inode = fs_type[ROMFS]->namei(fs_type[ROMFS], "echo"); // get super block infomation
 
   //s32_printf("inode->dsize: %d\r\n", inode->dsize);
 
@@ -521,11 +523,28 @@ void kernel_main(void)
 
 
   //u8 buf[512];
-  u8 *buf = (u8*)0x1000;
+  //u8 *buf = (u8*)0x1000;
+  u8 *buf = (u8*)alloc_mem();
+
   //fs_type[ROMFS]->device->dout(fs_type[ROMFS]->device, buf, fs_type[ROMFS]->get_daddr(inode), inode->dsize);
   fs_type[ROMFS]->device->dout(fs_type[ROMFS]->device, buf, addr, inode->dsize);
-  p_dump_u8(buf, inode->dsize);
-  exec(buf);
+
+  Elf32Ehdr *elf_header = (Elf32Ehdr*)buf;
+  Elf32Phdr *elf_pheader = (Elf32Phdr*)((u8 *)buf + elf_header->e_phoff);
+  u32 entry = elf_header->e_entry;
+
+  for (int i=0 ; i < elf_header->e_phnum; ++i)
+  {
+    if (CHECK_PT_TYPE_LOAD(elf_pheader))
+    {
+      p_asm_memcpy((u8*)elf_pheader->p_vaddr, buf+(elf_pheader->p_offset), elf_pheader->p_filesz);
+    }
+    ++elf_pheader;
+  }
+
+  //p_dump_u8(buf, inode->dsize);
+  exec((u8*)entry);
+  free_mem(buf);
   while(1);
 #endif
 #if 0
