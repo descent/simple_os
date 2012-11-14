@@ -42,7 +42,6 @@ u8 get_privilege(void)
 }
 
 
-#define TEST_ROMFS
 void proc_a(void)
 {
   //assert(0);
@@ -51,17 +50,8 @@ void proc_a(void)
   //BOCHS_MB
   static i=0;
 
-#ifdef TEST_ROMFS
-  INode *inode = fs_type[ROMFS]->namei(fs_type[ROMFS], "echo.bin"); // get super block infomation
-  s32_printf("inode->dsize: %d\r\n", inode->dsize);
 
-  int addr = fs_type[ROMFS]->get_daddr(inode);
-  //u8 buf[512];
-  u8 *buf = (u8*)0x1000;
-  fs_type[ROMFS]->device->dout(fs_type[ROMFS]->device, buf, fs_type[ROMFS]->get_daddr(inode), inode->dsize);
-  p_dump_u8(buf, inode->dsize);
-  exec(buf);
-#endif
+
 
   while(1)
   {
@@ -717,7 +707,7 @@ int send_recv(int function, int src_dest, Message *msg)
 
 }
 
-int exec(u32 start)
+int exec(u8 *start)
 {
   goto *start;
 }

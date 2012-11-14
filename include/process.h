@@ -195,7 +195,7 @@ static inline void reset_msg(Message *m)
   p_asm_memset(m, 0, sizeof(Message));
 }
 
-int exec(u32 start);
+int exec(u8 *start);
 
 #define HARD_INT 1
 #define GET_TICKS 2
