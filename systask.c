@@ -3,6 +3,7 @@
  */
 
 #include "process.h"
+#include "k_assert.h"
 
 void task_sys(void)
 {
