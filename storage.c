@@ -16,7 +16,7 @@ int ramdisk_dout(StorageDevice *sd, void *dest, u32 addr, u32 size)
   //dump_u8((u8 *)(dest) , 16);
   //*(u8 *)(dest) = 0xff;
 
-  return 0;
+  return size;
 }
 
 #define RAMFS_ADDR (16*RAMDISK_ES + LOAD_KERNEL_OFFSET)
@@ -29,6 +29,7 @@ StorageDevice ramdisk_sd=
   .dout = ramdisk_dout,
   .sector_size = RAMDISK_SECTOR_SIZE,
   .storage_size = 2*1024*1024,
+  //.storage_size = (int)&__romfs_end__ - (int)&__romfs_start__,
   //.start_pos = 0x40800000,
   .start_pos = (int)&__romfs_start__,
 };
@@ -36,6 +37,7 @@ StorageDevice ramdisk_sd=
 int ramdisk_driver_init(void)
 {
   int ret;
+  ramdisk_sd.storage_size = (int)&__romfs_end__ - (int)&__romfs_start__;
   ret = register_storage_device(&ramdisk_sd, RAMDISK);
   return ret;
 }
