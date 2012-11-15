@@ -32,7 +32,7 @@ int romfs_init(void)
 RomFsHeader* print_romfs_entry(int begin_print_line, u32 *offset, u8 *buf, u8 is_print)
 {
   int line = begin_print_line;
-  u8 next_offset = *offset;
+  u32 next_offset = *offset;
 
   RomFsHeader *rom_fs_header; 
   rom_fs_header = (RomFsHeader*)(buf + next_offset);
