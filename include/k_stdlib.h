@@ -1,6 +1,8 @@
 #ifndef K_STDLIB_H
 #define K_STDLIB_H
 
+#include "type.h"
+
 // bochs magic break point
 #define BOCHS_MB __asm__ __volatile__("xchg %bx, %bx");
 
@@ -30,5 +32,7 @@ static inline u16 asm_get_es(void)
     );
   return es_v;
 }
+
+int get_kernel_info(u32 * b, u32 * l);
 
 #endif
