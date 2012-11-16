@@ -27,6 +27,7 @@ typedef signed int elf32_sword;
 typedef unsigned short elf32_half;
 typedef unsigned int elf32_off;
 
+
 typedef struct elf32_ehdr_{
 	unsigned char e_ident[16];     /* 魔数和相关信息 */
 	elf32_half	e_type;                 /* 目标文件类型 */
@@ -116,4 +117,25 @@ typedef struct elf32_phdr_{
 #define PT_HIPROC				0x7fffffff
 #define CHECK_PT_TYPE(p)		((p)->p_type)
 #define CHECK_PT_TYPE_LOAD(p)	(CHECK_PT_TYPE(p)==PT_LOAD)
+
+//ref : /usr/src/linux-headers-2.6.32-38-generic/include/linux/elf.h
+#define ELFMAG "\177ELF"
+#define SELFMAG         4
+#define SHF_ALLOC       0x2
+
+typedef struct {
+  elf32_word    sh_name;
+  elf32_word    sh_type;
+  elf32_word    sh_flags;
+  elf32_addr    sh_addr;
+  elf32_off     sh_offset;
+  elf32_word    sh_size;
+  elf32_word    sh_link;
+  elf32_word    sh_info;
+  elf32_word    sh_addralign;
+  elf32_word    sh_entsize;
+} Elf32_Shdr;
+
+
+
 #endif
