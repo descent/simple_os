@@ -57,7 +57,7 @@ kernel.o: kernel.s
 	as $(ASFLAGS) -o $@ $<
 
 
-p_kernel.elf: p_kernel.o io/k_stdio.o asm_func.o asm_syscall.o $(FS_OBJS) vga/set_mode_p.o vga/draw_func.o vga/font_rawdata.o tty/tty.o tty/keyboard.o tty/console.o clock.o start.o process.o storage.o syscall.o io/k_stdio_k.o k_assert.o systask.o test-romfs.o mm/mm.o
+p_kernel.elf: p_kernel.o io/k_stdio.o asm_func.o asm_syscall.o $(FS_OBJS) vga/set_mode_p.o vga/draw_func.o vga/font_rawdata.o tty/tty.o tty/keyboard.o tty/console.o clock.o start.o process.o storage.o syscall.o io/k_stdio_k.o k_assert.o systask.o test-romfs.o mm/mm.o k_stdlib.o
 	ld $(LDFLAGS) -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
 
 p_kernel.o: p_kernel.s
@@ -121,7 +121,7 @@ tty/console.o: tty
 	(cd tty; make console.o)
 tty/tty.o: tty
 	(cd tty; make tty.o)
-sources = clock.c start.c process.c storage.c syscall.c k_assert.c systask.c
+sources = clock.c start.c process.c storage.c syscall.c k_assert.c systask.c k_stdlib.c
 include $(sources:.c=.d)
 #C_OBJS = $(sources:.c=.o)
 C_OBJS = clock.o start.o process.o storage.o syscall.o
