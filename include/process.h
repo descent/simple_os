@@ -10,6 +10,7 @@
 
 #define TASK_TTY 0
 #define TASK_SYS 1
+#define TASK_MM 2
 
 
 #define STACK_SIZE_TESTA 0x8000
@@ -87,6 +88,7 @@ typedef struct Message_
 }Message;
 
 #define RETVAL u.m3.m3i1
+#define PID    u.m3.m3i2
 
 typedef struct Process_
 {
@@ -199,5 +201,6 @@ int exec(u8 *start);
 
 #define HARD_INT 1
 #define GET_TICKS 2
+#define FORK 3
 
 #endif

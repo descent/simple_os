@@ -41,6 +41,19 @@ u8 get_privilege(void)
   return (cs_reg & 0x03);
 }
 
+void init(void)
+{
+  int pid = fork();
+
+  if (pid != 0) // parent
+  {
+    spin("parent");
+  }
+  else // child
+  {
+    spin("child");
+  }
+}
 
 void proc_a(void)
 {
