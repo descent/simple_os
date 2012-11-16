@@ -36,6 +36,26 @@ static inline int s_strcmp(const char *s1, const char *s2)
   return res;
 }
 
+static inline int s_memcmp(const char *s1, const char *s2, int n)
+{
+  if ((s1 == 0) || (s2 == 0)) 
+  { /* for robustness */
+    return (s1 - s2);
+  }
+
+  const char * p1 = (const char *)s1;
+  const char * p2 = (const char *)s2;
+  int i;
+  for (i = 0; i < n; i++,p1++,p2++) 
+  {
+    if (*p1 != *p2) 
+    {
+      return (*p1 - *p2);
+    }
+  }
+  return 0;
+}
+
 void p_asm_memcpy(void *dest, void *src, u16 n);
 void p_asm_memset(void *dest, int c, u16 n);
 
