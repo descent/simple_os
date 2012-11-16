@@ -27,6 +27,16 @@ int get_ticks(void)
   send_recv(BOTH, TASK_SYS, &msg);
   return msg.RETVAL;
 }
+
+int fork(void)
+{
+  Message msg;
+  msg.type = FORK;
+  send_recv(BOTH, TASK_MM, &msg);
+
+  return msg.PID;
+}
+
 #endif
 
 int sys_get_ticks(void)
