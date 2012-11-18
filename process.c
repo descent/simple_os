@@ -328,13 +328,16 @@ void proc_c(void)
 
 // how to add a task/process:
 // add function to tasks and add 1 to NR_TASKS
-Task task_table[NR_TASKS] = {
-                         {task_tty, TASK_STACK, "TTY"},
-                         {task_sys, TASK_STACK, "SYS"},
-                       };
-
-Task user_proc_table[NR_PROCS] = 
+Task task_table[NR_TASKS] = 
 {
+  {task_tty, TASK_STACK, "TTY"},
+  {task_sys, TASK_STACK, "SYS"},
+  {task_mm, TASK_STACK, "MM"},
+};
+
+Task user_proc_table[NR_NATIVE_PROCS] = 
+{
+  {init, TASK_STACK, "INIT"},
   {proc_a, TASK_STACK, "proc a"},
   {proc_b, TASK_STACK, "proc b"},
   {proc_c, TASK_STACK, "proc c"},
@@ -355,8 +358,15 @@ void init_proc(void)
   Task *task;
   Process *proc = proc_table;
 
-  for (int i = 0 ; i < NR_TASKS + NR_PROCS; ++i)
+  for (int i = 0 ; i < NR_TASKS + NR_PROCS; ++i, proc++, task++, selector_ldt += (1 << 3) )
   {
+    if (i >= NR_TASKS + NR_NATIVE_PROCS) 
+    {
+      proc->p_flags = FREE_SLOT;
+      proc->ldt_sel = selector_ldt;
+      continue;
+    }
+
     if (i < NR_TASKS)
     {
       task = task_table + i;
@@ -377,13 +387,52 @@ void init_proc(void)
       eflags = 0x1202;
       #endif
     }
+    proc->p_name = task->name;
 
-    proc->ldt_sel = selector_ldt;
+#if 1
+    if (s_strcmp(task->name, "INIT") != 0) 
+    {
+      proc->ldt[LDT_CODE]  = gdt[SELECTOR_KERNEL_CS >> 3];
+      proc->ldt[LDT_DATA] = gdt[SELECTOR_KERNEL_DS >> 3];
 
+      /* change the DPLs */
+      proc->ldt[LDT_CODE].attr1  = DA_C   | privilege << 5;
+      proc->ldt[LDT_DATA].attr1 = DA_DRW | privilege << 5;
+    }
+    else // init process
+    {
+      u32 k_base=0x100000, k_limit=0xa0000;
+      //int ret = get_kernel_map(&k_base, &k_limit);
+      //assert(ret == 0);
+      init_descriptor(&proc->ldt[LDT_CODE],
+                                  0, /* bytes before the entry point
+                                      * are useless (wasted) for the
+                                      * INIT process, doesn't matter
+                                      */
+                                  (k_base + k_limit) >> LIMIT_4K_SHIFT,
+                                  DA_32 | DA_LIMIT_4K | DA_C | privilege << 5);
+
+       init_descriptor(&proc->ldt[LDT_DATA],
+                                  0, /* bytes before the entry point
+                                      * are useless (wasted) for the
+                                      * INIT process, doesn't matter
+                                      */
+                                  (k_base + k_limit) >> LIMIT_4K_SHIFT,
+                                  DA_32 | DA_LIMIT_4K | DA_DRW | privilege << 5);
+
+
+    }
+
+
+#else
     p_asm_memcpy(&proc->ldt[0], &gdt[SELECTOR_KERNEL_CS >> 3], sizeof(Descriptor));
     proc->ldt[0].attr1 = (DA_C | (privilege << 5) );
     p_asm_memcpy(&proc->ldt[1], &gdt[SELECTOR_KERNEL_DS >> 3], sizeof(Descriptor));
     proc->ldt[1].attr1 = (DA_DRW | (privilege << 5) );
+#endif
+
+    proc->p_parent = NO_TASK;
+    proc->ldt_sel = selector_ldt;
 
     proc->regs.cs = (0 & 0xfff8) | SEL_USE_LDT | rpl; // a ldt selector
     proc->regs.ds = (8 & 0xfff8) | SEL_USE_LDT | rpl; // a ldt selector
@@ -399,7 +448,6 @@ void init_proc(void)
 
     proc->regs.eflags = eflags;
 
-    proc->p_name = task->name;
     proc->pid = i;
     proc->tty_index = 0;
 
@@ -413,9 +461,9 @@ void init_proc(void)
     proc->next_sending = 0;
 #endif
 
-    selector_ldt += (1 << 3); // +8
-    ++task;
-    ++proc;
+    //selector_ldt += (1 << 3); // +8
+    //++task;
+    //++proc;
   }
   proc_table[NR_TASKS + 0].tty_index = 0;
   proc_table[NR_TASKS + 1].tty_index = 1;
@@ -465,8 +513,13 @@ void schedule(void)
   while(1)
   {
     ++ready_process;
+
     if (ready_process >= &proc_table[NR_TASKS + NR_PROCS])
+    {
       ready_process = proc_table;
+    }
+    if (ready_process->p_flags == FREE_SLOT)
+      continue;
 
     if (ready_process->p_flags == 0) // only p_flags == 0 can be selected to run
       break;
@@ -488,7 +541,7 @@ void* va2la(int pid, void* va)
   u32 seg_base = ldt_seg_linear(p, LDT_DATA);
   u32 la = seg_base + (u32)va;
 
-  if (pid < NR_TASKS + NR_PROCS)
+  if (pid < NR_TASKS + NR_NATIVE_PROCS)
   {
     assert(la==(u32)va);
   }

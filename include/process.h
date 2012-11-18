@@ -5,8 +5,9 @@
 #include "protect.h"
 
 #define LDT_SIZE 2
-#define NR_TASKS 2
-#define NR_PROCS 3
+#define NR_TASKS 3
+#define NR_PROCS 32
+#define NR_NATIVE_PROCS 4
 
 #define TASK_TTY 0
 #define TASK_SYS 1
@@ -105,9 +106,11 @@ typedef struct Process_
   int p_recvfrom;
   int p_sendto;
   int has_int_msg;
+  u32 p_parent;
   struct Process_ *q_sending;
   struct Process_ *next_sending;
   char name[16];
+
 }Process;
 
 typedef void (*TaskAddr)(void);
@@ -188,6 +191,7 @@ int send_recv(int function, int src_dest, Message *msg);
 /* Process */
 #define SENDING   0x02  /* set when proc trying to send */
 #define RECEIVING 0x04  /* set when proc trying to recv */
+#define FREE_SLOT 0x20
 
 
 static inline void reset_msg(Message *m)
@@ -202,5 +206,6 @@ int exec(u8 *start);
 #define HARD_INT 1
 #define GET_TICKS 2
 #define FORK 3
+#define SYSCALL_RET 4
 
 #endif
