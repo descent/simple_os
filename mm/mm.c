@@ -1,4 +1,8 @@
 #include "mm.h"
+#include "protect.h"
+#include "k_stdio.h"
+#include "k_string.h"
+#include "k_assert.h"
 
 u32 memory_used;
 // 0000 0000
@@ -112,3 +116,65 @@ not_memory:
 	return i;
 }
 #endif
+
+int do_fork(void)
+{
+  extern Message mm_msg;
+
+  Process *p = proc_table;
+  int i;
+
+  for (i=0 ; i < NR_TASKS + NR_PROCS; i++,p++)
+    if (p->p_flags == FREE_SLOT)
+      break;
+
+  int child_pid = i;
+
+  assert(p == &proc_table[child_pid]);
+  assert(child_pid >= NR_TASKS + NR_NATIVE_PROCS);
+
+  if (i == NR_TASKS + NR_PROCS) /* no free slot */
+    return -1;
+  assert(i < NR_TASKS + NR_PROCS);
+
+  int pid = mm_msg.source;
+  u16 child_ldt_sel = p->ldt_sel;
+  *p = proc_table[pid];
+  p->ldt_sel = child_ldt_sel;
+  p->p_parent = pid;
+  s32_sprintf(p->name, "%s_%d", proc_table[pid].name, child_pid);
+
+  Descriptor *ppd;
+
+  ppd = &proc_table[pid].ldt[LDT_CODE];
+
+  int caller_T_base  = reassembly(ppd->base_high, 24, ppd->base_mid, 16, ppd->base_low);
+  int caller_T_limit = reassembly(0, 0, (ppd->limit_high_attr2 & 0xF), 16, ppd->limit_low);
+  int caller_T_size  = ((caller_T_limit + 1) * ((ppd->limit_high_attr2 & (DA_LIMIT_4K >> 8)) ?  4096 : 1));
+
+  ppd = &proc_table[pid].ldt[LDT_DATA];
+  int caller_D_S_base  = reassembly(ppd->base_high, 24, ppd->base_mid, 16, ppd->base_low);
+  int caller_D_S_limit = reassembly(0, 0, (ppd->limit_high_attr2 & 0xF), 16, ppd->limit_low);
+  int caller_D_S_size  = ((caller_T_limit + 1) * ((ppd->limit_high_attr2 & (DA_LIMIT_4K >> 8)) ?  4096 : 1));
+
+  assert((caller_T_base  == caller_D_S_base ) && (caller_T_limit == caller_D_S_limit) && (caller_T_size  == caller_D_S_size ));
+
+  u8* child_base = (u8*)alloc_mem();
+  p_asm_memcpy(child_base, (void*)caller_T_base, caller_T_size);
+
+  init_descriptor(&p->ldt[LDT_CODE], (u32)child_base, (PROC_IMAGE_SIZE_DEFAULT - 1) >> LIMIT_4K_SHIFT, DA_LIMIT_4K | DA_32 | DA_C | PRIVILEGE_USER << 5);
+
+  init_descriptor(&p->ldt[LDT_DATA], (u32)child_base, (PROC_IMAGE_SIZE_DEFAULT - 1) >> LIMIT_4K_SHIFT, DA_LIMIT_4K | DA_32 | DA_DRW | PRIVILEGE_USER << 5);
+
+  mm_msg.PID = child_pid;
+
+  Message m;
+  m.type = SYSCALL_RET;
+  m.RETVAL = 0;
+  m.PID = 0;
+  send_recv(SEND, child_pid, &m);
+  p->p_flags = 0;
+
+  return 0;
+}
+
