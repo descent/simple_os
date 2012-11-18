@@ -496,7 +496,7 @@ int init_timer(void)
 }
 
 //#define TEST_ALLOC_MEM
-#define TEST_ROMFS
+//#define TEST_ROMFS
 void kernel_main(void)
 {
 #ifdef TEST_ALLOC_MEM
