@@ -43,8 +43,20 @@ typedef struct Gate_
 #define	DA_386IGate	0x8E	/* 386 中斷門類型值			*/
 #define DA_C 0x98
 #define DA_DRW 0x92
-#define DA_386TSS               0x89    /* 可用 386 任務狀態段類型值            */
-#define DA_LDT                  0x82    /* 局部描述符表段類型值                 */
+#define DA_386TSS 0x89  // 可用 386 任務狀態段類型值 
+#define DA_LDT 0x82    // 局部描述符表段類型值 
+#define DA_32 0x4000  /* 32 位段 */      
+#define DA_DR 0x90    /* 存在的只讀數據段類型值               */
+#define DA_DRW 0x92    /* 存在的可讀寫數據段屬性值             */
+#define DA_DRWA 0x93    /* 存在的已訪問可讀寫數據段類型值       */
+#define DA_C 0x98    // 存在的只執行代碼段屬性值 
+#define DA_LIMIT_4K 0x8000  // 段界限粒度為 4K 字節 
+
+#define LIMIT_4K_SHIFT            12
+#define PROC_IMAGE_SIZE_DEFAULT 0x100000 /*  1 MB */
+
+
+
 
 #define	PRIVILEGE_KRNL 0
 #define	PRIVILEGE_USER 3
@@ -74,5 +86,12 @@ static inline u32 linear2phy(u32 base, u32 offset)
 {
   return (base+offset);
 }
+
+#define reassembly(high, high_shift, mid, mid_shift, low)      \
+        (((high) << (high_shift)) +                            \
+        ((mid)  << (mid_shift)) +                              \
+        (low))
+
+
 
 #endif
