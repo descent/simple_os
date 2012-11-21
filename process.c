@@ -423,7 +423,18 @@ void init_proc(void)
     }
     else // init process
     {
-      u32 k_base=0x100000, k_limit=0xa0000;
+#if 0
+      proc->ldt[LDT_CODE]  = gdt[SELECTOR_KERNEL_CS >> 3];
+      proc->ldt[LDT_DATA] = gdt[SELECTOR_KERNEL_DS >> 3];
+
+      /* change the DPLs */
+      proc->ldt[LDT_CODE].attr1  = DA_C   | privilege << 5;
+      proc->ldt[LDT_DATA].attr1 = DA_DRW | privilege << 5;
+
+#else
+// cause stack exception in bochs, why??
+
+      u32 k_base=0x100000, k_limit=0xf0000;
       //int ret = get_kernel_map(&k_base, &k_limit);
       //assert(ret == 0);
       init_descriptor(&proc->ldt[LDT_CODE],
@@ -431,7 +442,8 @@ void init_proc(void)
                                       * are useless (wasted) for the
                                       * INIT process, doesn't matter
                                       */
-                                  (k_base + k_limit) >> LIMIT_4K_SHIFT,
+                                  //(k_base + k_limit) >> LIMIT_4K_SHIFT,
+                                  0x600,
                                   DA_32 | DA_LIMIT_4K | DA_C | privilege << 5);
 
        init_descriptor(&proc->ldt[LDT_DATA],
@@ -439,10 +451,12 @@ void init_proc(void)
                                       * are useless (wasted) for the
                                       * INIT process, doesn't matter
                                       */
-                                  (k_base + k_limit) >> LIMIT_4K_SHIFT,
+                                  //(k_base + k_limit) >> LIMIT_4K_SHIFT,
+                                  0x600,
                                   DA_32 | DA_LIMIT_4K | DA_DRW | privilege << 5);
+                                  // if replace 0x500 -> 0x400, will get stack exception
 
-
+#endif
     }
 
 
