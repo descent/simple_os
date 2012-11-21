@@ -162,10 +162,15 @@ int do_fork(void)
   u8* child_base = (u8*)alloc_mem();
   p_asm_memcpy(child_base, (void*)caller_T_base, caller_T_size);
 
+#if 0
   init_descriptor(&p->ldt[LDT_CODE], (u32)child_base, (PROC_IMAGE_SIZE_DEFAULT - 1) >> LIMIT_4K_SHIFT, DA_LIMIT_4K | DA_32 | DA_C | PRIVILEGE_USER << 5);
-
   init_descriptor(&p->ldt[LDT_DATA], (u32)child_base, (PROC_IMAGE_SIZE_DEFAULT - 1) >> LIMIT_4K_SHIFT, DA_LIMIT_4K | DA_32 | DA_DRW | PRIVILEGE_USER << 5);
-
+#else
+  u32 test_base = 0;
+  u32 test_limit = 0x00fff;
+  init_descriptor(&p->ldt[LDT_CODE], test_base, test_limit, DA_LIMIT_4K | DA_32 | DA_C | PRIVILEGE_USER << 5);
+  init_descriptor(&p->ldt[LDT_DATA], test_base, test_limit, DA_LIMIT_4K | DA_32 | DA_DRW | PRIVILEGE_USER << 5);
+#endif
   mm_msg.PID = child_pid;
 
   Message m;
@@ -173,7 +178,7 @@ int do_fork(void)
   m.RETVAL = 0;
   m.PID = 0;
   send_recv(SEND, child_pid, &m);
-  p->p_flags = 0;
+  //p->p_flags = 0;
 
   return 0;
 }
