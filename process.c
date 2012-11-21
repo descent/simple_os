@@ -43,16 +43,38 @@ u8 get_privilege(void)
 
 void init(void)
 {
+#if 0
+  while(1);
+#else
   int pid = fork();
+  int a=5;
 
   if (pid != 0) // parent
   {
-    spin("parent");
+    while(1)
+    {
+      *((u8*)0xb8000+160) = 'P';
+      *((u8*)0xb8000+160+1) = 0x94;
+      *((u8*)0xb8000+160+2) = 'a';
+      *((u8*)0xb8000+160+3) = 0x94;
+      *((u8*)0xb8000+160+4) = 'r';
+      *((u8*)0xb8000+160+5) = 0x94;
+    }
+    //spin("parent");
   }
   else // child
   {
-    spin("child");
+    while(1)
+    {
+      *((u8*)0xb8000+160*3) = 'C';
+      *((u8*)0xb8000+160*3+1) = 0x0f;
+      *((u8*)0xb8000+160*3+2) = 'h';
+      *((u8*)0xb8000+160*3+3) = 0x0f;
+      *((u8*)0xb8000+160*3+4) = 'i';
+    }
+    //spin("child");
   }
+  #endif
 }
 
 void proc_a(void)
