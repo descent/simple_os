@@ -58,12 +58,15 @@ void task_mm(void)
         break;
       }
     }
+    #if 1
+    // envoke parent process
     if (reply)
     {
       mm_msg.type = SYSCALL_RET;
       send_recv(SEND, src, &mm_msg);
       
     }
+    #endif
   }
 
 }
