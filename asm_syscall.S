@@ -30,11 +30,21 @@ write:
 
 .global sendrec
 sendrec:
+  push %ebx
+  push %ecx
+  push %edx
+  # why not need push %eax
+
   mov $_NR_SENDREC, %eax
-  mov 4(%esp), %ebx
-  mov 8(%esp), %ecx
-  mov 12(%esp), %edx
+  mov 16(%esp), %ebx  # 12+4
+  mov 20(%esp), %ecx  # 12+8
+  mov 24(%esp), %edx # 12+12
   int $INT_VECTOR_SYS_CALL
+
+  pop %edx
+  pop %ecx
+  pop %ebx
+
   ret
 
 .global printk
