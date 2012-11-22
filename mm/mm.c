@@ -148,37 +148,42 @@ int do_fork(void)
 
   ppd = &proc_table[pid].ldt[LDT_CODE];
 
-  int caller_T_base  = reassembly(ppd->base_high, 24, ppd->base_mid, 16, ppd->base_low);
-  int caller_T_limit = reassembly(0, 0, (ppd->limit_high_attr2 & 0xF), 16, ppd->limit_low);
-  int caller_T_size  = ((caller_T_limit + 1) * ((ppd->limit_high_attr2 & (DA_LIMIT_4K >> 8)) ?  4096 : 1));
+  u32 caller_T_base  = reassembly(ppd->base_high, 24, ppd->base_mid, 16, ppd->base_low);
+  u32 caller_T_limit = reassembly(0, 0, (ppd->limit_high_attr2 & 0xF), 16, ppd->limit_low);
+  u32 caller_T_size  = ((caller_T_limit + 1) * ((ppd->limit_high_attr2 & (DA_LIMIT_4K >> 8)) ?  4096 : 1));
 
   ppd = &proc_table[pid].ldt[LDT_DATA];
-  int caller_D_S_base  = reassembly(ppd->base_high, 24, ppd->base_mid, 16, ppd->base_low);
-  int caller_D_S_limit = reassembly(0, 0, (ppd->limit_high_attr2 & 0xF), 16, ppd->limit_low);
-  int caller_D_S_size  = ((caller_T_limit + 1) * ((ppd->limit_high_attr2 & (DA_LIMIT_4K >> 8)) ?  4096 : 1));
+  u32 caller_D_S_base  = reassembly(ppd->base_high, 24, ppd->base_mid, 16, ppd->base_low);
+  u32 caller_D_S_limit = reassembly(0, 0, (ppd->limit_high_attr2 & 0xF), 16, ppd->limit_low);
+  u32 caller_D_S_size  = ((caller_T_limit + 1) * ((ppd->limit_high_attr2 & (DA_LIMIT_4K >> 8)) ?  4096 : 1));
 
   assert((caller_T_base  == caller_D_S_base ) && (caller_T_limit == caller_D_S_limit) && (caller_T_size  == caller_D_S_size ));
 
   u8* child_base = (u8*)alloc_mem();
-  p_asm_memcpy(child_base, (void*)caller_T_base, caller_T_size);
+  child_base = (u8*)(0xa00000);
+  caller_T_size = 0x200000;
+  //p_asm_memcpy(child_base, (void*)caller_T_base, caller_T_size);
+  p_asm_memcpy(child_base, (void*)caller_T_base, 0x200000);
 
 #if 0
   init_descriptor(&p->ldt[LDT_CODE], (u32)child_base, (PROC_IMAGE_SIZE_DEFAULT - 1) >> LIMIT_4K_SHIFT, DA_LIMIT_4K | DA_32 | DA_C | PRIVILEGE_USER << 5);
   init_descriptor(&p->ldt[LDT_DATA], (u32)child_base, (PROC_IMAGE_SIZE_DEFAULT - 1) >> LIMIT_4K_SHIFT, DA_LIMIT_4K | DA_32 | DA_DRW | PRIVILEGE_USER << 5);
 #else
-  u32 test_base = 0;
-  u32 test_limit = 0x00fff;
+  u32 test_base = (u32)child_base;
+  u32 test_limit = 0x400-1;
   init_descriptor(&p->ldt[LDT_CODE], test_base, test_limit, DA_LIMIT_4K | DA_32 | DA_C | PRIVILEGE_USER << 5);
   init_descriptor(&p->ldt[LDT_DATA], test_base, test_limit, DA_LIMIT_4K | DA_32 | DA_DRW | PRIVILEGE_USER << 5);
 #endif
   mm_msg.PID = child_pid;
 
+#if 1
+  // invoke child process
   Message m;
   m.type = SYSCALL_RET;
   m.RETVAL = 0;
   m.PID = 0;
   send_recv(SEND, child_pid, &m);
-  //p->p_flags = 0;
+#endif
 
   return 0;
 }
