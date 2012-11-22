@@ -51,6 +51,7 @@ void init(void)
 
   if (pid != 0) // parent
   {
+  #if 0
     while(1)
     {
       *((u8*)0xb8000+160) = 'P';
@@ -60,10 +61,12 @@ void init(void)
       *((u8*)0xb8000+160+4) = 'r';
       *((u8*)0xb8000+160+5) = 0x94;
     }
-    //spin("parent");
+    #endif
+    spin("parent");
   }
   else // child
   {
+  #if 0
     while(1)
     {
       *((u8*)0xb8000+160*3) = 'C';
@@ -72,7 +75,8 @@ void init(void)
       *((u8*)0xb8000+160*3+3) = 0x0f;
       *((u8*)0xb8000+160*3+4) = 'i';
     }
-    //spin("child");
+    #endif
+    spin("child");
   }
   #endif
 }
@@ -369,7 +373,7 @@ void init_proc(void)
 {
   extern Descriptor gdt[];
 
-  u32 task_stack_top = 0;
+  u32 task_stack_top = (u32)task_stack + TASK_STACK;
   u16 selector_ldt = SELECTOR_LDT_FIRST;
   u8 privilege;
   u8 rpl;
@@ -477,7 +481,7 @@ void init_proc(void)
     proc->regs.gs = (SELECTOR_KERNEL_GS & 0xfff8) | rpl;
     proc->regs.eip = (u32)(task->init_eip);
 
-    task_stack_top += (u32)task_stack+task->stack_size;
+    task_stack_top += TASK_STACK;
     proc->regs.esp = task_stack_top;
 
     proc->regs.eflags = eflags;
