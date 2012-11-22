@@ -368,8 +368,6 @@ Task user_proc_table[NR_NATIVE_PROCS] =
 void init_proc(void)
 {
   extern Descriptor gdt[];
-  void p_asm_memcpy(void *dest, void *src, u16 n);
-  void p_asm_memset(void *dest, int c, u16 n);
 
   u32 task_stack_top = 0;
   u16 selector_ldt = SELECTOR_LDT_FIRST;
@@ -776,8 +774,6 @@ int msg_receive(Process* current, int src, Message* m)
 
 int send_recv(int function, int src_dest, Message *msg)
 {
-  void p_asm_memset(void *dest, int c, u16 n);
-
   int ret = 0;
 
   if (function == RECEIVE)

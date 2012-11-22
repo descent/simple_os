@@ -1,13 +1,12 @@
 #include "storage.h"
 #include "kl_global.h"
+#include "k_string.h"
 
 #define RAMDISK_SECTOR_SIZE 512
 #define RAMDISK_SECTOR_MASK (~(RAMDISK_SECTOR_SIZE-1))
 #define RAMDISK_SECTOR_OFFSET ((RAMDISK_SECTOR_SIZE-1))
 
 extern int __romfs_start__, __romfs_end__;
-
-void p_asm_memcpy(u8 *dest, u8 *src, int n);
 
 int ramdisk_dout(StorageDevice *sd, void *dest, u32 addr, u32 size)
 {

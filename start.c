@@ -70,9 +70,6 @@ void store_cr0(u32 cr0)
 }
 #endif
 
-void p_asm_memcpy(void *dest, void *src, u16 n);
-void p_asm_memset(void *dest, int c, u16 n);
-
 void c_test()
 {
 #if 0
