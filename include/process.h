@@ -3,6 +3,7 @@
 
 #include "type.h"
 #include "protect.h"
+#include "k_string.h"
 
 #define LDT_SIZE 2
 #define NR_TASKS 3
@@ -196,8 +197,6 @@ int send_recv(int function, int src_dest, Message *msg);
 
 static inline void reset_msg(Message *m)
 {
-  void p_asm_memset(void *dest, int c, u16 n);
-
   p_asm_memset(m, 0, sizeof(Message));
 }
 
