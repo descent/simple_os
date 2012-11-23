@@ -37,6 +37,24 @@ int fork(void)
   return msg.PID;
 }
 
+void exit(int s)
+{
+  Message msg;
+  msg.type = EXIT;
+  msg.STATUS = s;
+  send_recv(BOTH, TASK_MM, &msg);
+  assert(msg.type == SYSCALL_RET);
+}
+
+int wait(int *s)
+{
+  Message msg;
+  msg.type = WAIT;
+  send_recv(BOTH, TASK_MM, &msg);
+  *s = msg.STATUS;
+  return (msg.PID == NO_TASK ? -1 : msg.PID);
+}
+
 #endif
 
 int sys_get_ticks(void)

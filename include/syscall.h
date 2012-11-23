@@ -10,5 +10,7 @@ int write(char *buf, int len);
 int sendrec(int function, int src_dest, Message *m);
 //int printk(int unused1, int unused2, char *s, Process *proc);
 int printk(char *s);
+void exit(int s);
+int wait(int *s);
 
 #endif
