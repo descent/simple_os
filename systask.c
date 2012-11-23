@@ -52,6 +52,18 @@ void task_mm(void)
         mm_msg.RETVAL = do_fork();
         break;
       }
+      case EXIT:
+      {
+        do_exit(mm_msg.STATUS);
+        reply = 0;
+        break;
+      }
+      case WAIT:
+      {
+        do_wait();
+        reply = 0;
+        break;
+      }
       default :
       {
         panic("unknown message type");
