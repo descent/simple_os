@@ -2,8 +2,8 @@
  * the kernel loader will initialize c runtime and enter x86 protected mode 
  */
 
-#include "../pm.h"
-#include "../common.h"
+#include "pm.h"
+#include "common.h"
 .equ copy_elf_code_addr, (copy_elf_code+(0x9000*16))
 .equ enter_pm_addr, (enter_pm+(0x9000*16))
 
