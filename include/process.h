@@ -91,6 +91,7 @@ typedef struct Message_
 
 #define RETVAL u.m3.m3i1
 #define PID    u.m3.m3i2
+#define STATUS u.m3.m3i1
 
 typedef struct Process_
 {
@@ -108,8 +109,10 @@ typedef struct Process_
   int p_sendto;
   int has_int_msg;
   u32 p_parent;
+  //u32 org_esp;
   struct Process_ *q_sending;
   struct Process_ *next_sending;
+  int exit_status;
   char name[16];
 
 }Process;
@@ -192,6 +195,8 @@ int send_recv(int function, int src_dest, Message *msg);
 /* Process */
 #define SENDING   0x02  /* set when proc trying to send */
 #define RECEIVING 0x04  /* set when proc trying to recv */
+#define WAITING   0x08
+#define HANGING   0x10
 #define FREE_SLOT 0x20
 
 
@@ -206,5 +211,7 @@ int exec(u8 *start);
 #define GET_TICKS 2
 #define FORK 3
 #define SYSCALL_RET 4
+#define EXIT 5
+#define WAIT 6
 
 #endif

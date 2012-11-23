@@ -62,7 +62,10 @@ void init(void)
       *((u8*)0xb8000+160+5) = 0x94;
     }
     #endif
-    spin("parent");
+    s32_printf("parent is running, child pid: %d\r\n", pid);
+    int s;
+    int child = wait(&s);
+    s32_printf("child (%d) exited with status: %d\r\n", pid, s);
   }
   else // child
   {
@@ -76,9 +79,16 @@ void init(void)
       *((u8*)0xb8000+160*3+4) = 'i';
     }
     #endif
-    spin("child");
+    s32_printf("child is running, child pid: %d\r\n", pid);
+    exit(123);
   }
   #endif
+  while(1)
+  {
+    int s;
+    int child = wait(&s);
+    s32_printf("child (%d) exited with status: %d.\n", child, s);
+  }
 }
 
 void proc_a(void)
