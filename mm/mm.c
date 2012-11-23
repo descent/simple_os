@@ -4,6 +4,8 @@
 #include "k_string.h"
 #include "k_assert.h"
 
+extern Message mm_msg;
+
 u32 memory_used;
 // 0000 0000
 // 0000 0000
@@ -119,7 +121,6 @@ not_memory:
 
 int do_fork(void)
 {
-  extern Message mm_msg;
 
   Process *p = proc_table;
   int i;
@@ -187,4 +188,97 @@ int do_fork(void)
 
   return 0;
 }
+
+void cleanup(Process * proc)
+{
+  Message msg2parent;
+  msg2parent.type = SYSCALL_RET;
+  msg2parent.PID = proc2pid(proc);
+  msg2parent.STATUS = proc->exit_status;
+  send_recv(SEND, proc->p_parent, &msg2parent);
+
+  proc->p_flags = FREE_SLOT;
+
+}
+
+#define INIT 3
+void do_exit(int status)
+{
+  int pid = mm_msg.source;
+  int parent_pid = proc_table[pid].p_parent;
+  Process * p = &proc_table[pid];
+
+#if 0
+  MESSAGE msg2fs;
+  msg2fs.type = EXIT;
+  msg2fs.PID = pid;
+  send_recv(BOTH, TASK_FS, &msg2fs);
+#endif
+  //free_mem(pid);
+
+  p->exit_status = status;
+
+  if (proc_table[parent_pid].p_flags & WAITING)
+  {
+    proc_table[parent_pid].p_flags &= ~WAITING;
+    cleanup(&proc_table[pid]);
+    
+  }
+  else
+  {
+    proc_table[parent_pid].p_flags |= HANGING;
+  }
+
+  for (int i=0 ; i < (NR_TASKS + NR_PROCS); i++)
+  {
+    if (proc_table[i].p_parent == pid)
+    {
+      proc_table[i].p_parent == INIT;
+      if ((proc_table[INIT].p_flags & WAITING) && (proc_table[i].p_flags & HANGING)) 
+      {
+        proc_table[INIT].p_flags &= ~WAITING;
+        cleanup(&proc_table[i]);
+
+      }
+
+    }
+  }
+}
+
+void do_wait(void)
+{
+  int pid = mm_msg.source;
+
+  int i;
+  int children = 0;
+  Process* p_proc = proc_table;
+  for (i = 0; i < NR_TASKS + NR_PROCS; i++,p_proc++) 
+  {
+    if (p_proc->p_parent == pid) 
+    {
+      children++;
+      if (p_proc->p_flags & HANGING) 
+      {
+        cleanup(p_proc);
+        return;
+      }
+    }
+  }
+
+  if (children) 
+  {
+    /* has children, but no child is HANGING */
+    proc_table[pid].p_flags |= WAITING;
+  }
+  else 
+  {
+    /* no child at all */
+    Message msg;
+    msg.type = SYSCALL_RET;
+    msg.PID = NO_TASK;
+    send_recv(SEND, pid, &msg);
+  }
+}
+
+
 

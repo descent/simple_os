@@ -12,5 +12,7 @@ u32 memtest(volatile u32 start, volatile u32 end);
 void *alloc_mem(void);
 void free_mem(void *mem_addr);
 int do_fork(void);
+void do_wait(void);
+void do_exit(int status);
 
 #endif
