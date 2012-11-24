@@ -55,6 +55,21 @@ int wait(int *s)
   return (msg.PID == NO_TASK ? -1 : msg.PID);
 }
 
+int execl(const char *path)
+{
+  Message msg;
+  msg.type        = EXEC;
+  msg.PATHNAME    = (void*)path;
+  msg.NAME_LEN    = s_strlen(path);
+  msg.BUF         = 0;
+  msg.BUF_LEN     = 0;
+
+  send_recv(BOTH, TASK_MM, &msg);
+  assert(msg.type == SYSCALL_RET);
+
+  return msg.RETVAL;
+}
+
 #endif
 
 int sys_get_ticks(void)

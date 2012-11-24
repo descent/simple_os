@@ -12,5 +12,6 @@ int sendrec(int function, int src_dest, Message *m);
 int printk(char *s);
 void exit(int s);
 int wait(int *s);
+int execl(const char *path);
 
 #endif
