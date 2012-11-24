@@ -64,6 +64,11 @@ void task_mm(void)
         reply = 0;
         break;
       }
+      case EXEC:
+      {
+        mm_msg.RETVAL = do_execl();
+        break;
+      }
       default :
       {
         panic("unknown message type");
