@@ -20,6 +20,8 @@ extern u8 *cur_vb;
 #define EFLAGS_AC_BIT           0x00040000
 #define CR0_CACHE_DISABLE       0x60000000
 
+#define MAX_PATH        256
+
 // for kernel_loader.c
 // prefix s16 means Simple 16 bit code
 void s16_print_int(int i, int radix);
