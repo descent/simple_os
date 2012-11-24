@@ -80,7 +80,8 @@ void init(void)
     }
     #endif
     s32_printf("child is running, child pid: %d\r\n", pid);
-    exit(123);
+    execl("echo");
+    //exit(123);
   }
   #endif
   while(1)

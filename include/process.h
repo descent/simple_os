@@ -92,6 +92,11 @@ typedef struct Message_
 #define RETVAL u.m3.m3i1
 #define PID    u.m3.m3i2
 #define STATUS u.m3.m3i1
+#define PATHNAME        u.m3.m3p1
+#define NAME_LEN        u.m3.m3i2
+#define BUF             u.m3.m3p2
+#define BUF_LEN         u.m3.m3i3
+
 
 typedef struct Process_
 {
@@ -213,5 +218,6 @@ int exec(u8 *start);
 #define SYSCALL_RET 4
 #define EXIT 5
 #define WAIT 6
+#define EXEC 7
 
 #endif
