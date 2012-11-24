@@ -3,6 +3,8 @@
 #include "k_stdio.h"
 #include "k_string.h"
 #include "k_assert.h"
+#include "elf.h"
+#include "vfs.h"
 
 extern Message mm_msg;
 
@@ -121,7 +123,6 @@ not_memory:
 
 int do_fork(void)
 {
-
   Process *p = proc_table;
   int i;
 
@@ -164,7 +165,7 @@ int do_fork(void)
   child_base = (u8*)(0xa00000);
   caller_T_size = 0x200000;
   //p_asm_memcpy(child_base, (void*)caller_T_base, caller_T_size);
-  p_asm_memcpy(child_base, (void*)caller_T_base, 0x200000);
+  p_asm_memcpy(child_base+0x100000, (void*)caller_T_base+0x100000, 0x100000);
 
 #if 0
   init_descriptor(&p->ldt[LDT_CODE], (u32)child_base, (PROC_IMAGE_SIZE_DEFAULT - 1) >> LIMIT_4K_SHIFT, DA_LIMIT_4K | DA_32 | DA_C | PRIVILEGE_USER << 5);
@@ -281,4 +282,41 @@ void do_wait(void)
 }
 
 
+void do_execl(void)
+{
+  /* get parameters from the message */
+  int name_len = mm_msg.NAME_LEN; /* length of filename */
+  int src = mm_msg.source;        /* caller proc nr. */
+  assert(name_len < MAX_PATH);
+        
+#if 0
+  char pathname[MAX_PATH];
+  p_asm_memcpy((void*)va2la(TASK_MM, pathname), (void*)va2la(src, mm_msg.PATHNAME), name_len);
+  pathname[name_len] = 0; /* terminate the string */
+#endif
+
+  INode *inode = fs_type[ROMFS]->namei(fs_type[ROMFS], "echo"); // get super block infomation
+  int addr = fs_type[ROMFS]->get_daddr(inode);
+  u8 *buf = (u8*)alloc_mem();
+  fs_type[ROMFS]->device->dout(fs_type[ROMFS]->device, buf, addr, inode->dsize);
+
+  Elf32Ehdr *elf_header = (Elf32Ehdr*)buf;
+  Elf32Phdr *elf_pheader = (Elf32Phdr*)((u8 *)buf + elf_header->e_phoff);
+  u32 entry = elf_header->e_entry;
+
+  for (int i=0 ; i < elf_header->e_phnum; ++i)
+  {
+    if (CHECK_PT_TYPE_LOAD(elf_pheader))
+    {
+      p_asm_memcpy((u8*)va2la(src,elf_pheader->p_vaddr), va2la(TASK_MM, buf+(elf_pheader->p_offset)), elf_pheader->p_filesz);
+    }
+    ++elf_pheader;
+  }
+  free_mem(buf);
+
+  /* setup eip & esp */
+  proc_table[src].regs.eip = entry;
+  //proc_table[src].regs.esp = PROC_IMAGE_SIZE_DEFAULT - PROC_ORIGIN_STACK;
+
+}
 
