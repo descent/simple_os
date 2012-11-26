@@ -1,3 +1,4 @@
+#include "k_stdio.h"
 
 int main(int argc, const char *argv[])
 {
@@ -11,6 +12,6 @@ int main(int argc, const char *argv[])
   *((unsigned char *)(0xb8000+160*22+6)) = 'o';
   *((unsigned char *)(0xb8000+160*22+7)) = 0x0c;
 #endif
-  while(1);
+  s32_printf("I am app\r\n");
   return 0;
 }
