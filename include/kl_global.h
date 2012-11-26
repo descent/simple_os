@@ -2,7 +2,7 @@
 #ifndef KL_GLOBAL_H
 #define KL_GLOBAL_H
 
-#define KERNEL_ES 0x1000
+#define KERNEL_ES 0x700
 #define KERNEL_INFO (KERNEL_ES << 4 | LOAD_KERNEL_OFFSET)
 #define IMAGE_SIZE  8192
 #define BLOCK_SIZE  512
