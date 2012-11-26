@@ -424,9 +424,11 @@ int is_odd(int n)
     return 1;
 }
 
+#define FAT_SIZE 3 // 12 bit 
+
 u16 get_next_cluster(u16 cur_cluster)
 {
-  u16 offset, next_cluster=0;
+  u32 offset, next_cluster=0; // u32 is enough to offset in 1/44 MB floppy
   u8 *fat_buf = fat_buffer;
 
 
@@ -446,14 +448,33 @@ u16 get_next_cluster(u16 cur_cluster)
     //next_cluster = ((fat_buf[offset+1] & 0x0f) << 8)| fat_buf[offset];
   }
 
-  u16 read_fat_sector_no = ((offset / 1024)+1)*2;
+  //u16 read_fat_sector_no = ((offset / 1024*2)+1)*2;
+  u16 read_fat_sector_no = (offset/512)+1;
+  u32 short_offset = offset%512;
+  //if (short_offset != 0)
+    ++read_fat_sector_no;
 
-#ifdef DEBUG_INFO
-  NAME_VALUE(read_fat_sector_no)
-  NAME_VALUE(offset)
+  int  pause=0;
+
+#if 0
+  #if 1
+  if (offset >= 1023)
+  {
+    ++read_fat_sector_no;
+    offset = 511;
+    pause=1;
+  }
+  else
+    offset %= 1024;
+  #endif
 #endif
 
-  offset %= 1024;
+#ifdef DEBUG_INFO
+  NAME_VALUE(offset)
+  NAME_VALUE(short_offset)
+  NAME_VALUE(read_fat_sector_no)
+#endif
+
 
   //NAME_VALUE(offset)
 
@@ -469,11 +490,11 @@ u16 get_next_cluster(u16 cur_cluster)
 
   if (is_odd(cur_cluster) == 1)
   {
-    next_cluster = (((fat_buf[offset+1] >> 4) & 0x0f) | (fat_buf[offset+2] << 4));
+    next_cluster = (((fat_buf[short_offset+1] >> 4) & 0x0f) | (fat_buf[short_offset+2] << 4));
   }
   else
   {
-    next_cluster = ((fat_buf[offset+1] & 0x0f) << 8)| fat_buf[offset];
+    next_cluster = ((fat_buf[short_offset+1] & 0x0f) << 8)| fat_buf[short_offset];
   }
 #if 0
     print("\r\nodd");
@@ -482,7 +503,14 @@ u16 get_next_cluster(u16 cur_cluster)
   dump_u8(fat_buf+offset, 3);
   print("\r\n");
   print_num(next_cluster, "next_cluster");
+    NAME_VALUE(next_cluster);
+    dump_u8(fat_buf+offset, 3);
 #endif
+    #if 0
+  if (pause == 1)
+    bios_wait_key();
+  bios_wait_key();
+  #endif
   return next_cluster;
 }
 
@@ -495,6 +523,7 @@ int load_file_to_ram(int begin_cluster, int fat, u16 org_es, u16 es)
 
   print_num(begin_cluster, "begin_cluster");
   print_num(r_sec, "cluster sector no");
+  //bios_wait_key();
   int track_no = ((r_sec/18) >> 1);
   int head_no = ((r_sec/18) & 1);
   int sector_no = ((r_sec%18) + 1);
@@ -526,7 +555,9 @@ int load_file_to_ram(int begin_cluster, int fat, u16 org_es, u16 es)
         sector_no = ((r_sec%18) + 1);
         buff += 0x200;
 #ifdef MORE_ERR_MSG
-        print_num((u32)buff, "buff");
+        NAME_VALUE16(es);
+        NAME_VALUE16(buff);
+        //print_num((u32)buff, "buff");
 #endif
         if (read_sector_count == 65536/512)
         {
@@ -552,7 +583,6 @@ int load_file_to_ram(int begin_cluster, int fat, u16 org_es, u16 es)
   u16 buf_v = (u16)buff;
   NAME_VALUE16(buf_v);
 #endif
-        //bios_wait_key();
 
         //print("\r\n");
         cur_cluster = next_cluster;
