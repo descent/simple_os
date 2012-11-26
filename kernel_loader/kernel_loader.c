@@ -54,7 +54,11 @@ void dump_reg(void)
 
 //u8 kernel_name[] = "KERNEL  BIN";
 const u8 kernel_name[] =   "P_KERNELELF";
+
+#ifdef LOAD_FS
 const u8 ramdisk_name[] =  "ROM     FS ";
+#endif
+
 //u8 kernel_name[] =   "IDT     COM";
 //u8 kernel_name[] =   "IDT     ELF";
 //u8 kernel_name[] = "KERNEL  ELF";
@@ -756,7 +760,6 @@ void start_c()
       print("\r\nsize:");
       s16_print_int(file_size, 10);
       #endif
-#if 1
       r = s_strncmp(filename, kernel_name, 11);
 
       if (r == 0)
@@ -764,7 +767,12 @@ void start_c()
         first_kernel_cluster = f_c;
         print("\r\n");
         print("load it\r\n");
+#ifndef LOAD_FS
+	goto search_end;
+#endif
       }
+
+#ifdef LOAD_FS
       r = s_strncmp(filename, ramdisk_name, 11);
       if (r == 0)
       {
@@ -776,8 +784,8 @@ void start_c()
       {
 	goto search_end;
       }
-
 #endif
+
 
 
     }
