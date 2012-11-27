@@ -13,7 +13,14 @@ int main(int argc, const char *argv[])
   *((unsigned char *)(0xb8000+160*22+7)) = 0x0c;
 #endif
   //s32_printf("I am app\r\n");
+  
+
   app_print("I am app");
+  #if 1
+  for (int i=0 ; i < 10000 ; ++i)
+    for (int j=0 ; j < 10000 ; ++j)
+      ;
+  #endif
 
   return 2;
 }
