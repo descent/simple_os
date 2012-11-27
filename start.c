@@ -34,7 +34,7 @@
 #define HZ 100
 
 int get_ticks(void);
-void s32_print(const u8 *s, u8 *vb);
+//void s32_print(const u8 *s, u8 *vb);
 
 
 //void __attribute__((aligned(16))) function() { }
@@ -70,9 +70,8 @@ void store_cr0(u32 cr0)
 }
 #endif
 
-void c_test()
-{
 #if 0
+void c_test()
 {
   u8 stack_str[10]="y";
   u8 *sp = stack_str;
@@ -85,7 +84,6 @@ void c_test()
   s32_print(sp, (u8*)(0xb8000+160*1));
 }
 #endif
-}
 
 void init_protected_mode_by_c()
 {
@@ -330,9 +328,9 @@ void ptr_test(u8 *ch)
 int AA;
 char data_str[]="data_string";
 
+#if 0
 void startc()
 {
-#if 1
   clear();
   u8 *ro_str="ro_string";
   u8 *vb=(u8*)0xb8000;
@@ -365,10 +363,8 @@ void startc()
   s32_print(s_str, (u8*)(0xb8000+160*4));
   static char s_str_a[]="static_array"; 
   s32_print(s_str_a, (u8*)(0xb8000+160*5));
-#endif
 }
-
-
+#endif
 
 int init_8259a()
 {
@@ -480,9 +476,6 @@ void loop_delay(int time)
 }
 
 
-u32 memsize;
-
-
 // 8254
 int init_timer(void)
 {
@@ -586,8 +579,8 @@ void kernel_main(void)
 
 #if 0
   s32_print("xxxxxxxxxxx", (u8*)(0xb8000+160*15));
-#endif
   while(1);
+#endif
 
 }
 
@@ -607,7 +600,7 @@ static InitFunc init[]={
                          0
                        };
 
-
+#if 0
 void test_vga(void)
 {
   void switch_vga_mode(void);
@@ -638,6 +631,7 @@ void test_romfs(void)
 
 
 }
+#endif
 
 void load_init_boot(InitFunc *init_func)
 {

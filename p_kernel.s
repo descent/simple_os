@@ -104,7 +104,7 @@ _start:
   #call switch_mode
   mov $STACK_TOP, %esp
   call init_bss_asm
-  call c_test
+#  call c_test
   cli
   sgdt gdt_ptr
   call init_protected_mode_by_c
