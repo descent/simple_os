@@ -58,7 +58,7 @@ kernel.o: kernel.s
 
 
 p_kernel.elf: p_kernel.o io/k_stdio.o asm_func.o asm_syscall.o $(FS_OBJS) vga/set_mode_p.o vga/draw_func.o vga/font_rawdata.o tty/tty.o tty/keyboard.o tty/console.o clock.o start.o process.o storage.o syscall.o io/k_stdio_k.o k_assert.o systask.o test-romfs.o mm/mm.o k_stdlib.o
-	ld $(LDFLAGS) -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map
+	ld $(LDFLAGS) -nostdlib -M -g -o $@ -Tk.ld $^ > $@.map && cp $@ $@.gdb && strip $@
 
 p_kernel.o: p_kernel.s
 	as --32 -o $@ $<
