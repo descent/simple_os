@@ -47,6 +47,13 @@ sendrec:
 
   ret
 
+.global app_print
+app_print:
+  mov $_NR_APP_PRINT, %eax
+  mov 4(%esp), %edx
+  int $INT_VECTOR_SYS_CALL
+  ret
+
 .global printk
 printk:
   mov $_NR_PRINTK, %eax

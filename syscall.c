@@ -128,6 +128,12 @@ int sys_sendrec(int function, int src_dest, Message *m, Process *p)
   return 0;
 }
 
+int sys_app_print(int unused1, int unused2, char *s, Process *proc)
+{
+  s32_print("I am app", (u8*)(0xb8000+160*20));
+  return 0;  
+}
+
 int sys_printk(int unused1, int unused2, char *s, Process *proc)
 {
   const char *p;
@@ -185,5 +191,5 @@ int sys_printk(int unused1, int unused2, char *s, Process *proc)
 
 }
 
-SystemCall sys_call_table[NR_SYS_CALL] = {sys_get_ticks, sys_set_vga_mode, sys_write, sys_sendrec, sys_printk};
+SystemCall sys_call_table[NR_SYS_CALL] = {sys_get_ticks, sys_set_vga_mode, sys_write, sys_sendrec, sys_printk, sys_app_print};
 
