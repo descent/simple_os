@@ -13,5 +13,5 @@ int main(int argc, const char *argv[])
   *((unsigned char *)(0xb8000+160*22+7)) = 0x0c;
 #endif
   s32_printf("I am app\r\n");
-  return 0;
+  return 2;
 }

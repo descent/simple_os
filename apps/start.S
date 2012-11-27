@@ -7,6 +7,7 @@
 .global cstart
 cstart:
   call main
+  push %eax
   call exit
 
 .data
