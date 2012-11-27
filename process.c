@@ -65,10 +65,12 @@ void init(void)
     s32_printf("parent is running, child pid: %d\r\n", pid);
     int s;
     int child = wait(&s);
+    #if 0
     for (int i=0 ; i < 10000 ; ++i)
       for (int j=0 ; j < 10000 ; ++j)
         ;
-    s32_printf("child (%d) exited with status: %d\r\n", pid, s);
+    #endif
+    s32_printf("xxx child (%d) exited with status: %d\r\n", pid, s);
   }
   else // child
   {
@@ -84,6 +86,7 @@ void init(void)
     #endif
     //s32_printf("child is running, child pid: %d\r\n", pid);
     execl("echo");
+    //while(1);
     //exit(123);
   }
   #endif
