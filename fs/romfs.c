@@ -120,7 +120,8 @@ INode *romfs_namei(SuperBlock *sb, char *dir)
   u8 rom_fs_identify[9]="";
   p_asm_memcpy(rom_fs_identify, rom_fs_header->u.id_str, 8);
 
-  int line;
+  int line=0;
+#ifdef DEBUG_ROMFS
   clear_line(2);
   s32_print(rom_fs_identify, (u8*)(0xb8000+160*2));
   line=3;
@@ -130,15 +131,17 @@ INode *romfs_namei(SuperBlock *sb, char *dir)
   clear_line(line);
 
   s32_print_int(rom_fs_header->checksum, (u8*)(0xb8000+160*line), 16);
+  #endif
   u32 volume_len = s_strlen(buf+16);
 
+#ifdef DEBUG_ROMFS
   line=5;
   clear_line(line);
   s32_print_int(volume_len, (u8*)(0xb8000+160*line), 10);
   line=6;
   clear_line(line);
   s32_print(buf+16, (u8*)(0xb8000+160*line));
-
+#endif
   // get volume name, 16 byte alignment
   // romfs content: use get_next_16_boundary to get next 16 byte boundary.
   u32 next_offset = get_next_16_boundary(volume_len+0x10); 
@@ -267,9 +270,10 @@ char * k_readdir(const char *dirname)
     u32 fn_offset = next_offset +16; // file name offset, skip rom_fs_header
     u32 fn_len = s_strlen(buf+fn_offset);
 
+#ifdef DEBUG_ROMFS
     s32_print_str(buf+fn_offset);
     s32_print_str("\r\n");
-
+#endif
     u32 fn_content_offset = 0;
     u32 file_size = be32tole32(rom_fs_header->size);
     if (file_size)
