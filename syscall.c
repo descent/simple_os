@@ -130,7 +130,7 @@ int sys_sendrec(int function, int src_dest, Message *m, Process *p)
 
 int sys_app_print(int unused1, int unused2, char *s, Process *proc)
 {
-  s32_print("I am app", (u8*)(0xb8000+160*20));
+  s32_print("I am xxx", (u8*)(0xb8000+160*20));
   return 0;  
 }
 
