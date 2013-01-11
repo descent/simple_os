@@ -186,6 +186,7 @@ int do_fork(void)
   m.PID = 0;
   send_recv(SEND, child_pid, &m);
 #endif
+  int x=0; // for debug
 
   return 0;
 }
