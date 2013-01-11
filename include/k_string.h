@@ -21,7 +21,7 @@ static inline u32 s_strlen(const char *s)
 static inline char* s_strcpy(char *dest, const char *src)
 {
   char *p = dest;
-  while(*dest)
+  while(*src)
     *dest++ = *src++;
   *dest='\0';
   return p;
