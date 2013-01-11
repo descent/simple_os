@@ -25,6 +25,8 @@
 #define RPL_TASK 1
 #define RPL_USER 3
 
+#define TASK_NAME_LEN 32
+
 extern int k_reenter;
 
 typedef struct StackFrame_
@@ -104,7 +106,7 @@ typedef struct Process_
   u16 ldt_sel;
   Descriptor ldt[LDT_SIZE];
   u32 pid;
-  const char *p_name;
+  //const char *p_name;
   int tty_index; // use which tty
 
   int p_flags;
@@ -118,13 +120,12 @@ typedef struct Process_
   struct Process_ *q_sending;
   struct Process_ *next_sending;
   int exit_status;
-  char name[16];
+  char name[TASK_NAME_LEN];
 
 }Process;
 
 typedef void (*TaskAddr)(void);
 
-#define TASK_NAME_LEN 32
 typedef struct Task_
 {
   TaskAddr init_eip;

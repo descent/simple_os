@@ -426,7 +426,7 @@ void init_proc(void)
       eflags = 0x1202;
       #endif
     }
-    proc->p_name = task->name;
+    s_strcpy(proc->name, task->name);
 
 #if 1
     if (s_strcmp(task->name, "INIT") != 0) 
