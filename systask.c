@@ -76,7 +76,7 @@ void task_mm(void)
       }
     }
     #if 1
-    // envoke parent process
+    // evoke parent process
     if (reply)
     {
       mm_msg.type = SYSCALL_RET;
