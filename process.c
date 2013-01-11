@@ -52,6 +52,8 @@ void init(void)
   if (pid != 0) // parent
   {
   #if 0
+    s32_printf("parent is running, child pid: %d\r\n", pid);
+  #else
     while(1)
     {
       *((u8*)0xb8000+160) = 'P';
@@ -62,40 +64,36 @@ void init(void)
       *((u8*)0xb8000+160+5) = 0x94;
     }
     #endif
-    s32_printf("parent is running, child pid: %d\r\n", pid);
+#ifndef WAIT_EXEC_TEST
+    while(1);
+#else
     int s;
     int child = wait(&s);
-    #if 0
-    for (int i=0 ; i < 10000 ; ++i)
-      for (int j=0 ; j < 10000 ; ++j)
-        ;
-    #endif
     s32_printf("xxx child (%d) exited with status: %d\r\n", pid, s);
+#endif
   }
   else // child
   {
-  #if 0
-    while(1)
-    {
-      *((u8*)0xb8000+160*3) = 'C';
-      *((u8*)0xb8000+160*3+1) = 0x0f;
-      *((u8*)0xb8000+160*3+2) = 'h';
-      *((u8*)0xb8000+160*3+3) = 0x0f;
-      *((u8*)0xb8000+160*3+4) = 'i';
-    }
-    #endif
-    //s32_printf("child is running, child pid: %d\r\n", pid);
+#ifdef WAIT_EXEC_TEST
     execl("echo");
+#else
+    //s32_printf("child is running, child pid: %d\r\n", pid);
+    app_print("I am child");
+    while(1);
+#endif
     //while(1);
     //exit(123);
   }
   #endif
+
+#ifdef WAIT_EXEC_TEST
   while(1)
   {
     int s;
     int child = wait(&s);
     s32_printf("child (%d) exited with status: %d.\n", child, s);
   }
+#endif
 }
 
 void proc_a(void)
