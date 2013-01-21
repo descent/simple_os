@@ -316,6 +316,7 @@ int __REGPARM __NOINLINE get_drive_params(drive_params_t    *p, unsigned char   
 // than try twice again.
 int __REGPARM read_sector(volatile u8 *buff, u8 sector_no, u8 track_no, u8 head_no, u8 disk_no, u8 blocks)
 {
+  //bios_wait_key();
 #if 0
   sector_no=3; // cl
   track_no=0; // ch
@@ -542,7 +543,9 @@ int load_file_to_ram(int begin_cluster, int fat, u16 org_es, u16 es)
   if (fat) // need read FAT
   {
     //dump_u8(fat_buf, 32);
-    u16 offset, next_cluster, cur_cluster=begin_cluster;
+    static u16 offset, next_cluster, cur_cluster;
+
+    cur_cluster=begin_cluster;
 
     while ((next_cluster=get_next_cluster(cur_cluster)) != 0xfff)
     {
