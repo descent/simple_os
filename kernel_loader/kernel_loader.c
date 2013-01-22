@@ -314,7 +314,7 @@ int __REGPARM __NOINLINE get_drive_params(drive_params_t    *p, unsigned char   
 // not 0: fail
 // if using the function read floppy fail, suggest reset floppy disk,
 // than try twice again.
-int __REGPARM read_sector(volatile u8 *buff, u8 sector_no, u8 track_no, u8 head_no, u8 disk_no, u8 blocks)
+int __REGPARM read_sector(u16 buff, u8 sector_no, u8 track_no, u8 head_no, u8 disk_no, u8 blocks)
 {
   //bios_wait_key();
 #if 0
@@ -333,12 +333,17 @@ int __REGPARM read_sector(volatile u8 *buff, u8 sector_no, u8 track_no, u8 head_
 //  __asm__ __volatile__("movb $2, %ah\n"); 
 //  __asm__ __volatile__("movb $1, %al\n"); 
 #if 1
-    //BOCHS_MB
   // read sector to %es:%bx, if %bx is more than 64k, need change %es
   // to next 64k beginning address
   // ref: http://dc0d32.blogspot.tw/2010/06/real-mode-in-c-with-gcc-writing.html
   u16 num_blocks_transferred = 0;
   u8 failed = 0;
+  //BOCHS_MB
+  //__asm__ __volatile__("xchg %bx, %bx");
+  __asm__ __volatile__("push %ax");
+  __asm__ __volatile__("push %bx");
+  __asm__ __volatile__("push %cx");
+  __asm__ __volatile__("push %dx");
 
   __asm__ __volatile__ 
     (
@@ -349,6 +354,10 @@ int __REGPARM read_sector(volatile u8 *buff, u8 sector_no, u8 track_no, u8 head_
       :"a"(0x0200|blocks), "b"(buff), "c"(track_no << 8 | sector_no), "d"(head_no << 8 | disk_no)
     ); 
 #endif
+  __asm__ __volatile__("pop %dx");
+  __asm__ __volatile__("pop %cx");
+  __asm__ __volatile__("pop %bx");
+  __asm__ __volatile__("pop %ax");
   u8 ret_status = (num_blocks_transferred >> 8);
   #ifdef MORE_ERR_MSG
   NAME_VALUE(num_blocks_transferred)
@@ -524,7 +533,7 @@ int load_file_to_ram(int begin_cluster, int fat, u16 org_es, u16 es)
 {
   int r;
   int r_sec = begin_cluster - 2 + bpb.root_dir_occupy_sector + bpb.root_dir_start_sector;
-  volatile u8 *buff = (u8*)LOAD_KERNEL_OFFSET;
+  u16 buff = LOAD_KERNEL_OFFSET;
 
   print_num(begin_cluster, "begin_cluster");
   print_num(r_sec, "cluster sector no");
@@ -568,7 +577,7 @@ int load_file_to_ram(int begin_cluster, int fat, u16 org_es, u16 es)
 #endif
         if (read_sector_count == 65536/512)
         {
-          buff = (u8*)LOAD_KERNEL_OFFSET;
+          buff = LOAD_KERNEL_OFFSET;
 #ifdef MORE_ERR_MSG
           print("\r\nmore than 64Kb\r\n");
 #endif
@@ -664,7 +673,7 @@ void start_c()
   head_no=0; // dh
   disk_no=0; // dl
 #endif
-  *buff = 0x1;
+  //*buff = 0x1;
 
   int r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
   init_bpb(buff, &bpb);
