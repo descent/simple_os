@@ -18,12 +18,12 @@ kloaderp.bin.elf: kloader_init.o kernel_loader.o protected_code.o ../io/k_stdio.
 	ld $(LDFLAGS) -nostdlib -g -o $@ -Tklp.ld $^
 
 kloader_init.o: kloader_init.S
-	gcc $(CFLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS) -o $@ -c $<
 
-protected_code.o: protected_code.c
-	gcc $(CFLAGS) -c $<
+#protected_code.o: protected_code.c
+#	gcc $(CFLAGS) -c $<
 protected_code.s: protected_code.c
-	gcc $(CFLAGS) -o $@ -S $<
+	$(CC) $(CFLAGS) -o $@ -S $<
 #kernel_loader.o: kernel_loader.c elf.h
 #	gcc -std=c99 $(CFLAGS) -c $<
 #kernel_loader.o: kernel_loader.s
