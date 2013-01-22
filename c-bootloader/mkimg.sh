@@ -21,9 +21,13 @@ while getopts "b:d:" opt; do
       ;;
     \?)
       echo "usage: $0 -b bin -d dev"
+      echo "ex: $0 -b boot.bin -d boot.img"
+      echo "ex: $0 -b boot.bin -d /dev/sdz"
+      exit 0
       ;;
     *)
       echo "xx invalid"
+      exit 0
       ;;
   esac
 
@@ -34,13 +38,17 @@ then
     echo "$FN exists"
 else
   echo "$FN doesn't exist, create $FN"
-  dd if=/dev/zero of=floppy.img skip=1 seek=1 bs=512 count=2879
+  dd if=/dev/zero of=$FN skip=1 seek=1 bs=512 count=2879
 fi
 
 echo ""
 
-echo "write $BIN to $FN"
-dd if=$BIN of=$FN bs=1 count=512 conv=notrunc
+
+if [ -n "$BIN" ]; then
+  echo "write $BIN to $FN"
+  dd if=$BIN of=$FN bs=1 count=512 conv=notrunc
+fi
+
 
 
 
