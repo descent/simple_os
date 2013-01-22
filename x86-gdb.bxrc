@@ -58,14 +58,14 @@
 #display_library: nogui
 #display_library: rfb, options="timeout=60" # time to wait for client
 #display_library: sdl, options="fullscreen" # startup in fullscreen mode
-#display_library: sdl # startup in fullscreen mode
+display_library: sdl # startup in fullscreen mode
 #display_library: term
 #display_library: win32, options="gui_debug" # use Win32 debugger gui
 #display_library: wx
 #display_library: x, options="hideIPS" # disable IPS output in status bar
 #display_library: x, options="gui_debug" # use GTK debugger gui
 #display_library: x, options="nokeyrepeat" # turn off host keyboard repeat
-display_library: x
+#display_library: x
 
 #=======================================================================
 # ROMIMAGE:
