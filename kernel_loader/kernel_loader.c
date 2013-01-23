@@ -348,10 +348,10 @@ int __REGPARM read_sector(u16 buff, u8 sector_no, u8 track_no, u8 head_no, u8 di
   u8 failed = 0;
   //BOCHS_MB
   //__asm__ __volatile__("xchg %bx, %bx");
-  __asm__ __volatile__("push %ax");
-  __asm__ __volatile__("push %bx");
-  __asm__ __volatile__("push %cx");
-  __asm__ __volatile__("push %dx");
+  __asm__ __volatile__("push %eax");
+  __asm__ __volatile__("push %ebx");
+  __asm__ __volatile__("push %ecx");
+  __asm__ __volatile__("push %edx");
 
   __asm__ __volatile__ 
     (
@@ -362,10 +362,10 @@ int __REGPARM read_sector(u16 buff, u8 sector_no, u8 track_no, u8 head_no, u8 di
       :"a"(0x0200|blocks), "b"(buff), "c"(track_no << 8 | sector_no), "d"(head_no << 8 | disk_no)
     ); 
 #endif
-  __asm__ __volatile__("pop %dx");
-  __asm__ __volatile__("pop %cx");
-  __asm__ __volatile__("pop %bx");
-  __asm__ __volatile__("pop %ax");
+  __asm__ __volatile__("pop %edx");
+  __asm__ __volatile__("pop %ecx");
+  __asm__ __volatile__("pop %ebx");
+  __asm__ __volatile__("pop %eax");
   u8 ret_status = (num_blocks_transferred >> 8);
   #ifdef MORE_ERR_MSG
   NAME_VALUE(num_blocks_transferred)
