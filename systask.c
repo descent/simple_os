@@ -81,7 +81,7 @@ void task_mm(void)
     {
       mm_msg.type = SYSCALL_RET;
       send_recv(SEND, src, &mm_msg);
-      
+      int a = 5; // for debug setting break point      
     }
     #endif
   }
