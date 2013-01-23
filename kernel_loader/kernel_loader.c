@@ -325,6 +325,7 @@ int __REGPARM __NOINLINE get_drive_params(drive_params_t    *p, unsigned char   
 int __REGPARM read_sector(u16 buff, u8 sector_no, u8 track_no, u8 head_no, u8 disk_no, u8 blocks)
 {
   //bios_wait_key();
+  //print("x");
 #if 0
   sector_no=3; // cl
   track_no=0; // ch
@@ -348,6 +349,8 @@ int __REGPARM read_sector(u16 buff, u8 sector_no, u8 track_no, u8 head_no, u8 di
   u8 failed = 0;
   //BOCHS_MB
   //__asm__ __volatile__("xchg %bx, %bx");
+  __asm__ __volatile__("push %esi");
+  __asm__ __volatile__("push %edi");
   __asm__ __volatile__("push %eax");
   __asm__ __volatile__("push %ebx");
   __asm__ __volatile__("push %ecx");
@@ -366,12 +369,15 @@ int __REGPARM read_sector(u16 buff, u8 sector_no, u8 track_no, u8 head_no, u8 di
   __asm__ __volatile__("pop %ecx");
   __asm__ __volatile__("pop %ebx");
   __asm__ __volatile__("pop %eax");
+  __asm__ __volatile__("pop %edi");
+  __asm__ __volatile__("pop %esi");
   u8 ret_status = (num_blocks_transferred >> 8);
   #ifdef MORE_ERR_MSG
   NAME_VALUE(num_blocks_transferred)
   NAME_VALUE(failed)
   NAME_VALUE(ret_status)
   #endif
+  
   return failed || (num_blocks_transferred != blocks);
 }
 
