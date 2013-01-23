@@ -57,3 +57,5 @@ include $(sources:.c=.d)
 #sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 #rm -f $@.$$$$
 
+kernel_loader: kernel_loader.c
+	gcc -DIPC -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -Iinclude -I../include  -DDOS_PROG  -o kernel_loader kernel_loader.c
