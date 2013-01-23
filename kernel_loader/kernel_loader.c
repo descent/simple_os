@@ -1,10 +1,16 @@
+#ifndef DOS_PROG
 __asm__(".code16gcc\n");
+#endif
 
 #include "type.h"
 #include "k_string.h" // s_strlen()
 #include "k_stdio.h"
 #include "k_stdlib.h"
+#ifdef DOS_PROG
+#include "kl_g.h"
+#else
 #include "kl_global.h"
+#endif
 
 //#define MORE_ERR_MSG
 
@@ -198,6 +204,7 @@ void print_num(int n, u8 *sy)
 //void dump_u8(u8 *buff, u16 count)
 void dump_u8(u8 *buff, int count)
 {
+#ifndef DOS_PROG
   void h2c(u8 hex, u8 ch[2]);
 
     for (int i=0 ; i < count ; ++i)
@@ -211,6 +218,7 @@ void dump_u8(u8 *buff, int count)
       h2c(h, c);
       print(c);
     }
+#endif
 }
 
 #if 0
@@ -834,10 +842,11 @@ void start_c()
   print("\r\n");
   //dump_u8((u8 *)IMAGE_LMA, 32);
 #endif
+#ifndef DOS_PROG
   void init_protected_mode();
 
   init_protected_mode();
-
+#endif
 
 
 
@@ -899,3 +908,11 @@ void start_c()
   while(1);
 #endif
 }
+
+#ifdef DOS_PROG
+int main(int argc, const char *argv[])
+{
+        
+  return 0;
+}
+#endif
