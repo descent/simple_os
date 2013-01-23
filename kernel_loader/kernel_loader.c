@@ -560,7 +560,7 @@ int load_file_to_ram(int begin_cluster, int fat, u16 org_es, u16 es)
   if (fat) // need read FAT
   {
     //dump_u8(fat_buf, 32);
-    static u16 offset, next_cluster, cur_cluster;
+    u16 offset, next_cluster, cur_cluster;
 
     cur_cluster=begin_cluster;
 
