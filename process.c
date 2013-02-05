@@ -13,6 +13,8 @@
 #include "vfs.h"
 #include "storage.h"
 
+//#define WAIT_EXEC_TEST
+
 Process proc_table[NR_TASKS + NR_PROCS];
 u8 task_stack[STACK_SIZE_TOTAL];
 //u8 task_stack[0x9000];
@@ -54,7 +56,7 @@ void init(void)
   #if 0
     s32_printf("parent is running, child pid: %d\r\n", pid);
   #else
-    while(1)
+    //while(1)
     {
       *((u8*)0xb8000+160) = 'P';
       *((u8*)0xb8000+160+1) = 0x94;
@@ -76,13 +78,13 @@ void init(void)
   {
 #ifdef WAIT_EXEC_TEST
     execl("echo");
+    exit(123);
 #else
     //s32_printf("child is running, child pid: %d\r\n", pid);
     app_print("I am child");
     while(1);
 #endif
     //while(1);
-    //exit(123);
   }
   #endif
 
@@ -102,10 +104,7 @@ void proc_a(void)
   //char buf[1] = {'1'};
   //char buf[] = "ws";
   //BOCHS_MB
-  static i=0;
-
-
-
+  static int i=0;
 
   while(1)
   {
