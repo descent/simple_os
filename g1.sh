@@ -17,3 +17,4 @@ display proc_table[3].p_flags
 #display ready_process->p_name
 display ready_process->name
 
+#b systask.c:84

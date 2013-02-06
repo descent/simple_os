@@ -129,7 +129,8 @@ C_OBJS = clock.o start.o process.o storage.o syscall.o
 #o:
 #	echo $(C_OBJS)
 
-
+rom.fs: romfs
+	./others/genromfs -d romfs/ -f rom.fs
 
 
 .PHONE: clean distclean kloaderp.bin
