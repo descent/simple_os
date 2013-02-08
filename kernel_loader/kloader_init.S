@@ -6,6 +6,36 @@
 #include "common.h"
 .equ copy_elf_code_addr, (copy_elf_code+(0x9000*16))
 .equ enter_pm_addr, (enter_pm+(0x9000*16))
+.equ enter_pm1_addr, (enter_pm1+(0x9000*16))
+
+.data
+LABEL_GDT: Descriptor 0, 0, 0 # empty descriptor
+LABEL_DESC_NORMAL:  Descriptor  0,         0xffff, DA_DRW    # Normal descriptor is for back to real mode.
+LABEL_DESC_CODE16:  Descriptor    0,         0xffff, DA_C      # 非一致程式碼段, 16
+LABEL_DESC_FLAT_C: Descriptor 0, 0xfffff, DA_CR | DA_32 | DA_LIMIT_4K
+LABEL_DESC_FLAT_RW: Descriptor 0, 0xfffff, DA_DRW | DA_32 | DA_LIMIT_4K
+LABEL_DESC_VIDEO: Descriptor 0xb8000, 0xffff, DA_DRW | DA_DPL3
+LABEL_DESC_4G_X: Descriptor  0, 0xfffff, DA_CR | DA_32 | DA_LIMIT_4K
+LABEL_DESC_4G_RW: Descriptor  0, 0xfffff, DA_DRW | DA_32 | DA_LIMIT_4K
+
+.set gdt_len, (. - LABEL_GDT)
+gdt_ptr: .2byte (gdt_len - 1)
+         .4byte loader_base_phy_addr+LABEL_GDT
+
+.set sel_normal, (LABEL_DESC_NORMAL - LABEL_GDT)
+.set sel_code16, (LABEL_DESC_CODE16 - LABEL_GDT)
+.set sel_flat_c, (LABEL_DESC_FLAT_C - LABEL_GDT)
+.set sel_flat_rw, (LABEL_DESC_FLAT_RW - LABEL_GDT)
+.set sel_video, (LABEL_DESC_VIDEO - LABEL_GDT + SA_RPL3)
+#.set sel_video, (LABEL_DESC_VIDEO - LABEL_GDT)
+.set select_4g_x,  (LABEL_DESC_4G_X  - LABEL_GDT)
+.set select_4g_rw,  (LABEL_DESC_4G_RW  - LABEL_GDT)
+
+LABEL_STACK:
+.space 1024, 0
+.set top_of_stack, (. - LABEL_STACK)
+
+.set pm_phy_addr, (loader_base_phy_addr+LABEL_PM_START)
 
 
 .code16
@@ -25,6 +55,49 @@ _start:
   mov %ax, %ss
 # setup stack
   mov $0xfff0, %sp # why not setting 0xffff to %sp, in ms dos, 0xfff0 is ok, 0xffb will get core dump
+
+    movw %ax, (LABEL_GO_BACK_TO_REAL+3) # modify segment value, indexed memory mode, ref  professional aeesmbly language p 102.
+
+    /* Initialize 16-bits code segment descriptor. */
+    xor     %eax, %eax
+    mov     %cs, %ax
+    shl     $4, %eax
+    addl    $(LABEL_SEG_CODE16), %eax
+    movw    %ax, (LABEL_DESC_CODE16 + 2)
+    shr     $16, %eax
+    movb    %al, (LABEL_DESC_CODE16 + 4)
+    movb    %ah, (LABEL_DESC_CODE16 + 7)
+
+
+
+  lgdt gdt_ptr
+
+  cli
+
+  # open a20 line
+  inb $0x92, %al
+  orb $0b00000010, %al
+  outb %al, $0x92
+
+  # enable protect mode
+  movl %cr0, %eax
+  orl $1, %eax
+  movl %eax, %cr0
+
+  #xchg %bx, %bx
+  #ljmpl $sel_flat_c, $pm_phy_addr
+  ljmpl $sel_flat_c, $enter_pm1_addr
+
+big_real_mode:
+  #xchg %bx, %bx
+
+
+
+
+
+
+
+
 
 #  call disp_str
   call init_bss_asm
@@ -200,26 +273,6 @@ asm_absolute_memcpy:
     pop     %ebp
     ret
 
-.data
-LABEL_GDT: Descriptor 0, 0, 0 # empty descriptor
-LABEL_DESC_FLAT_C: Descriptor 0, 0xfffff, DA_CR | DA_32 | DA_LIMIT_4K
-LABEL_DESC_FLAT_RW: Descriptor 0, 0xfffff, DA_DRW | DA_32 | DA_LIMIT_4K
-LABEL_DESC_VIDEO: Descriptor 0xb8000, 0xffff, DA_DRW | DA_DPL3
-.set gdt_len, (. - LABEL_GDT)
-gdt_ptr: .2byte (gdt_len - 1)
-         .4byte loader_base_phy_addr+LABEL_GDT
-
-.set sel_flat_c, (LABEL_DESC_FLAT_C - LABEL_GDT)
-.set sel_flat_rw, (LABEL_DESC_FLAT_RW - LABEL_GDT)
-.set sel_video, (LABEL_DESC_VIDEO - LABEL_GDT + SA_RPL3)
-#.set sel_video, (LABEL_DESC_VIDEO - LABEL_GDT)
-
-LABEL_STACK:
-.space 1024, 0
-.set top_of_stack, (. - LABEL_STACK)
-
-.set pm_phy_addr, (loader_base_phy_addr+LABEL_PM_START)
-
 
 .text
 .globl init_protected_mode
@@ -310,3 +363,37 @@ enter_pm:
   mov $top_of_stack, %esp
 
   jmpl $sel_flat_c, $copy_elf_code_addr # call c func
+
+.code32
+enter_pm1:
+    mov $select_4g_x, %ax
+    mov %ax, %gs
+    mov $select_4g_rw, %ax
+    mov %ax, %fs
+    mov %ax, %es
+
+    ljmpl     $sel_code16,$0
+
+.code16   
+LABEL_SEG_CODE16:
+  mov     $sel_normal, %ax
+  mov     %ax, %ds
+#  mov     %ax, %es
+  mov     %ax, %ss
+
+  mov     %cr0, %eax
+  and     $0b11111110, %al
+  mov     %eax, %cr0
+LABEL_GO_BACK_TO_REAL:
+  jmp     $0, $LABEL_REAL_ENTRY      # 段位址會在程序開始處被設置成正確的值
+
+LABEL_REAL_ENTRY:               # 從保護模式跳回到實模式就到了這裡
+#  xchg %bx, %bx
+  #mov     $0, %eax
+  mov     %cs, %ax
+  mov     %ax, %ds
+  mov     %ax, %es
+  mov     %ax, %ss
+  sti     
+  jmp big_real_mode
+
