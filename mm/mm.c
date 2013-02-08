@@ -163,9 +163,10 @@ int do_fork(void)
 
   u8* child_base = (u8*)alloc_mem();
   child_base = (u8*)(0xa00000);
-  caller_T_size = 0x200000;
+  caller_T_size = 0x100000;
   //p_asm_memcpy(child_base, (void*)caller_T_base, caller_T_size);
-  p_asm_memcpy(child_base+0x100000, (void*)caller_T_base+0x100000, 0x100000);
+  //p_asm_memcpy(child_base+0x100000, (void*)caller_T_base+0x100000, 0x100000);
+  p_asm_memcpy(child_base+0x100000, (void*)caller_T_base+0x100000, caller_T_size);
 
 #if 0
   init_descriptor(&p->ldt[LDT_CODE], (u32)child_base, (PROC_IMAGE_SIZE_DEFAULT - 1) >> LIMIT_4K_SHIFT, DA_LIMIT_4K | DA_32 | DA_C | PRIVILEGE_USER << 5);
@@ -219,6 +220,7 @@ void do_exit(int status)
   //free_mem(pid);
 
   p->exit_status = status;
+  //p->exit_status = 9;
 
   if (proc_table[parent_pid].p_flags & WAITING)
   {
