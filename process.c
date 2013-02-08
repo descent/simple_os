@@ -78,7 +78,7 @@ void init(void)
   {
 #ifdef WAIT_EXEC_TEST
     execl("echo");
-    exit(123);
+    //exit(123);
 #else
     //s32_printf("child is running, child pid: %d\r\n", pid);
     app_print("I am child");
