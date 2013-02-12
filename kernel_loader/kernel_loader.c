@@ -875,7 +875,6 @@ void start_c()
   #endif
   load_file_to_ram(first_kernel_cluster, (file_size> 512) ? 1: 0);
   print("\r\n");
-  print("aaa\r\n");
 
 #if 0
   // load ramdisk
