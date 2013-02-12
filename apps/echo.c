@@ -15,12 +15,12 @@ int main(int argc, const char *argv[])
   //s32_printf("I am app\r\n");
   
 
-  app_print("I am app");
+  app_print("I am echo app");
   #if 1
   for (int i=0 ; i < 10000 ; ++i)
     for (int j=0 ; j < 10000 ; ++j)
       ;
   #endif
 
-  return 2;
+  return 678;
 }
