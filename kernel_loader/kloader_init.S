@@ -8,6 +8,8 @@
 .equ enter_pm_addr, (enter_pm+(0x9000*16))
 .equ enter_pm1_addr, (enter_pm1+(0x9000*16))
 
+#define BIG_REAL_MODE
+
 .data
 LABEL_GDT: Descriptor 0, 0, 0 # empty descriptor
 LABEL_DESC_NORMAL:  Descriptor  0,         0xffff, DA_DRW    # Normal descriptor is for back to real mode.
@@ -45,7 +47,6 @@ LABEL_STACK:
 .text
 .global _start
 _start:
-  #xchg %bx, %bx
   mov %cs, %ax
   #mov $0xa00, %ax
   mov %ax, %ds
@@ -56,6 +57,7 @@ _start:
 # setup stack
   mov $0xfff0, %sp # why not setting 0xffff to %sp, in ms dos, 0xfff0 is ok, 0xffb will get core dump
 
+#ifdef BIG_REAL_MODE
     movw %ax, (LABEL_GO_BACK_TO_REAL+3) # modify segment value, indexed memory mode, ref  professional aeesmbly language p 102.
 
     /* Initialize 16-bits code segment descriptor. */
@@ -67,7 +69,6 @@ _start:
     shr     $16, %eax
     movb    %al, (LABEL_DESC_CODE16 + 4)
     movb    %ah, (LABEL_DESC_CODE16 + 7)
-
 
 
   lgdt gdt_ptr
@@ -88,9 +89,9 @@ _start:
   #ljmpl $sel_flat_c, $pm_phy_addr
   ljmpl $sel_flat_c, $enter_pm1_addr
 
+#endif
 big_real_mode:
   #xchg %bx, %bx
-
 
 
 
@@ -129,6 +130,68 @@ big_real_mode:
 #    int     $0x10
 #    ret
 #str2:.ascii "after"
+
+
+#if 0
+  __asm__ __volatile__
+    (
+      "movw  $0, %0\n"
+      "int $0x13\n"
+      "setcb %0"
+      :"=m"(failed), "=a"(num_blocks_transferred)
+      :"a"(0x0200|blocks), "b"(buff), "c"(track_no << 8 | sector_no), "d"(head_no << 8 | disk_no)
+    );
+#endif
+
+.globl asm_read_sector
+asm_read_sector:
+  pushl   %ebp
+  mov     %esp, %ebp
+
+  mov 28(%ebp), %ax
+  mov 8(%ebp), %bx
+  int $0x13
+
+  mov     %ebp, %esp
+  pop     %ebp
+  ret
+
+# use big real mode copy to 4g range
+# use %fs for segment register, %fs points to 4g memory space
+.globl asm_4g_memcpy
+# ex: 
+# asm_absolute_memcpy((u8*)0x100, (u8 *)IMAGE_LMA, 512*3);
+# copy IMAGE_LMA to 0x100
+asm_4g_memcpy:
+    pushl   %ebp
+    mov     %esp, %ebp
+
+    pushl   %esi
+    pushl   %edi
+    pushl   %ecx
+
+    mov     8(%ebp), %edi    /* Destination */
+    mov     12(%ebp), %esi   /* Source */
+    mov     16(%ebp), %ecx   /* Counter */
+1:
+    cmp     $0, %ecx  /* Loop counter */
+    jz      2f
+    movb    %ds:(%esi), %al
+    inc     %esi
+    movb    %al, %fs:(%edi)
+    inc     %edi
+    dec     %ecx
+    jmp     1b
+2:
+    mov     8(%ebp), %eax
+    pop     %ecx
+    pop     %edi
+    pop     %esi
+    mov     %ebp, %esp
+    pop     %ebp
+    retl
+
+
 
 .globl write_mem8
 write_mem8:
@@ -277,15 +340,18 @@ asm_absolute_memcpy:
 .text
 .globl init_protected_mode
 init_protected_mode:
+  #xchg %bx, %bx
   lgdt gdt_ptr
 
   # clear interrupt flag
   cli
 
+#if 0
   # open a20 line
   inb $0x92, %al
   orb $0b00000010, %al
   outb %al, $0x92
+#endif
 
   # enable protect mode
   movl %cr0, %eax
@@ -355,13 +421,14 @@ LABEL_PM_START:
 
 .code32
 enter_pm:
-  mov $0x10, %ax
+  mov $sel_flat_rw, %ax
   mov %ax, %ds
   mov %ax, %es
   mov %ax, %fs
   mov %ax, %ss
   mov $top_of_stack, %esp
 
+  #xchg %bx, %bx
   jmpl $sel_flat_c, $copy_elf_code_addr # call c func
 
 .code32
@@ -370,7 +437,7 @@ enter_pm1:
     mov %ax, %gs
     mov $select_4g_rw, %ax
     mov %ax, %fs
-    mov %ax, %es
+    #mov %ax, %es
 
     ljmpl     $sel_code16,$0
 
