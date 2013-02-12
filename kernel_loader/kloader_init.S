@@ -340,7 +340,6 @@ asm_absolute_memcpy:
 .text
 .globl init_protected_mode
 init_protected_mode:
-  xchg %bx, %bx
   lgdt gdt_ptr
 
   # clear interrupt flag

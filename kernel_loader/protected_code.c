@@ -64,7 +64,6 @@ void copy_elf_code(void)
   ++line;
   clear_line(line);
   s32_print_int(elf_header->e_entry, (u8*)(0xb8000+160*line), 16);
-  BOCHS_MB
 
 
 #if 0
