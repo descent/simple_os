@@ -53,15 +53,18 @@ void copy_elf_code(void)
   // copy kernel to proper position by elf information
 
 
-  u8 *buff = (KERNEL_ES*16)+(u8*)LOAD_KERNEL_OFFSET;
+  int line=0;
+  //u8 *buff = (KERNEL_ES*16)+(u8*)LOAD_KERNEL_OFFSET;
+  u8 *buff = (u8*)LOAD_KERNEL_ADDR;
   Elf32Ehdr *elf_header = (Elf32Ehdr*)buff;
   Elf32Phdr *elf_pheader = (Elf32Phdr*)((u8 *)buff + elf_header->e_phoff);
   // the load elf address maybe overlay entry ~ elf code size, so save entry first
   u32 entry = elf_header->e_entry; 
 
-  int line=0;
+  ++line;
   clear_line(line);
   s32_print_int(elf_header->e_entry, (u8*)(0xb8000+160*line), 16);
+  BOCHS_MB
 
 
 #if 0
