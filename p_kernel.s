@@ -104,32 +104,16 @@ _start:
   #call switch_mode
   mov $STACK_TOP, %esp
   call init_bss_asm
-#  call c_test
   cli
   sgdt gdt_ptr
   call init_protected_mode_by_c
-#  call asm_init_8259a
-#  movw $0x8, (IDT6+2)
-  #lidt asm_idt_ptr
-  #jmp .
-  nop
-  nop
-#  sidt s_idt_ptr
   lgdt gdt_ptr
 
   jmp csinit
 csinit:
   #xchg %bx, %bx #bochs magic break point
 
-  #call switch_vga_mode
   call plat_boot
-#  jmp .
-  #call asm_init_8259a
-#  call init_8259a
-#  call init_idt_by_c
-#  lidt idt_ptr
-  #call setup_paging
-#  call init_tss
 
   xor %eax, %eax
   mov $SELECTOR_TSS, %ax
