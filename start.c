@@ -537,23 +537,6 @@ void kernel_main(void)
   free_mem(buf);
   while(1);
 #endif
-#if 0
-  //int memsize = memtest(0x00400000, 0xbfffffff) / (1024 * 1024);
-  // 0x2000000 = 32MB
-  // because of bochs will alert memory access more than the memory size,
-  //   so limit address to 0x2000000, if use qemu, it works fine.
-  memsize = memtest(0x00400000, 0x2000000);
-  memsize_mb = memsize / (1024 * 1024);
-
-  u8 stack_str[10]="y";
-  u8 *sp = stack_str;
-  sp = s32_itoa(memsize_mb, stack_str, 10);
-  clear();
-  //clear_line(24);
-  s32_print("memory size", (u8*)(0xb8000+160*24));
-  s32_print(sp, (u8*)(0xb8000+160*24 + 12*2));
-  s32_print("MB", (u8*)(0xb8000+160*24 + 12*2 + 4*2));
-#endif
 
   void setup_paging(void);
   //setup_paging();
@@ -570,18 +553,9 @@ void kernel_main(void)
   set_cursor(0);
   //set_video_start_addr(80);
 
-  cur_vb = (u8*)0xb8000+160;
-
-
-  BOCHS_MB
+  //BOCHS_MB
   void restart(void);
   restart(); // need run restart(), because restart() iret will enable interrupt
-
-#if 0
-  s32_print("xxxxxxxxxxx", (u8*)(0xb8000+160*15));
-  while(1);
-#endif
-
 }
 
 typedef int (*InitFunc)(void);
@@ -600,38 +574,6 @@ static InitFunc init[]={
                          0
                        };
 
-#if 0
-void test_vga(void)
-{
-  void switch_vga_mode(void);
-
-  switch_vga_mode();
-}
-
-void test_romfs(void)
-{
-  INode *inode;
-  u8 buf[512];
-
-  //inode = fs_type[ROMFS]->namei(fs_type[ROMFS], ""); // get super block infomation
-  //fs_type[ROMFS]->device->dout(fs_type[ROMFS]->device, buf, fs_type[ROMFS]->get_daddr(inode), inode->dsize);
-
-  romfs_init();
-  s32_print("romfs init xx", (u8*)(0xb8000+160*24));
-  inode = fs_type[ROMFS]->namei(fs_type[ROMFS], "t1"); // get super block infomation
-
-  clear_line(24);
-  int addr = fs_type[ROMFS]->get_daddr(inode);
-  s32_print_int(addr, (u8*)(0xb8000+160*24), 16);
-  #if 1
-  clear_line(0);
-  fs_type[ROMFS]->device->dout(fs_type[ROMFS]->device, buf, fs_type[ROMFS]->get_daddr(inode), inode->dsize);
-  p_dump_u8(buf, inode->dsize);
-  #endif
-
-
-}
-#endif
 
 void load_init_boot(InitFunc *init_func)
 {
