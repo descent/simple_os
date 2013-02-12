@@ -44,6 +44,9 @@ __asm__(".code16gcc\n");
 
 #define FAT_BUF_LEN 2048
 static u8 fat_buffer[2048];
+static u8 read_data[512];
+
+u32 kernel_addr = LOAD_KERNEL_ADDR;
 
 void dump_reg(void)
 {
@@ -200,25 +203,47 @@ void print_num(int n, u8 *sy)
 }
 
 
+void h2c_(u8 hex, u8 ch[2])
+{
+  u8 l = hex >> 4;
+
+  if ( 0<= l && l <= 9)
+  {
+    ch[0]=l+0x30;
+  }
+  else
+  {
+    ch[0]=l+0x41-0xa; //a
+    ch[0]=l+0x61-0xa; // A
+  }
+
+  l = hex & 0x0f;
+
+  if ( 0<= l && l <= 9)
+  {
+    ch[1]=l+0x30;
+  }
+  else
+  {
+    ch[1]=l+0x41-0xa; //a
+    ch[1]=l+0x61-0xa; // A
+  }
+}
 
 //void dump_u8(u8 *buff, u16 count)
 void dump_u8(u8 *buff, int count)
 {
-#ifndef DOS_PROG
-  void h2c(u8 hex, u8 ch[2]);
-
-    for (int i=0 ; i < count ; ++i)
-    {
-      if (i%16==0)
-        print("\r\n");
-      u8 c[4]="";
-      u8 h=*(buff+i);
-      c[3]=0;
-      c[2]=0x20;
-      h2c(h, c);
-      print(c);
-    }
-#endif
+  for (int i=0 ; i < count ; ++i)
+  {
+    if (i%16==0)
+      print("\r\n");
+    u8 c[4]="";
+    u8 h=*(buff+i);
+    c[3]=0;
+    c[2]=0x20;
+    h2c_(h, c);
+    print(c);
+  }
 }
 
 #if 0
@@ -322,7 +347,8 @@ int __REGPARM __NOINLINE get_drive_params(drive_params_t    *p, unsigned char   
 // not 0: fail
 // if using the function read floppy fail, suggest reset floppy disk,
 // than try twice again.
-int __REGPARM read_sector(u16 buff, u8 sector_no, u8 track_no, u8 head_no, u8 disk_no, u8 blocks)
+//int __REGPARM read_sector(u16 buff, u8 sector_no, u8 track_no, u8 head_no, u8 disk_no, u8 blocks)
+int read_sector(u16 buff, u8 sector_no, u8 track_no, u8 head_no, u8 disk_no, u8 blocks)
 {
   //bios_wait_key();
   //print("x");
@@ -347,7 +373,6 @@ int __REGPARM read_sector(u16 buff, u8 sector_no, u8 track_no, u8 head_no, u8 di
   // ref: http://dc0d32.blogspot.tw/2010/06/real-mode-in-c-with-gcc-writing.html
   u16 num_blocks_transferred = 0;
   u8 failed = 0;
-  //BOCHS_MB
   //__asm__ __volatile__("xchg %bx, %bx");
   __asm__ __volatile__("push %esi");
   __asm__ __volatile__("push %edi");
@@ -436,8 +461,8 @@ int read_fat(volatile u8 *fat_buf, u16 fat_sector_no)
 #ifdef DEBUG_INFO
   print_num(track_no, "fat track_no");
   print_num(head_no, "fat head_no");
-  print_num(sector_no, "fat sector_no");
   print_num(disk_no, "fat disk_no");
+  print_num(sector_no, "fat sector_no");
   print("\r\n");
 #endif
   u8 r = read_sector(fat_buf, sector_no, track_no, head_no, disk_no, 2);
@@ -456,11 +481,11 @@ int is_odd(int n)
 
 u16 get_next_cluster(u16 cur_cluster)
 {
+  //cur_cluster = 342;
   u32 offset, next_cluster=0; // u32 is enough to offset in 1/44 MB floppy
   u8 *fat_buf = fat_buffer;
 
-
-  //print_num(cur_cluster, "cur_cluster");
+  //NAME_VALUE(cur_cluster)
 
   if (is_odd(cur_cluster) == 1)
   {
@@ -477,10 +502,10 @@ u16 get_next_cluster(u16 cur_cluster)
   }
 
   //u16 read_fat_sector_no = ((offset / 1024*2)+1)*2;
-  u16 read_fat_sector_no = (offset/512)+1;
+  u16 read_fat_sector_no = (offset/512)+2;
   u32 short_offset = offset%512;
   //if (short_offset != 0)
-    ++read_fat_sector_no;
+    //++read_fat_sector_no;
 
   int  pause=0;
 
@@ -500,22 +525,27 @@ u16 get_next_cluster(u16 cur_cluster)
 #ifdef DEBUG_INFO
   NAME_VALUE(offset)
   NAME_VALUE(short_offset)
-  NAME_VALUE(read_fat_sector_no)
 #endif
 
 
   //NAME_VALUE(offset)
 
-  u16 org_es = asm_get_es();
-  u16 es = 0x9000;
-  asm_set_es(es);
+  //u16 org_es = asm_get_es();
+  //u16 es = 0x9000;
+  //asm_set_es(es);
+  //NAME_VALUE(read_fat_sector_no)
   read_fat(fat_buf, read_fat_sector_no); // FAT occupies 9 sections, sector no 1 ~ 10
-  asm_set_es(org_es);
 
 #ifdef DEBUG_INFO
+  NAME_VALUE(offset)
   dump_u8(fat_buf+offset, 3);
+  NAME_VALUE(short_offset)
+  dump_u8(fat_buf+short_offset, 3);
 #endif
 
+  // fat12 ex: 57 81 15
+  // 157, 158
+  
   if (is_odd(cur_cluster) == 1)
   {
     next_cluster = (((fat_buf[short_offset+1] >> 4) & 0x0f) | (fat_buf[short_offset+2] << 4));
@@ -524,6 +554,10 @@ u16 get_next_cluster(u16 cur_cluster)
   {
     next_cluster = ((fat_buf[short_offset+1] & 0x0f) << 8)| fat_buf[short_offset];
   }
+  //NAME_VALUE(next_cluster)
+  if (next_cluster == 0)
+    bios_wait_key();
+
 #if 0
     print("\r\nodd");
   print_num(offset, "offset");
@@ -542,12 +576,16 @@ u16 get_next_cluster(u16 cur_cluster)
   return next_cluster;
 }
 
+
 // fat == 1, read fat
-int load_file_to_ram(int begin_cluster, int fat, u16 org_es, u16 es)
+int load_file_to_ram(int begin_cluster, int fat)
 {
+  void asm_4g_memcpy(u32 dest, u32 src, int n);
+
   int r;
   int r_sec = begin_cluster - 2 + bpb.root_dir_occupy_sector + bpb.root_dir_start_sector;
-  u16 buff = LOAD_KERNEL_OFFSET;
+  //u32 buff = LOAD_KERNEL_OFFSET;
+  u8 *buff = read_data;
 
   print_num(begin_cluster, "begin_cluster");
   print_num(r_sec, "cluster sector no");
@@ -559,8 +597,11 @@ int load_file_to_ram(int begin_cluster, int fat, u16 org_es, u16 es)
   int read_sector_count=1;
 
   // read the 1st sector
-  asm_set_es(es);
   r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
+  //BOCHS_MB
+  asm_4g_memcpy(kernel_addr, (u16)buff, 512);
+  kernel_addr+=512;
+
   print("\r\n.");
 
   if (fat) // need read FAT
@@ -583,20 +624,16 @@ int load_file_to_ram(int begin_cluster, int fat, u16 org_es, u16 es)
         track_no = ((r_sec/18) >> 1);
         head_no = ((r_sec/18) & 1);
         sector_no = ((r_sec%18) + 1);
-        buff += 0x200;
 #ifdef MORE_ERR_MSG
-        NAME_VALUE16(es);
         NAME_VALUE16(buff);
         //print_num((u32)buff, "buff");
 #endif
+
         if (read_sector_count == 65536/512)
         {
-          buff = LOAD_KERNEL_OFFSET;
 #ifdef MORE_ERR_MSG
           print("\r\nmore than 64Kb\r\n");
 #endif
-          es+=0x1000;
-          asm_set_es(es);
           read_sector_count = 0;
         }
         else
@@ -605,14 +642,13 @@ int load_file_to_ram(int begin_cluster, int fat, u16 org_es, u16 es)
           print("\r\nless than 64Kb\r\n");
 #endif
         }
+        buff = read_data;
         r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
-        print(".");
+        asm_4g_memcpy(kernel_addr, (u32)buff, 512);
+        kernel_addr+=512;
+        //print(".");
+  //NAME_VALUE16(kernel_addr);
         ++read_sector_count;
-
-#ifdef MORE_ERR_MSG
-  u16 buf_v = (u16)buff;
-  NAME_VALUE16(buf_v);
-#endif
 
         //print("\r\n");
         cur_cluster = next_cluster;
@@ -624,8 +660,6 @@ int load_file_to_ram(int begin_cluster, int fat, u16 org_es, u16 es)
   {
     //r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
   }
-  NAME_VALUE16(es);
-  asm_set_es(org_es);
 }
 
 
@@ -829,14 +863,19 @@ void start_c()
   print("\r\nfirst_ramdisk_cluster: ");
   s16_print_int(first_ramdisk_cluster, 10);
 
-  BOCHS_MB
   print("\r\nload kernel: ");
   print(kernel_name);
   // load kernel
   org_es = asm_get_es();
   u16 es = KERNEL_ES;
-  load_file_to_ram(first_kernel_cluster, (file_size> 512) ? 1: 0, org_es, es);
+  #if 0
+  read_fat((u16)fat_buffer, 3); // FAT occupies 9 sections, sector no 1 ~ 10
+  dump_u8(fat_buffer, 16);
+  while(1);
+  #endif
+  load_file_to_ram(first_kernel_cluster, (file_size> 512) ? 1: 0);
   print("\r\n");
+  print("aaa\r\n");
 
 #if 0
   // load ramdisk
