@@ -646,7 +646,7 @@ int load_file_to_ram(int begin_cluster, int fat)
         r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
         asm_4g_memcpy(kernel_addr, (u32)buff, 512);
         kernel_addr+=512;
-        //print(".");
+        print(".");
   //NAME_VALUE16(kernel_addr);
         ++read_sector_count;
 
