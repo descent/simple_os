@@ -57,7 +57,6 @@ int select_tty(int tty_index)
 
 int init_tty(Tty *tty)
 {
-  BOCHS_MB
   //panic("in tty");
   tty->inbuf_count = 0;
   tty->inbuf_head = tty->inbuf_tail = tty->inbuf;
