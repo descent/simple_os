@@ -12,13 +12,13 @@
 
 .data
 LABEL_GDT: Descriptor 0, 0, 0 # empty descriptor
-LABEL_DESC_NORMAL:  Descriptor  0,         0xffff, DA_DRW    # Normal descriptor is for back to real mode.
-LABEL_DESC_CODE16:  Descriptor    0,         0xffff, DA_C      # 非一致程式碼段, 16
 LABEL_DESC_FLAT_C: Descriptor 0, 0xfffff, DA_CR | DA_32 | DA_LIMIT_4K
 LABEL_DESC_FLAT_RW: Descriptor 0, 0xfffff, DA_DRW | DA_32 | DA_LIMIT_4K
 LABEL_DESC_VIDEO: Descriptor 0xb8000, 0xffff, DA_DRW | DA_DPL3
 LABEL_DESC_4G_X: Descriptor  0, 0xfffff, DA_CR | DA_32 | DA_LIMIT_4K
 LABEL_DESC_4G_RW: Descriptor  0, 0xfffff, DA_DRW | DA_32 | DA_LIMIT_4K
+LABEL_DESC_NORMAL:  Descriptor  0,         0xffff, DA_DRW    # Normal descriptor is for back to real mode.
+LABEL_DESC_CODE16:  Descriptor    0,         0xffff, DA_C      # 非一致程式碼段, 16
 
 .set gdt_len, (. - LABEL_GDT)
 gdt_ptr: .2byte (gdt_len - 1)
@@ -340,7 +340,7 @@ asm_absolute_memcpy:
 .text
 .globl init_protected_mode
 init_protected_mode:
-  #xchg %bx, %bx
+  xchg %bx, %bx
   lgdt gdt_ptr
 
   # clear interrupt flag
@@ -425,6 +425,7 @@ enter_pm:
   mov %ax, %ds
   mov %ax, %es
   mov %ax, %fs
+  mov %ax, %gs
   mov %ax, %ss
   mov $top_of_stack, %esp
 
