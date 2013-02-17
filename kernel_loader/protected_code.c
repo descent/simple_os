@@ -37,6 +37,7 @@ void s32_memcpy(u8 *dest, const u8 *src, u32 n)
     *dest++ = *src++;
 }
 
+#define REAL_PC
 // in this state, cannot use global, static, bss data,
 // because this address is base on 0x100, but kloaderp.bin is loaded to 0x9000:0x0100,
 // so need added 0x9000X16 is global, static, bss data real address.
@@ -44,6 +45,10 @@ void s32_memcpy(u8 *dest, const u8 *src, u32 n)
 // copy_elf_code() is run under protocted mode.
 void copy_elf_code(void)
 {
+  void p_dump_memory(u32 dest, u32 src, int n);
+
+  //p_dump_memory(1,2,3);
+
   u8 *vb = (u8 *)0xb8002;
   u8 *attr = (u8 *)0xb8003;
 
@@ -53,9 +58,14 @@ void copy_elf_code(void)
   // copy kernel to proper position by elf information
 
 
-  int line=0;
+  int line=10;
   //u8 *buff = (KERNEL_ES*16)+(u8*)LOAD_KERNEL_OFFSET;
-  u8 *buff = (u8*)LOAD_KERNEL_ADDR;
+#ifdef REAL_PC
+  u32 buff = LOAD_KERNEL_ADDR + (0x28*16);
+#else
+  u32 buff = LOAD_KERNEL_ADDR;
+#endif
+  //p_dump_u8(buff, 32);
   Elf32Ehdr *elf_header = (Elf32Ehdr*)buff;
   Elf32Phdr *elf_pheader = (Elf32Phdr*)((u8 *)buff + elf_header->e_phoff);
   // the load elf address maybe overlay entry ~ elf code size, so save entry first
@@ -66,6 +76,7 @@ void copy_elf_code(void)
   s32_print_int(elf_header->e_entry, (u8*)(0xb8000+160*line), 16);
 
 
+  //while(1);
 #if 0
   print("\r\nelf_header->e_entry: ");
   s16_print_int(elf_header->e_entry, 10);
@@ -93,6 +104,8 @@ void copy_elf_code(void)
       //print_num(elf_pheader->p_offset, "elf_pheader->p_offset");
       //print_num(elf_pheader->p_filesz, "elf_pheader->p_filesz");
       //asm_absolute_memcpy((u8*)elf_pheader->p_vaddr, buff+(elf_pheader->p_offset), elf_pheader->p_filesz);
+
+
       s32_memcpy((u8*)elf_pheader->p_vaddr, buff+(elf_pheader->p_offset), elf_pheader->p_filesz);
   //BOCHS_MB
     }
@@ -102,5 +115,8 @@ void copy_elf_code(void)
   ++line;
   clear_line(line);
   s32_print_int(elf_header->e_entry, (u8*)(0xb8000+160*line), 16);
+  //buff = LOAD_KERNEL_ADDR + (0x28*16);
+  //p_dump_u8(buff, 48);
+  //while(1);
   goto *entry;
 }
