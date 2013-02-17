@@ -598,11 +598,15 @@ int load_file_to_ram(int begin_cluster, int fat)
 
   // read the 1st sector
   r = read_sector(buff, sector_no, track_no, head_no, disk_no, 1);
+  asm_4g_memcpy(kernel_addr, (u32)buff, 512);
+
+
+
   //BOCHS_MB
-  asm_4g_memcpy(kernel_addr, (u16)buff, 512);
   kernel_addr+=512;
 
   print("\r\n.");
+  //return 1;
 
   if (fat) // need read FAT
   {
@@ -874,6 +878,8 @@ void start_c()
   while(1);
   #endif
   load_file_to_ram(first_kernel_cluster, (file_size> 512) ? 1: 0);
+  print("\r\nload kernel size:\r\n");
+  NAME_VALUE(file_size)
   print("\r\n");
 
 #if 0
@@ -887,6 +893,10 @@ void start_c()
   //dump_u8((u8 *)IMAGE_LMA, 32);
 #endif
 #ifndef DOS_PROG
+  void dump_memory(u32 dest, u32 src, int n);
+
+  dump_memory(1,2,3);
+  bios_wait_key();
   void init_protected_mode();
 
   init_protected_mode();
