@@ -7,10 +7,14 @@
 .equ copy_elf_code_addr, (copy_elf_code+(0x9000*16))
 .equ enter_pm_addr, (enter_pm+(0x9000*16))
 .equ enter_pm1_addr, (enter_pm1+(0x9000*16))
+.equ p_vb_addr, (p_vb+(0x9000*16))
 
 #define BIG_REAL_MODE
 
 .data
+vb: .int 0xb8000
+count: .int 16
+#vb: .int 0x100000
 LABEL_GDT: Descriptor 0, 0, 0 # empty descriptor
 LABEL_DESC_FLAT_C: Descriptor 0, 0xfffff, DA_CR | DA_32 | DA_LIMIT_4K
 LABEL_DESC_FLAT_RW: Descriptor 0, 0xfffff, DA_DRW | DA_32 | DA_LIMIT_4K
@@ -179,6 +183,21 @@ asm_4g_memcpy:
     movb    %ds:(%esi), %al
     inc     %esi
     movb    %al, %fs:(%edi)
+
+    movb    %fs:(%edi), %al
+
+#    cmpl     $0, count
+#    jz      3f
+    #xchg %bx, %bx
+#    call disp_al
+#    addl $2, vb
+
+    # bios call: wait key
+#    xor %eax,%eax
+#    int $0x16
+
+    decl count
+3:
     inc     %edi
     dec     %ecx
     jmp     1b
@@ -191,6 +210,56 @@ asm_4g_memcpy:
     pop     %ebp
     retl
 
+.global disp_ax
+disp_ax:
+  xchg %bx, %bx
+  push %bx
+  mov %ax, %bx
+  shr $4, %al
+  call disp_al
+  mov %bx, %ax
+  call disp_al
+  add	$2, vb
+  pop %bx
+  ret
+
+.global disp_al
+disp_al:
+	pushl	%ecx
+	pushl	%edx
+	pushl	%esi
+        mov vb, %esi
+
+	movb	$0x09, %ah # 0000: 黑底    1010: 綠色字
+	movb	%al, %dl
+	shr	$4, %al
+	movl	$2, %ecx
+.begin:
+	andb	$0x0f, %al
+	cmp	$9, %al
+	ja	.3          # cf=0, zf=0, above 9 (>9)
+	#addb	$'0', %al
+	addb	$0x30, %al
+	jmp	.4
+.3:
+	sub	$0x0A, %al
+	#add	$'A', %al
+	add	$0x41, %al
+.4:
+	#mov	[gs:edi], ax
+	mov	%ax, %fs:(%esi)
+	addl    $2, vb
+        mov     vb, %esi
+
+
+	mov	%dl, %al
+	loop	.begin
+
+	popl	%esi
+	popl	%edx
+	popl	%ecx
+
+	ret
 
 
 .globl write_mem8
@@ -420,26 +489,130 @@ LABEL_PM_START:
 
 .code32
 enter_pm:
+    xchg %bx, %bx
   mov $sel_flat_rw, %ax
+#  mov %fs, %ax
   mov %ax, %ds
   mov %ax, %es
+  mov %ax, %ss
+
   mov %ax, %fs
   mov %ax, %gs
-  mov %ax, %ss
+#  mov %ax, %ss
+
   mov $top_of_stack, %esp
 
   #xchg %bx, %bx
   jmpl $sel_flat_c, $copy_elf_code_addr # call c func
 
 .code32
+
+# prefix p_ is protected
+.global p_dump_memory
+p_dump_memory:
+    pushl   %ebp
+    mov     %esp, %ebp
+
+    pushl   %esi
+    pushl   %edi
+    pushl   %ecx
+
+    mov     8(%ebp), %edi    /* Destination */
+    mov     12(%ebp), %esi   /* Source */
+    mov     16(%ebp), %ecx   /* Counter */
+
+    mov     $0x100000, %edi    /* Destination */
+    mov     $0x300000, %esi   /* Source */
+    mov     $16, %ecx   /* Counter */
+1:
+    cmp     $0, %ecx  /* Loop counter */
+    jz      2f
+    movb    %fs:(%esi), %al
+
+    xchg %bx, %bx
+    call p_disp_al
+    addl	$2, p_vb_addr
+
+    inc     %esi
+
+    xor %eax,%eax
+3:
+    inc     %edi
+    dec     %ecx
+    jmp     1b
+2:
+    mov     8(%ebp), %eax
+    pop     %ecx
+    pop     %edi
+    pop     %esi
+    mov     %ebp, %esp
+    pop     %ebp
+    retl
+
+.global p_disp_ax
+p_disp_ax:
+  xchg %bx, %bx
+  push %bx
+  mov %ax, %bx
+  shr $4, %al
+  call disp_al
+  mov %bx, %ax
+  call p_disp_al
+  add	$2, p_vb_addr
+  pop %bx
+  ret
+
+.global p_disp_al
+p_disp_al:
+	pushl	%ecx
+	pushl	%edx
+	pushl	%esi
+        mov p_vb_addr, %esi
+#        mov $sel_flat_rw, %cx
+#        mov %cx, %fs
+
+	movb	$0x0c, %ah # 0000: 黑底    1100: 紅字
+	movb	%al, %dl
+	shr	$4, %al
+	movl	$2, %ecx
+.begin1:
+	andb	$0x0f, %al
+	cmp	$9, %al
+	ja	3f          # cf=0, zf=0, above 9 (>9)
+	#addb	$'0', %al
+	addb	$0x30, %al
+	jmp	4f
+3:
+	sub	$0x0A, %al
+	#add	$'A', %al
+	add	$0x41, %al
+4:
+	#mov	[gs:edi], ax
+	mov	%ax, %fs:(%esi)
+	addl	$2, p_vb_addr
+        mov     p_vb_addr, %esi
+
+
+	mov	%dl, %al
+	loop	.begin1
+
+	popl	%esi
+	popl	%edx
+	popl	%ecx
+
+	ret
+
 enter_pm1:
-    mov $select_4g_x, %ax
-    mov %ax, %gs
+#    mov $select_4g_x, %ax
+#    mov %ax, %gs
     mov $select_4g_rw, %ax
     mov %ax, %fs
     #mov %ax, %es
 
     ljmpl     $sel_code16,$0
+
+.data
+p_vb: .int 0xb8000
 
 .code16   
 LABEL_SEG_CODE16:
@@ -464,3 +637,44 @@ LABEL_REAL_ENTRY:               # 從保護模式跳回到實模式就到了這�
   sti     
   jmp big_real_mode
 
+.global dump_memory
+dump_memory:
+    pushl   %ebp
+    mov     %esp, %ebp
+
+    pushl   %esi
+    pushl   %edi
+    pushl   %ecx
+    movl  $0xb8000, vb
+
+    mov     8(%ebp), %edi    /* Destination */
+    mov     12(%ebp), %esi   /* Source */
+    mov     16(%ebp), %ecx   /* Counter */
+
+    mov     $0x100000, %edi    /* Destination */
+    mov     $0x300000, %esi   /* Source */
+    mov     $16, %ecx   /* Counter */
+1:
+    cmp     $0, %ecx  /* Loop counter */
+    jz      2f
+    movb    %fs:(%esi), %al
+
+#    xchg %bx, %bx
+    call disp_al
+    addl	$2, vb
+
+    inc     %esi
+
+    xor %eax,%eax
+3:
+    inc     %edi
+    dec     %ecx
+    jmp     1b
+2:
+    mov     8(%ebp), %eax
+    pop     %ecx
+    pop     %edi
+    pop     %esi
+    mov     %ebp, %esp
+    pop     %ebp
+    retl
