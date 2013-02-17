@@ -137,5 +137,6 @@ rom.fs: romfs
 
 clean:
 	rm -rf *.o *.elf *.bin asm_syscall.s ; #(cd kernel_loader; make clean)
+	find . -name "*.d" -exec rm -f {} \;
 distclean:
 	rm -rf *.img
