@@ -34,3 +34,14 @@ now can switch graphic/text mode tty.
 
 the url show some pictures and a vidoe demo (in real pc).
 http://descent-incoming.blogspot.tw/2013/02/x86-1m-kernel.html
+
+make test floppy image
+boot.bin is boot loader
+c-bootloader/mkimg.sh -b boot.bin -d boot.img
+
+copy kernel loader and kernel to floppy image
+./script/cp2img.sh 
+
+modify REAL_PC macro
+kernel_loader/protected_code.c
+if only in emulator, comment #define REAL_PC
