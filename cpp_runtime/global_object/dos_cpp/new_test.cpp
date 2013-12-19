@@ -51,6 +51,11 @@ u16 asm_get_cs(void)
 
 const int SOME_BASE_ADDRESS = 0x500;
 
+void myfree(void *ptr)
+{
+  print_str("myfree\r\n");
+}
+
 void *mymalloc(int size)
 {
   static char mem[256];
@@ -70,6 +75,11 @@ void *operator new(unsigned int s)
   return mymalloc(s);
 }
 
+void operator delete(void *p)
+{
+  myfree(p);
+}
+
 extern "C" int cpp_main(void)
 {
   print_str("cpp_main\r\n");
@@ -81,6 +91,7 @@ extern "C" int cpp_main(void)
   io_p->print("io_p g++ version: ");
   io_p->print(ver);
   io_p->print("\r\n");
+  delete io_p;
 
 #if 0
   u16 cs = asm_get_cs();
