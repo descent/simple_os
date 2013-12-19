@@ -11,19 +11,13 @@ typedef unsigned short u16;
 typedef unsigned int u32;
 
 
-/*
- * c bootloader
- */
-
-//#define POINTER_TEST
-
-
 #define BOCHS_MB __asm__ __volatile__("xchg %bx, %bx");
 
-
+#if 0
 Ab ab(7);
 Io io;
 Obj1 g_obj1;
+#endif
 
 extern int _start_ctors;
 extern int _end_ctors;
@@ -59,11 +53,15 @@ const int SOME_BASE_ADDRESS = 0x500;
 
 void *mymalloc(int size)
 {
+  static char mem[256];
+  return mem;
+#if 0
   // ref: http://wiki.osdev.org/C%2B%2B_Exception_Support
   static char* freeMemoryBase = reinterpret_cast<char *>(SOME_BASE_ADDRESS);
   size = (size + 7) / 8 * 8;
   freeMemoryBase += size;
   return freeMemoryBase - size;
+#endif
 }
 
 // ref: http://wiki.osdev.org/C%2B%2B#The_Operators_.27new.27_and_.27delete.27
@@ -79,7 +77,12 @@ extern "C" int cpp_main(void)
   print_str("\r\n");
   
   Io *io_p = new Io;
+  const char *ver=__VERSION__;
+  io_p->print("io_p g++ version: ");
+  io_p->print(ver);
+  io_p->print("\r\n");
 
+#if 0
   u16 cs = asm_get_cs();
   u16 ds = asm_get_ds();
   io.print("cs: ");
@@ -99,7 +102,7 @@ extern "C" int cpp_main(void)
   Obj1 obj2;
   obj1 = obj2;
   obj1.test_obj1();
-
+#endif
   return 0;
 }
 
