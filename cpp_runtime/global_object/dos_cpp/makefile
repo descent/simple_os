@@ -3,6 +3,12 @@ CPPFLAGS = -static -m32  -g -Wall -Wextra -nostdlib -fno-builtin -nostartfiles -
 LDFLAGS = -m elf_i386 -static
 CXX=g++
 
+%.bin: %.elf
+	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
+
+new_test.elf: cpp_init.o new_test.o io.o cpp_abi.o obj.o dos_io.o
+	ld $(LDFLAGS) -Tcpp.ld -nostdlib -M -o $@ $^ > $@.map
+
 nullptr.bin: nullptr.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
 nullptr.elf: cpp_init.o nullptr.o io.o cpp_abi.o obj.o dos_io.o
