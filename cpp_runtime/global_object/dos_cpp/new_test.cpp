@@ -58,6 +58,9 @@ void myfree(void *ptr)
 
 void *mymalloc(int size)
 {
+  print_str("size: ");
+  s16_print_int(size, 10);
+  print_str("\r\n");
   static char mem[256];
   return mem;
 #if 0
