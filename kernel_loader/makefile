@@ -10,6 +10,10 @@ else
 include ../rule.mk
 endif
 
+ifdef REAL_PC
+CFLAGS+=-DREAL_PC
+endif
+
 # enter protected mode kernel loader
 kloaderp.bin: kloaderp.bin.elf
 	objcopy -R .pdr -R .comment -R.note -S -O binary $< $@
