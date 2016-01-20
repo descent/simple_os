@@ -8,6 +8,7 @@ FS_OBJS = fs/romfs.o fs/vfs.o
 
 all: p_kernel.elf 
 
+
 kloaderp.bin: 
 	(cd kernel_loader; make)
 
@@ -129,14 +130,17 @@ C_OBJS = clock.o start.o process.o storage.o syscall.o
 #o:
 #	echo $(C_OBJS)
 
-rom.fs: romfs
+rom.fs: genromfs romfs
 	./others/genromfs -d romfs/ -f rom.fs
 
+genromfs:
+	if [ ! -d "romfs" ]; then echo "mkdir romfs" ; mkdir romfs ; fi
+	(cd others; make)
 
 .PHONE: clean distclean kloaderp.bin
 
 clean:
-	rm -rf *.o *.elf *.bin asm_syscall.s ; #(cd kernel_loader; make clean)
+	rm -rf *.o *.elf *.bin asm_syscall.s romfs ; #(cd kernel_loader; make clean)
 	find . -name "*.d" -exec rm -f {} \;
 distclean:
 	rm -rf *.img
