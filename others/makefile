@@ -5,3 +5,5 @@ genromfs.o: genromfs.c
 
 genromfs_2.o: genromfs_2.c  
 	gcc -o $@ -c $<
+clean:
+	rm -rf *.o genromfs
