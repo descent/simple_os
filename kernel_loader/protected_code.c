@@ -37,7 +37,7 @@ void s32_memcpy(u8 *dest, const u8 *src, u32 n)
     *dest++ = *src++;
 }
 
-#define REAL_PC
+//#define REAL_PC
 // in this state, cannot use global, static, bss data,
 // because this address is base on 0x100, but kloaderp.bin is loaded to 0x9000:0x0100,
 // so need added 0x9000X16 is global, static, bss data real address.
