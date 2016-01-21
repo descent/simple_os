@@ -6,7 +6,14 @@ include rule.mk
 FS_SRC = fs/romfs.c fs/vfs.c
 FS_OBJS = fs/romfs.o fs/vfs.o
 
-all: p_kernel.elf 
+all: boot.img
+
+boot.img: p_kernel.elf
+	git clone https://github.com/descent/write_os.git ; cd write_os/src/chapter2/2 ; make
+	cp write_os/src/chapter2/2/boot.img .
+	script/cp2img.sh
+	@echo ""
+	@echo "type 'qemu-system-i386 -fda boot.img' for test"
 
 
 kloaderp.bin: 
@@ -143,4 +150,4 @@ clean:
 	rm -rf *.o *.elf *.bin asm_syscall.s romfs ; #(cd kernel_loader; make clean)
 	find . -name "*.d" -exec rm -f {} \;
 distclean:
-	rm -rf *.img
+	rm -rf *.img write_os
