@@ -45,3 +45,10 @@ copy kernel loader and kernel to floppy image
 modify REAL_PC macro
 kernel_loader/protected_code.c
 if only in emulator, comment #define REAL_PC
+
+compile/test:
+qemu:
+  make
+
+real pc:
+  make REAL_PC=1
