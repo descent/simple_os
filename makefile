@@ -31,7 +31,7 @@ c_init.elf: c_init.o b.o bss.lds
 c_init.o: c_init.s
 	as $(ASFLAGS) -o $@ $<
 b.o: b.c
-	gcc $(CFLAGS) -c $<
+	gcc -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -Iinclude -I../include -Os -c $<
 b.s: b.c
 	gcc -S $(CFLAGS) -c $<
 
