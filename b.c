@@ -1,4 +1,4 @@
-asm(".code16gcc\n");
+__asm__(".code16gcc\n");
 
 typedef unsigned char u8;
 typedef unsigned int u32;
@@ -46,7 +46,7 @@ char* itoa(int n, char* str)
     *p=0;
     return str;
   }
-#if 0
+#if 1
   if (radix == 10 && n < 0)
   {
     *p++='-';
@@ -59,7 +59,7 @@ char* itoa(int n, char* str)
     n/=radix;
   }
   *p=0;
-#if 0
+#if 1
   for (--p; head < p ; ++head, --p)
   {
     char temp=*head;
