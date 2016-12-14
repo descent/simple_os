@@ -31,7 +31,8 @@ c_init.elf: c_init.o b.o bss.lds
 c_init.o: c_init.s
 	as $(ASFLAGS) -o $@ $<
 b.o: b.c
-	gcc -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -Iinclude -I../include -Os -c $<
+	#gcc -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -Iinclude -I../include -Os -c $<
+	gcc -std=c99 -fno-stack-protector -m32 -ffreestanding -fno-builtin -g -Iinclude -I../include -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -Os -c $<
 b.s: b.c
 	gcc -S $(CFLAGS) -c $<
 
