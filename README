@@ -3,10 +3,13 @@ on the x86/32 bit mode platform.
 * using x86 protected mode.
 * process switch.
 * implement fork/exec/wait.
-* support vga graphic mode.
+* support vga graphic mode, in protected mode switch to graphic mode and switch back to text mode.
 * kernel loader can load more than 1M size kernel (using Unreal mode).
 * ipc.
 * ramdisk.
+
+demo video:
+[linkname] https://www.youtube.com/watch?v=wtTc2bLOnFY
 
 boot loader loads the kernel loader (kernel_loader/kloaderp.bin) to 0x9000:0x0100.
 
@@ -64,3 +67,4 @@ bochs cmd:
   x86.bxrc for bochs debugger
   x86-gdb.bxrc for gdb
   bochs -f x86.bxrc
+
