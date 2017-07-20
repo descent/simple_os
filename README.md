@@ -9,6 +9,7 @@ on the x86/32 bit mode platform.
 * ramdisk.
 
 demo video:
+
 [![IMAGE ALT TEXT](https://img.youtube.com/vi/wtTc2bLOnFY/0.jpg)](https://www.youtube.com/watch?v=wtTc2bLOnFY)
 
 boot loader loads the kernel loader (kernel_loader/kloaderp.bin) to 0x9000:0x0100.
