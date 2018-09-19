@@ -58,7 +58,7 @@ void myfree(void *ptr)
 
 void *mymalloc(int size)
 {
-  print_str("size: ");
+  print_str("mymalloc ## size: ");
   s16_print_int(size, 10);
   print_str("\r\n");
   static char mem[256];
@@ -83,6 +83,31 @@ void operator delete(void *p)
   myfree(p);
 }
 
+// new/delete: array version
+
+void *operator new[] (unsigned int s)
+{
+  return mymalloc(s);
+}
+
+void operator delete[] (void *p)
+{
+  myfree(p);
+}
+
+// new/delete: no exception version
+
+
+struct nothrow_t { };
+
+const nothrow_t nothrow;
+
+void *operator new (unsigned int s, const nothrow_t&) 
+{
+  return mymalloc(s);
+}
+
+
 extern "C" int cpp_main(void)
 {
   print_str("cpp_main\r\n");
@@ -95,6 +120,14 @@ extern "C" int cpp_main(void)
   io_p->print(ver);
   io_p->print("\r\n");
   delete io_p;
+
+  // test new array
+  int *pia = new int[1024];
+  delete [] pia;
+
+  // test no exception new
+
+  Io *ne_io_p =  new(nothrow) Io;
 
 #if 0
   u16 cs = asm_get_cs();
