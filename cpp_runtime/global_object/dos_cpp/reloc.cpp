@@ -10,6 +10,9 @@ typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
 
+extern "C" void jmp_to_reloc_addr();
+extern "C" u32 get_pc();
+
 #define R_386_RELATIVE 0x00000008
 
 #define BOCHS_MB __asm__ __volatile__("xchg %bx, %bx");
@@ -29,6 +32,9 @@ void s32_memcpy(u8 *dest, const u8 *src, u32 n)
 void test_func(void)
 {
   print_str("test func\r\n");
+  u32 v = get_pc();
+  s16_print_int(v, 16);
+  print_str("\r\n");
 }
 
 static auto test_func_val = test_func;
@@ -55,8 +61,6 @@ extern int __rel_dyn_start;
 extern int __rel_dyn_end;
 
 
-extern "C" void jmp_to_reloc_addr();
-extern "C" u32 get_pc();
 
 void reloc(u32 reloc_addr)
 {
@@ -80,6 +84,35 @@ void reloc(u32 reloc_addr)
   s16_print_int(image_size, 16);
   print_str("\r\n");
 
+  // modify rel.dyn section
+  for (int i = rel_dyn_from ; i < rel_dyn_to ; i+=8)
+  {
+    u32 v1 = *(u32*)i;
+    u32 v2 = *(u32*)(i+4);
+    print_str("v1: ");
+    s16_print_int(v1, 16);
+    print_str("\r\n");
+
+    print_str("v2: ");
+    s16_print_int(v2, 16);
+    print_str("\r\n");
+    if (v2 == R_386_RELATIVE)
+    {
+      u32 reloc_off = 0x1000;
+      u32 mem_data = *(u32*)(v1 + reloc_off); // 0xa2c
+    print_str("mem_data: ");
+    s16_print_int(mem_data, 16);
+    print_str("\r\n");
+
+      *(u32*)(v1+reloc_off) = mem_data + reloc_off; // locate offset
+       mem_data = *(u32*)(v1 + reloc_off);
+    print_str("after reloc mem_data: ");
+    s16_print_int(mem_data, 16);
+    print_str("\r\n");
+    }
+    print_str("\r\n");
+  }
+
   //s16_print_int(rel_dyn_to, 16);
   //print_str("\r\n");
   //s16_print_int(v, 16);
@@ -95,8 +128,6 @@ extern "C" int cpp_main(void)
 
   reloc(0x1100);
   jmp_to_reloc_addr();
-
-
 
   print_str("after reloc to %cs:0x1100\r\n");
 
