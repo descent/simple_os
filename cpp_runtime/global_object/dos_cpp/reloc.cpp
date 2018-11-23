@@ -67,6 +67,7 @@ void reloc(u32 reloc_addr)
   int from = (int)&__image_copy_start;
   int to = (int)&__image_copy_end;
   int image_size = to - from;
+  u32 reloc_off = reloc_addr - from;
 
   int rel_dyn_from = (int)&__rel_dyn_start;
   int rel_dyn_to = (int)&__rel_dyn_end;
@@ -98,7 +99,6 @@ void reloc(u32 reloc_addr)
     print_str("\r\n");
     if (v2 == R_386_RELATIVE)
     {
-      u32 reloc_off = 0x1000;
       u32 mem_data = *(u32*)(v1 + reloc_off); // 0xa2c
     print_str("mem_data: ");
     s16_print_int(mem_data, 16);
