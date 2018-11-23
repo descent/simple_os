@@ -78,7 +78,7 @@ void *operator new(unsigned int s)
   return mymalloc(s);
 }
 
-void operator delete(void *p)
+void operator delete(void *p, unsigned int s)
 {
   myfree(p);
 }
@@ -91,6 +91,11 @@ void *operator new[] (unsigned int s)
 }
 
 void operator delete[] (void *p)
+{
+}
+
+// ref: gcc-5.5.0/libstdc++-v3/libsupc++/del_opvs.cc
+void operator delete[] (void *p, unsigned int t)
 {
   myfree(p);
 }
