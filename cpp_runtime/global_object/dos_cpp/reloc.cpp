@@ -69,6 +69,15 @@ void reloc(u32 reloc_addr)
   int image_size = to - from;
   u32 reloc_off = reloc_addr - from;
 
+  print_str("reloc_addr: ");
+  s16_print_int(reloc_addr, 16);
+  print_str("\r\n");
+
+  print_str("reloc_off: ");
+  s16_print_int(reloc_off, 16);
+  print_str("\r\n");
+
+
   int rel_dyn_from = (int)&__rel_dyn_start;
   int rel_dyn_to = (int)&__rel_dyn_end;
 
@@ -90,6 +99,7 @@ void reloc(u32 reloc_addr)
   {
     u32 v1 = *(u32*)i;
     u32 v2 = *(u32*)(i+4);
+    #if 0
     print_str("v1: ");
     s16_print_int(v1, 16);
     print_str("\r\n");
@@ -97,18 +107,23 @@ void reloc(u32 reloc_addr)
     print_str("v2: ");
     s16_print_int(v2, 16);
     print_str("\r\n");
+    #endif
     if (v2 == R_386_RELATIVE)
     {
       u32 mem_data = *(u32*)(v1 + reloc_off); // 0xa2c
-    print_str("mem_data: ");
-    s16_print_int(mem_data, 16);
-    print_str("\r\n");
+      #if 0
+      print_str("mem_data: ");
+      s16_print_int(mem_data, 16);
+      print_str("\r\n");
+      #endif
 
       *(u32*)(v1+reloc_off) = mem_data + reloc_off; // locate offset
-       mem_data = *(u32*)(v1 + reloc_off);
-    print_str("after reloc mem_data: ");
-    s16_print_int(mem_data, 16);
-    print_str("\r\n");
+      mem_data = *(u32*)(v1 + reloc_off);
+      #if 0
+      print_str("after reloc mem_data: ");
+      s16_print_int(mem_data, 16);
+      print_str("\r\n");
+      #endif
     }
     print_str("\r\n");
   }
@@ -125,13 +140,18 @@ extern "C" int cpp_main(void)
   print_str("cpp_main\r\n");
   //s16_print_int(obj_count, 10);
   rel_dyn_test();
+  u32 v = get_pc();
+  print_str("before reloc pc: ");
+  s16_print_int(v, 16);
+  print_str("\r\n");
 
   reloc(0x1100);
   jmp_to_reloc_addr();
 
   print_str("after reloc to %cs:0x1100\r\n");
 
-  u32 v = get_pc();
+  v = get_pc();
+  print_str("after reloc pc: ");
   s16_print_int(v, 16);
   print_str("\r\n");
 
