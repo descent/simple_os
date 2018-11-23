@@ -39,6 +39,8 @@
 .text
   jmp _start
 .global _start
+.global get_pc
+.global jmp_to_reloc_addr
 _start:
   xchg %bx, %bx
 #if 1
@@ -96,6 +98,7 @@ _start:
   # in dos environment use 16 or 32 bit address? look like 32 bit
   calll init_cpp_global_asm
   calll cpp_main
+#ifndef RELOC
   calll g_dtors
 
   mov $0, %ax
@@ -103,7 +106,7 @@ _start:
 
   mov %fs:0, %bx
   calll disp_bx
-
+#endif
 #  call disp_str2
   mov     $0x4c00, %ax
   int     $0x21   # 回到 DOS
@@ -128,6 +131,16 @@ _start:
 #    int     $0x10
 #    ret
 #str2:.ascii "after"
+
+jmp_to_reloc_addr:
+  mov    (%esp),%eax
+  add    $0x1000, %eax
+  mov    %eax, (%esp)
+  retl
+
+get_pc:
+  mov    (%esp),%eax
+  retl
 
 # call global object ctor
 init_cpp_global_asm:
@@ -268,4 +281,5 @@ cur_pos: .int 0
 #  mov %ax, %es
 #.org 510
 #.word 0xaa55
+
 
