@@ -39,10 +39,18 @@ void test_func(void)
 
 static auto test_func_val = test_func;
 static int test_val = 10;
+int data1;
+
+void (*data2)(void);
 
 int rel_dyn_test()
 {
   BOCHS_MB
+  print_str("data_1: ");
+  s16_print_int(data1, 16);
+  print_str("\r\n");
+  //data1 = 5;
+  data2 = test_func;
   int i;
   i =  test_val;
   print_str("test_func_val: ");
@@ -52,15 +60,31 @@ int rel_dyn_test()
     //printf("test = 0x%x\n", test_func);
     //printf("test_func = 0x%x\n", test_func_val);
   test_func();
-  return i;
+  return i + data1;
 }
 
 extern int __image_copy_start;
 extern int __image_copy_end;
 extern int __rel_dyn_start;
 extern int __rel_dyn_end;
+extern u32 __bss_start__;
+extern u32 __bss_end__;
 
-
+void init_reloc_bss(u32 reloc_offset)
+{
+  u32 reloc_bss_b = (int)&__bss_start__ + reloc_offset;
+  u32 reloc_bss_e = (int)&__bss_end__ + reloc_offset;
+  print_str("reloc_bss_b: ");
+  s16_print_int(reloc_bss_b, 16);
+  print_str("\r\n");
+  print_str("reloc_bss_e: ");
+  s16_print_int(reloc_bss_e, 16);
+  print_str("\r\n");
+  for (u32 b = reloc_bss_b ; b < reloc_bss_e ; b++)
+  {
+    *(u8*)b = 1;
+  }
+}
 
 void reloc(u32 reloc_addr)
 {
@@ -91,6 +115,7 @@ void reloc(u32 reloc_addr)
   print_str("\r\n");
 
   s32_memcpy((u8*)reloc_addr, (u8*)from, image_size);
+  init_reloc_bss(reloc_off);
   s16_print_int(image_size, 16);
   print_str("\r\n");
 
