@@ -58,10 +58,10 @@ __rel_dyn_end = .;
     .bss :
     {
         sbss = .; __bss_start__ = .;
-        *(COMMON)
         *(.bss)
-        *(.gnu.linkonce.b*)
         ebss = .; __bss_end__ = .;
+        *(COMMON)
+        *(.gnu.linkonce.b*)
     }
 
     /DISCARD/ :
