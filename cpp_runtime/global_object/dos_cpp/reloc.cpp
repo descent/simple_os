@@ -82,7 +82,7 @@ void init_reloc_bss(u32 reloc_offset)
   print_str("\r\n");
   for (u32 b = reloc_bss_b ; b < reloc_bss_e ; b++)
   {
-    *(u8*)b = 1;
+    *(u8*)b = 0;
   }
 }
 
