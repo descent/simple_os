@@ -12,6 +12,9 @@ typedef unsigned int u32;
 
 extern "C" void jmp_to_reloc_addr();
 extern "C" u32 get_pc();
+extern "C" u32 set_sp(u32 val);
+extern "C" u32 get_sp();
+extern "C" void init_reloc_stack(u32 reloc_offset);
 
 #define R_386_RELATIVE 0x00000008
 
@@ -45,7 +48,7 @@ void (*data2)(void);
 
 int rel_dyn_test()
 {
-  BOCHS_MB
+  //BOCHS_MB
   print_str("data_1: ");
   s16_print_int(data1, 16);
   print_str("\r\n");
@@ -82,8 +85,54 @@ void init_reloc_bss(u32 reloc_offset)
   print_str("\r\n");
   for (u32 b = reloc_bss_b ; b < reloc_bss_e ; b++)
   {
-    *(u8*)b = 0;
+    *(u8*)b = 1;
   }
+}
+
+#if 0
+void init_reloc_stack(u32 reloc_offset)
+{
+  // in the prog, sp - 4 after function call
+  u32 sp = get_sp();
+  u32 reloc_sp = sp + reloc_offset;
+  *(u32*)(reloc_sp+4) = *(u32*)(sp+4); // copy return address to reloc sp
+  set_sp(reloc_sp);
+}
+#endif
+
+void to_reloc(u32 reloc_off)
+{
+  // &__image_copy_start, &__image_copy_end 會跟著被 relocate 而改變,
+  // 因為程式使用了 pc 值來計算這 2 個值, 而 pc 值已經被 relocate 到新位址, 在我的測試程式中,
+  // 要加上 0x1000
+  // 原本的 &__image_copy_end: 00000d70 -> 1d70
+  u32 from = (int)&__image_copy_start - reloc_off;
+  u32 to = (int)&__image_copy_end - reloc_off;
+
+  #if 1
+  print_str("yy from: ");
+  s16_print_int(from, 16);
+  print_str("\r\n");
+  print_str("yy to: ");
+  s16_print_int(to, 16);
+  print_str("\r\n");
+  #endif
+
+  BOCHS_MB
+#if 0
+  for (u32 i = from ; i < to ; ++i)
+    *(u8*)i = 0;
+  BOCHS_MB
+#endif
+
+  print_str("after reloc to %cs:0x1100\r\n");
+
+  u32 v = get_pc();
+  print_str("after reloc pc: ");
+  s16_print_int(v, 16);
+  print_str("\r\n");
+
+  rel_dyn_test();
 }
 
 void reloc(u32 reloc_addr)
@@ -119,6 +168,7 @@ void reloc(u32 reloc_addr)
   s16_print_int(image_size, 16);
   print_str("\r\n");
 
+
   // modify rel.dyn section
   for (int i = rel_dyn_from ; i < rel_dyn_to ; i+=8)
   {
@@ -150,8 +200,9 @@ void reloc(u32 reloc_addr)
       print_str("\r\n");
       #endif
     }
-    print_str("\r\n");
+    //print_str("\r\n");
   }
+  print_str("---\r\n");
 
   //s16_print_int(rel_dyn_to, 16);
   //print_str("\r\n");
@@ -162,6 +213,9 @@ void reloc(u32 reloc_addr)
 
 extern "C" int cpp_main(void)
 {
+  //BOCHS_MB
+  u32 esp = get_sp();
+
   print_str("cpp_main\r\n");
   //s16_print_int(obj_count, 10);
   rel_dyn_test();
@@ -170,17 +224,17 @@ extern "C" int cpp_main(void)
   s16_print_int(v, 16);
   print_str("\r\n");
 
+  u32 reloc_addr = 0x1100;
   reloc(0x1100);
+
+  u32 from = (int)&__image_copy_start;
+  u32 reloc_off = reloc_addr - from;
+  //BOCHS_MB
+  init_reloc_stack(reloc_off);
+
   jmp_to_reloc_addr();
 
-  print_str("after reloc to %cs:0x1100\r\n");
-
-  v = get_pc();
-  print_str("after reloc pc: ");
-  s16_print_int(v, 16);
-  print_str("\r\n");
-
-  rel_dyn_test();
+  to_reloc(reloc_off);
   
   return 0;
 }
