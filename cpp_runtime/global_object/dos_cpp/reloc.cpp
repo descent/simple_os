@@ -118,8 +118,8 @@ void to_reloc(u32 reloc_off)
   print_str("\r\n");
   #endif
 
+#if 1
   BOCHS_MB
-#if 0
   for (u32 i = from ; i < to ; ++i)
     *(u8*)i = 0;
   BOCHS_MB
@@ -235,6 +235,9 @@ extern "C" int cpp_main(void)
   jmp_to_reloc_addr();
 
   to_reloc(reloc_off);
+
+  __asm__ volatile ("mov  $0x4c00, %ax\t\n");
+  __asm__ volatile ("int  $0x21\t\n");   // 回到 DOS
   
   return 0;
 }
