@@ -40,6 +40,9 @@
   jmp _start
 .global _start
 .global get_pc
+.global get_sp
+.global set_sp
+.global init_reloc_stack
 .global jmp_to_reloc_addr
 _start:
   xchg %bx, %bx
@@ -47,6 +50,7 @@ _start:
   mov %cs, %ax
   mov %ax, %ds
   mov %ax, %ss
+  mov $0xaffe, %sp
 
 #endif
 #  movl $0, obj_count
@@ -140,6 +144,30 @@ jmp_to_reloc_addr:
 
 get_pc:
   mov    (%esp),%eax
+  retl
+
+get_sp:
+  mov    %esp,%eax
+  add    $4, %eax
+  retl
+
+set_sp:
+  mov    (%esp),%eax
+  mov    %eax, %esp
+  retl
+
+init_reloc_stack:
+  mov    (%esp), %eax # get return address
+
+# calculate new sp
+  mov    4(%esp), %ebx # argument 1 
+  add    %esp, %ebx
+
+# put return address to new sp
+  mov %eax, (%ebx)
+
+# set new sp
+  mov    %ebx, %esp
   retl
 
 # call global object ctor
