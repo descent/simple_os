@@ -1,6 +1,6 @@
 #CPPFLAGS = -m32  -g -Wall -Wextra -Werror -nostdlib -fno-builtin -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -fno-stack-protector
 
-CPPFLAGS = -static -m32  -g -Wall -Wextra -nostdlib -fno-builtin -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -fno-stack-protector -std=c++17 
+CPPFLAGS = -static -O0 -m32  -g -Wall -Wextra -nostdlib -fno-builtin -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -fno-stack-protector -std=c++17 
 #-fno-pic
 
 LDFLAGS = -m elf_i386 -static
@@ -12,7 +12,10 @@ CXX=g++
 new_test.elf: cpp_init.o new_test.o io.o cpp_abi.o obj.o dos_io.o
 	ld $(LDFLAGS) -Tcpp.ld -nostdlib -M -o $@ $^ > $@.map
 
-reloc.elf: cpp_init.reloc.o reloc.o dos_io.o
+pc9801.elf: cpp_init.reloc.o pc9801.o dio.o
+	ld -pie $(LDFLAGS) -Treloc.ld -nostdlib -o $@ $^ 
+
+reloc.elf: cpp_init.reloc.o reloc.o dos_io.o dio.o
 	ld -pie $(LDFLAGS) -Treloc.ld -nostdlib -o $@ $^ 
 
 nullptr.bin: nullptr.elf
@@ -28,12 +31,17 @@ cppb.elf: cpp_init.o cppb.o io.o cpp_abi.o obj.o dos_io.o
 reloc.o: reloc.cpp
 	$(CXX) $(CPPFLAGS) -c $<
 
+pc9801.o: pc9801.cpp
+	$(CXX) $(CPPFLAGS) -c $<
+
 cpp_init.o: cpp_init.S
 	$(CXX) $(CPPFLAGS) -c $<
 
 cpp_init.reloc.o: cpp_init.S
 	$(CXX) -DRELOC $(CPPFLAGS) -c $< -o $@
 
+dio.o: dio.S
+	as --32 $< -o $@
 #cpp_init.o: cpp_init.s
 #	$(CXX) $(CPPFLAGS) -c $<
 #cpp_init.s: cpp_init.S
